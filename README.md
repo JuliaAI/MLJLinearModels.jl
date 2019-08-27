@@ -2,7 +2,7 @@
 
 | [MacOS/Linux] | Coverage | Documentation |
 | :------------ | :------- | :------------ |
-| [![Build Status](https://travis-ci.org/alan-turing-institute/MLJLinearModels.jl.svg?branch=master)](https://travis-ci.org/alan-turing-institute/MLJLinearModels.jl) | [![codecov.io](http://codecov.io/github/alan-turing-institute/MLJLinearModels.jl/coverage.svg?branch=master)](http://codecov.io/github/alan-turing-institute/MLJLinearModels.jl?branch=master) | TBA |
+| [![Build Status](https://travis-ci.org/alan-turing-institute/MLJLinearModels.jl.svg?branch=master)](https://travis-ci.org/alan-turing-institute/MLJLinearModels.jl) | [![codecov.io](http://codecov.io/github/alan-turing-institute/MLJLinearModels.jl/coverage.svg?branch=master)](http://codecov.io/github/alan-turing-institute/MLJLinearModels.jl?branch=master) | TODO |
 
 This is a convenience package gathering functionalities to solve a number of generalised linear regression/classification problems which, inherently, correspond to an optimisation problem of the form
 
