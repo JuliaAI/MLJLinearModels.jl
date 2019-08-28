@@ -5,7 +5,7 @@ n, p = 500, 5
     # No intercept
     δ = 0.01
     λ = 3.0
-    hr = HuberRegression(δ, λ, fit_intercept=false)
+    hr = HuberRegression(δ, λ; fit_intercept=false)
     J = objective(hr, X, y)
     o = RobustLoss(Huber(δ)) + λ * L2Penalty()
     @test J(θ) == o(y, X*θ, θ)

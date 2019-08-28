@@ -2,7 +2,8 @@ export Analytical, CG,
         Newton, NewtonCG,
         LBFGS,
         ProxGrad, FISTA, ISTA,
-        IWLSCG
+        IWLSCG,
+        ADMM, FADMM
 
 # =====
 # TODO
@@ -39,12 +40,11 @@ struct LBFGS <: Solver end
     max_iter::Int  = 1000  # max number of overall iterations
     tol::Float64   = 1e-4  # tolerance over relative change of θ i.e. norm(θ-θ_)/norm(θ)
     max_inner::Int = 100   # β^max_inner should be > 1e-10
-    β::Float64     = 0.8   # in (0, 1); shrinkage in the backtracking step
+    beta::Float64  = 0.8   # in (0, 1); shrinkage in the backtracking step
 end
 
 FISTA(; kwa...) = ProxGrad(;accel = true, kwa...)
 ISTA(; kwa...)  = ProxGrad(;accel = false, kwa...)
-
 
 # ===================== iwls.jl
 
@@ -53,4 +53,20 @@ ISTA(; kwa...)  = ProxGrad(;accel = false, kwa...)
     max_inner::Int   = 200
     tol::Float64     = 1e-4
     damping::Float64 = 1.0   # should be between 0 and 1, 1 = trust iterates
+end
+
+# ===================== admm.jl
+
+@with_kw struct ADMM <: Solver
+    max_iter::Int  = 100
+    tol::Float64   = 1e-4
+    alpha::Float64 = 1.5  # over-relaxation (recommended between 1.5 and 1.8)
+    rho::Float64   = 1.0  # Lagrangian parameter (should be decreased if poor condition)
+end
+
+@with_kw struct FADMM <: Solver
+    max_iter::Int  = 100
+    tol::Float64   = 1e-4
+    eta::Float64   = 0.999 # restart parameter
+    rho::Float64   = 1.0   # Lagrangian parameter (should be decreased if poor condition)
 end

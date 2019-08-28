@@ -11,6 +11,7 @@
     logreg2 = LogisticRegression(λ, γ)
     mnreg2  = MultinomialRegression(λ, γ)
     hlreg   = RobustRegression(HuberRho(δ), λ)
+    ladreg  = LADRegression(γ, penalty=:l1)
 
     @test isa(glr.loss, L2Loss)
     @test isa(glr.penalty, NoPenalty)
@@ -52,6 +53,10 @@
     @test isa(hlreg.penalty, ScaledPenalty{L2Penalty})
     @test hlreg.penalty.scale == λ
     @test hlreg.fit_intercept
+
+    @test isa(ladreg.loss, L1Loss)
+    @test isa(ladreg.penalty, ScaledPenalty{L1Penalty})
+    @test ladreg.fit_intercept
 
     # ======
 

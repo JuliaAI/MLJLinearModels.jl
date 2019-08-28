@@ -45,6 +45,51 @@ function apply_X(X, θ, c=1)
 	end
 end
 
+
+"""
+$SIGNATURES
+
+In-place application of X*θ (only for regression case).
+"""
+function apply_X!(Xθ, X, θ)
+	p = size(X, 2)
+	if length(θ) == p
+		mul!(Xθ, X, θ)
+	else
+		mul!(Xθ, X, θ[1:p])
+		Xθ .+= θ[end]
+	end
+end
+
+
+"""
+$SIGNATURES
+
+Form (X'X) while being memory aware (assuming p ≪ n).
+"""
+function form_XtX(X, fit_intercept, lambda=0)
+	if fit_intercept
+		n, p = size(X)
+        XtX  = zeros(p+1, p+1)
+        Xt1  = sum(X, dims=1)
+        mul!(view(XtX, 1:p, 1:p), X', X) # O(np²)
+        @inbounds for i in 1:p
+            XtX[i, end] = XtX[end, i] = Xt1[i]
+        end
+        XtX[end, end] = n
+    else
+        XtX = X'*X # O(np²)
+    end
+	if !iszero(lambda)
+		λ = convert(eltype(XtX), lambda)
+		@inbounds for i in 1:size(XtX, 1)
+			XtX[i,i] += λ
+		end
+	end
+	return Hermitian(XtX)
+end
+
+
 # Sigmoid and log-sigmoid
 
 const SIGMOID_64 = log(Float64(1)/eps(Float64) - Float64(1))
@@ -102,3 +147,11 @@ function add_λI!(H::Matrix, λ::Real)
 		H[i,i] += λ
 	end
 end
+
+
+"""
+$SIGNATURES
+
+Soft-thresholding S_η(z).
+"""
+soft_thresh(z, η) = sign(z) * max(abs(z) - η, 0)

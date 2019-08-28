@@ -1,6 +1,7 @@
 export GeneralizedLinearRegression, GLR,
         LinearRegression, RidgeRegression,
         LassoRegression, ElasticNetRegression,
+        LADRegression, MADRegression,
         LogisticRegression, MultinomialRegression,
         RobustRegression, HuberRegression
 
@@ -76,18 +77,13 @@ end
 """
 $SIGNATURES
 
-Objective function: ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is either the logistic loss in the
-binary case or the multinomial loss otherwise.
+Helper function for objectives which can have 0/L1/L2 penalties.
 """
-function LogisticRegression(λ::Real=1.0, γ::Real=0.0; lambda::Real=λ, gamma::Real=γ,
-                            penalty::Symbol=iszero(gamma) ? :l2 : :en,
-                            multi_class::Bool=false,
-                            fit_intercept::Bool=true)
+function _l1l2en(lambda, gamma, penalty, r)
     check_pos.((lambda, gamma))
     penalty ∈ (:l1, :l2, :en, :none) ||
-        throw(ArgumentError("Unrecognised penalty for a logistic regression: '$penalty' " *
+        throw(ArgumentError("Unrecognised penalty for the $r: '$penalty' " *
                             "(expected none/l1/l2/en)"))
-
     penalty = if penalty == :none
        NoPenalty()
     elseif penalty == :l1
@@ -97,6 +93,36 @@ function LogisticRegression(λ::Real=1.0, γ::Real=0.0; lambda::Real=λ, gamma::
     else
         lambda * L2Penalty() + gamma * L1Penalty()
     end
+    return penalty
+end
+
+
+"""
+$SIGNATURES
+
+Least Absolute Deviation regression with objective:
+
+``|y - Xθ|₁ + λ|θ|₂²/2 + γ|θ|₁``
+"""
+function LADRegression(λ::Real=1.0, γ::Real=0.0; lambda::Real=λ, gamma::Real=γ,
+                       penalty::Symbol=iszero(gamma) ? :l2 : :en, fit_intercept::Bool=true)
+    penalty = _l1l2en(lambda, gamma, penalty, "LAD regression")
+    GeneralizedLinearRegression(loss=L1Loss(), penalty=penalty, fit_intercept=fit_intercept)
+end
+MADRegression = LADRegression
+
+
+"""
+$SIGNATURES
+
+Objective function: ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is either the logistic loss in the
+binary case or the multinomial loss otherwise.
+"""
+function LogisticRegression(λ::Real=1.0, γ::Real=0.0; lambda::Real=λ, gamma::Real=γ,
+                            penalty::Symbol=iszero(gamma) ? :l2 : :en,
+                            multi_class::Bool=false,
+                            fit_intercept::Bool=true)
+    penalty = _l1l2en(lambda, gamma, penalty, "Logistic regression")
     loss = multi_class ? MultinomialLoss() : LogisticLoss()
     GeneralizedLinearRegression(loss=loss, penalty=penalty, fit_intercept=fit_intercept)
 end
