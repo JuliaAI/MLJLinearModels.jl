@@ -37,9 +37,23 @@ end
     @test R.apply_X(X, θ, c) ≈  X * hcat(θa, θb, θc)
     @test R.apply_X(X, θ1, c) ≈ X_ * hcat(θa1, θb1, θc1)
 
+    θ1 = randn(p+1)
     Xθ = zeros(n)
     R.apply_X!(Xθ, X, θ1)
     @test Xθ ≈ X_ * θ1
+
+    z = randn(n)
+    Xtz = zeros(p)
+    R.apply_Xt!(Xtz, X, z)
+    @test Xtz ≈ X'z
+
+    Xtz2 = zeros(p+1)
+    R.apply_Xt!(Xtz2, X, z)
+    @test Xtz2 ≈ X_'z
+
+    v = view(Xtz2, 1:p)
+    R.apply_Xt!(v, X, z)
+    @test Xtz2 ≈ X_'z
 end
 
 @testset "Sigmoid" begin
@@ -67,14 +81,14 @@ end
     λ = 3
     X = randn(5, 3)
     X_ = R.augment_X(X, true)
-    @test R.form_XtX(X, true, lambda=λ) ≈ X_'X_ + λ*I
+    @test R.form_XtX(X, true, λ) ≈ X_'X_ + λ*I
 end
 
 
 @testset "Soft-thresh" begin
     x = randn(50)
     η = 0.5
-    y = R.soft_thresh(x, η)
+    y = R.soft_thresh.(x, η)
 
     z = copy(x)
     m1 = x .> η

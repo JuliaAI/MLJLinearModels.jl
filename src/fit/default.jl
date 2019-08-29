@@ -16,7 +16,7 @@ function _solver(glr::GLR{<:SMOOTH_LOSS,<:ENR}, np::NTuple{2,Int})
 end
 
 _solver(::GLR{RobustLoss,<:L2R}, np::NTuple{2,Int}) = LBFGS()
-_solver(::GLR{L1Loss,<:L2R}, 	 np::NTuple{2,Int}) = FADMM()
+#_solver(::GLR{L1Loss,<:L2R}, 	 np::NTuple{2,Int}) = FADMM()
 
 # Fallback NOTE: should revisit bc with non-smooth, wouldn't work probably PGD/PSGD
 # depending on how much data there is

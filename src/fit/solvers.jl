@@ -3,7 +3,7 @@ export Analytical, CG,
         LBFGS,
         ProxGrad, FISTA, ISTA,
         IWLSCG,
-        ADMM, FADMM
+        ADMM, FADMM # NOTE: these do not work currently
 
 # =====
 # TODO
@@ -69,4 +69,6 @@ end
     tol::Float64   = 1e-4
     eta::Float64   = 0.999 # restart parameter
     rho::Float64   = 1.0   # Lagrangian parameter (should be decreased if poor condition)
+    tau::Float64   = 2.0   # Increase / decrease of ρ should be > 1
+    mu::Float64    = 10.0  #
 end

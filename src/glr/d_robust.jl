@@ -22,8 +22,7 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} 
             w = convert.(Float64, abs.(r) .<= δ)
             g === nothing || begin
                 ψr = ψ_(r, w)
-                mul!(view(g, 1:p), X', ψr)
-                g[end] = sum(ψr)
+                apply_Xt!(g, X, ψr)
                 g .+= λ .* θ
             end
             H === nothing || begin
@@ -45,7 +44,7 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} 
             w = convert.(Float64, abs.(r) .<= δ)
             g === nothing || begin
                 ψr = ψ_(r, w)
-                mul!(g, X', ψr)
+                apply_Xt!(g, X, ψr)
                 g .+= λ .* θ
             end
             H === nothing || (mul!(H, X', ϕ_(r, w) .* X); add_λI!(H, λ))

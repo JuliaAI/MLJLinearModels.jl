@@ -1,5 +1,12 @@
 # ADMM methods
 
+# NOTE: I was not able to run either of those methods
+# one thing that wasn't done properly is to re-factorize H every-time ρ is changed
+# but that makes these algorithms super inefficient.
+# without modifying ρ, I was not able to get the algorithms not to explode. Interestingly
+# when running a litteral translation of https://web.stanford.edu/~boyd/papers/admm/least_abs_deviations/lad.html
+# it also exploded.
+
 function _fit(glr::GLR{L1Loss,<:L2R}, solver::ADMM, X, y)
     n, p = size(X)
     λ    = getscale(glr.penalty)
@@ -58,76 +65,104 @@ function _fit(glr::GLR{L1Loss,<:L2R}, solver::FADMM, X, y)
     n, p = size(X)
     λ    = getscale(glr.penalty)
     ρ    = solver.rho
-    η    = solver.eta
+    η    = solver.eta   # linked to restart frequency
+    τ    = solver.tau   # linked to updating ρ
+    μ    = solver.mu    # linked to updating ρ
+    # XXX store that in solver
+    ϵ_abs = 1e-3
+    ϵ_rel = 1e-3
     # pre-computations
     H = form_XtX(X, glr.fit_intercept, λ/ρ) # O(np²)
     cholesky!(H) # O(p³) important assumption p << n
     # cache
-    p_  = p + Int(glr.fit_intercept) # effective dim
-    θ   = zeros(p_)    # cache for current  θ
-    θ_  = zeros(p_)    # cache for previous θ
-    b   = zeros(p_)    # cache for right-hand-side of θ-update
-    bₐ  = view(b, 1:p) # only used in case of glr.fit_intercept
-    Xθ  = zeros(n)     # cache for X*θ
-    z   = zeros(n)
-    z_  = zeros(n)
-    u   = zeros(n)
-    u_  = zeros(n)
-    ẑ   = zeros(n)
-    û   = zeros(n)
-    t   = zeros(n)
-    α   = 1.0
-    α__ = 1.0
-    c_  = Inf  # force accelerate on first step
+    p_   = p + Int(glr.fit_intercept) # effective dim
+    θ    = zeros(p_)    # cache for current  θ
+    b    = zeros(p_)    # cache for right-hand-side of θ-update
+    bₐ   = view(b, 1:p)
+    Xθ   = zeros(n)     # cache for X*θ
+    z    = zeros(n)
+    z_   = zeros(n)
+    zmz_ = zeros(n)     # cache for (z-z_) used in dual residual and accel
+    u    = zeros(n)
+    u_   = zeros(n)
+    ẑ    = zeros(n)
+    û    = zeros(n)
+    t    = zeros(n)     # cache for θ update
+    r    = zeros(n)     # cache for primal residual
+    s    = zeros(p_)    # cache for dual residual
+    sₐ   = view(s, 1:p)
+    α    = 1.0          # cache for acceleration step
+    c_   = Inf          # force accelerate on first step
     # loop-related
-    k, tol = 1, Inf
-    while k ≤ solver.max_iter && tol > solver.tol
-        # θ-update [u in ref]
-        # >> θ = (X'X + λ/ρ) \ X'(y + ẑ + û/ρ)
+    k = 1
+    while k ≤ solver.max_iter
+        # ----------------------------------------
+        # compute ϵ-primal and ϵ-dual XXX can store precomp
+        ϵ_primal = sqrt(p_) * ϵ_abs + ϵ_rel * max(norm(Xθ), norm(z), norm(y))
+        apply_Xt!(bₐ, X, u)
+        ϵ_dual   = sqrt(n) * ϵ_abs  + ϵ_rel * norm(b) / ρ
+        # ----------------------------------------
+        # θ-update
+        # >> θ = argmin_θ L(θ) - ⟨û,Xθ⟩ + ρ/2 |y-Xθ+ẑ|₂² with L(θ) = λ|θ|₂²/2
+        # >> θ = (X'X + λ/ρ) \ X'(y + ẑ + û/ρ) = H \ X't
         t .= y .+ ẑ .+ û ./ ρ
-        if glr.fit_intercept
-            mul!(bₐ, X', t)
-            b[end] = sum(t)
-        else
-            mul!(b, X', t)
-        end
-        ldiv!(θ, H, b)
-        # z-update [v in ref]
+        apply_Xt!(bₐ, X, t)     # X'(x + ẑ + û/ρ)
+        ldiv!(θ, H, b)          # H = (X'X+λ/ρ)
+        # ----------------------------------------
+        # z-update
+        # >> z = argmin_z P(z) + ⟨û,z⟩ + ρ/2 |y-Xθ+z|₂² with P(z) = |z|₁
         # >> z = S_{1/ρ}(Xθ - y - û/ρ)
         apply_X!(Xθ, X, θ)
         z .= soft_thresh.(Xθ .- y .- û ./ ρ, 1.0/ρ)
-        # u-update [λ in ref]
-        # >> u = û + ρ(y - Aθ + z)
-        u .= û .+ ρ .* (y .- Xθ .+ z)
+        # ----------------------------------------
+        # r and u-update
+        # >> u = û + ρ(y - Xθ + z)
+        r .= Xθ .- z .- y  # primal residual
+        u .= û .- ρ .* r
+        # ----------------------------------------
         # c-update
-        # >> c = 1/ρ norm(λ - λ̂)^2 + ρ norm(z - ẑ)^2
-        c = 1.0/ρ * norm(u - û)^2 + ρ * norm(z - ẑ)^2
-        # check if accelerate or restart
-        α_ = α  # store α_{k} to update α_{k-1} later
+        # >> c = 1/ρ norm(u - û)^2 + ρ norm(z - ẑ)^2
+        # note that (u-û).^2 = ρ²r.^2
+        c = ρ * sum(abs2, r) + ρ * sum(abs2, z .- ẑ)
+        # ----------------------------------------
+        # accelerate or restart
+        zmz_ .= z .- z_
         if c < η * c_
+            println("accel")
             # accelerate
-            α   = (1.0+sqrt(1.0 + 4.0 * α^2))/2  # α_{k+1} from α_k
-            ζ   = α__ / α                        # α_{k-1} / α_{k+1}
-            ẑ  .= z .+ ζ .* (z .- z_)
+            α_  = α #  store α_k
+            α   = (1.0 + sqrt(1.0 + 4.0 * α^2)) / 2.0  # α_{k+1} from α_k
+            ζ   = (α_ - 1.0) / α                       # (α_{k}-1) / α_{k+1}
+            ẑ  .= z .+ ζ .* zmz_
             û  .= u .+ ζ .* (u .- u_)
         else
+            println("restart")
             # restart
             α = 1.0
             copyto!(ẑ, z_)
             copyto!(û, u_)
             c = c_ / η
         end
-        # update cache
-        α__ = α_        # next α_{k-1} (used in acceleration step)
+        # ----------------------------------------
+        # ρ-update depending on primal-dual gap
+        apply_Xt!(sₐ, X, zmz_) # dual residual -ρX'(z-z_) without the ρ
+        norm_r = norm(r)
+        norm_s = ρ * norm(s)
+        if norm_r / ϵ_primal > μ * norm_s / ϵ_dual
+            ρ *= τ
+        elseif norm_s / ϵ_dual > μ * norm_r / ϵ_primal
+            ρ /= τ
+        end
+        # ----------------------------------------
+        # cache update
         c_  = c         # next c_{k-1} (used in restart step)
         copyto!(z_, z)  # next z_{k-1} (used in acceleration step)
         copyto!(u_, u)  # next u_{k-1} (used in acceleration step)
-        # update tolerance
-        tol = norm(θ .- θ_) / (norm(θ) + eps())
-        copyto!(θ_, θ)
+        # check if convergence
+        norm_r ≤ ϵ_primal && norm_s ≤ ϵ_dual && break
         # update niter
         k += 1
     end
-    tol ≤ solver.tol || @warn "FADMM did not converge in $(solver.max_iter)."
+    k == solver.max_iter+1 && @warn "FADMM did not converge in $(solver.max_iter)."
     return θ
 end

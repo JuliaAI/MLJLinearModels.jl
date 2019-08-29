@@ -65,6 +65,28 @@ end
 """
 $SIGNATURES
 
+In-place application of X'*z (only for regression case).
+"""
+function apply_Xt!(Xtv, X, z)
+	p  = size(X, 2)
+	p_ = length(Xtv)
+	if p == p_
+		mul!(Xtv, X', z)
+	else
+		if Xtv isa SubArray
+			mul!(Xtv, X', z)
+			Xtv.parent[end] = sum(z)
+		else
+			mul!(view(Xtv, 1:p), X', z)
+			Xtv[end] = sum(z)
+		end
+	end
+end
+
+
+"""
+$SIGNATURES
+
 Form (X'X) while being memory aware (assuming p ≪ n).
 """
 function form_XtX(X, fit_intercept, lambda=0)
