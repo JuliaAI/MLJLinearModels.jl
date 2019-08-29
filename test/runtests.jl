@@ -20,4 +20,5 @@ m("FIT"); begin
     mm("newton");     include("fit/newton.jl")
     mm("proxgrad");   include("fit/proxgrad.jl")
     mm("robust");     include("fit/robust.jl")
+    #mm("lad");        include("fit/lad.jl")    # XXX currently broken
 end

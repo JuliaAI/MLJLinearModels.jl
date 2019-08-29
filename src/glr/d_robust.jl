@@ -22,8 +22,7 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} 
             w = convert.(Float64, abs.(r) .<= δ)
             g === nothing || begin
                 ψr = ψ_(r, w)
-                mul!(view(g, 1:p), X', ψr)
-                g[end] = sum(ψr)
+                apply_Xt!(g, X, ψr)
                 g .+= λ .* θ
             end
             H === nothing || begin
@@ -45,7 +44,7 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} 
             w = convert.(Float64, abs.(r) .<= δ)
             g === nothing || begin
                 ψr = ψ_(r, w)
-                mul!(g, X', ψr)
+                apply_Xt!(g, X, ψr)
                 g .+= λ .* θ
             end
             H === nothing || (mul!(H, X', ϕ_(r, w) .* X); add_λI!(H, λ))
@@ -58,11 +57,12 @@ end
 function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} where δ
     p  = size(X, 2)
     λ  = getscale(glr.penalty)
+    ϕ_ = ϕ(ρ)
     # see d_logistic.jl for more comments on this (similar procedure)
     if glr.fit_intercept
         (Hv, θ, v) -> begin
             r    = apply_X(X, θ) .- y
-            w    = convert.(Float64, abs.(r) .<= δ)
+            w    = ϕ_(r, convert.(Float64, abs.(r) .<= δ))
             a    = 1:p
             Hvₐ  = view(Hv, a)
             vₐ   = view(v, a)
@@ -77,7 +77,7 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} w
     else
         (Hv, θ, v) -> begin
             r = apply_X(X, θ) .- y
-            w = convert.(Float64, abs.(r) .<= δ)
+            w = ϕ_(r, convert.(Float64, abs.(r) .<= δ))
             mul!(Hv, X', w .* (X * v))
             Hv .+= λ .* v
         end
@@ -85,10 +85,11 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} w
 end
 
 # For IWLS
-function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} where δ
+function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y;
+             threshold=1e-6) where ρ <: RobustRho1P{δ} where δ
     p  = size(X, 2)
     λ  = getscale(glr.penalty)
-    ω_ = ω(ρ)
+    ω_ = ω(ρ, threshold)
     # For one θ, we get one system of equation to solve
     # which we solve via an iterative method so, one θ
     # gives one way of applying the relevant matrix (X'ΛX+λI)

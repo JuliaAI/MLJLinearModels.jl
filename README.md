@@ -27,6 +27,7 @@ The core aims of this package are:
 | OLS & Ridge         | L2Loss + 0/L2      | Analytical² or CG³                |              |
 | Lasso & Elastic-Net | L2Loss + 0/L2 + L1 | (F)ISTA⁴                          |              |
 | Robust 0/L2         | RobustLoss⁵ + 0/L2 | Newton, NewtonCG, LBFGS, IWLS-CG⁶ | no scale⁷    |
+| Quantile⁸ 0/L2       | RobustLoss + 0/L2  | LBFGS, IWLS-CG                    |              |
 
 1. "0" stands for no penalty
 2. Analytical means the solution is computed in "one shot" using the `\` solver,
@@ -35,6 +36,7 @@ The core aims of this package are:
 5. _Huber_, _Andrews_, _Bisquare_, _Logistic_, _Fair_ and _Talwar_ weighing functions available
 6. Iteratively re-Weighted Least Squares where each system is solved iteratively via CG
 7. In other packages such as Scikit-Learn, a scale factor is estimated along with the parameters, this is a bit ad-hoc and corresponds more to a statistical perspective, further it does not work well with penalties; we recommend using cross-validation to set the parameter of the Huber Loss. (**TODO**: _document_)
+8. Includes as special case the Least Absolute Deviation regression (LAD regression) when taking the 0.5 quantile.
 
 | Classifiers       | Formulation                 | Available solvers        | Comments       |
 | :-----------------| :-------------------------- | :----------------------- | :------------- |

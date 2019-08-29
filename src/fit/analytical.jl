@@ -15,14 +15,17 @@ Assuming `n` dominates `p`,
 function _fit(glr::GLR{L2Loss,<:L2R}, solver::Analytical, X, y)
 	# full solve
 	if !solver.iterative
-		# augment X if appropriate
-		X_ = augment_X(X, glr.fit_intercept)
 		λ  = getscale(glr.penalty)
-		# standard LS solution
-		iszero(λ) && return X_ \ y
-		# Ridge case -- form the Hat Matrix then solve
-		H = Hermitian(X_'X_) + λ * I
-		return cholesky!(H) \ X_'y
+		if iszero(λ)
+			# standard LS solution
+			return augment_X(X, glr.fit_intercept) \ y
+		else
+			# Ridge case -- form the Hat Matrix then solve
+			H = form_XtX(X, glr.fit_intercept, λ)
+			b = X'y
+			glr.fit_intercept && (b = vcat(b, sum(y)))
+			return cholesky!(H) \ b
+		end
 	end
 	# Iterative case, note that there is no augmentation here
 	# it is done implicitly in the application of the Hessian to

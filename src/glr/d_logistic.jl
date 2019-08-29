@@ -20,8 +20,7 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
             w  = σ.(Xθ .* y)
             g === nothing || begin
                 tmp = y .* (w .- 1.0)
-                mul!(view(g, 1:p), X', tmp)
-                g[end] = sum(tmp)
+                apply_Xt!(g, X, tmp)
                 g .+= λ .* θ
             end
             H === nothing || begin

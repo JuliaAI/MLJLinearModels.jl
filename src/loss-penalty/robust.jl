@@ -1,7 +1,7 @@
 export RobustLoss,
        HuberRho, Huber, AndrewsRho, Andrews,
        BisquareRho, Bisquare, LogisticRho, Logistic,
-       FairRho, Fair, TalwarRho, Talwar
+       FairRho, Fair, TalwarRho, Talwar, QuantileRho, Quantile
 
 abstract type RobustRho end
 
@@ -15,7 +15,7 @@ end
 (rl::RobustLoss)(r::AVR) = rl.rho(r)
 
 # ψ(r) = ρ'(r)     (first derivative)
-# ω(r) = ψ(r)/r    (weighing function)
+# ω(r) = ψ(r)/r    (weighing function) a threshold can be passed to clip weights
 # ϕ(r) = ψ'(r)     (second derivative)
 
 """
@@ -36,9 +36,9 @@ Huber(δ::Real=1.0; delta::Real=δ) = HuberRho(delta)
    return sum( r.^2/2 .* w .+ δ .* (ar .- δ/2) .* .!w )
 end
 
-ψ(::Type{HuberRho{δ}}) where δ = (r, w) -> r .* w .+ δ .* sign.(r) .* (1.0 .- w)
-ω(::Type{HuberRho{δ}}) where δ = (r, w) -> w .+ (δ ./ abs.(r)) .* (1.0 .- w)
-ϕ(::Type{HuberRho{δ}}) where δ = (r, w) -> w
+ψ(::Type{HuberRho{δ}}   ) where δ = (r, w) -> r .* w .+ δ .* sign.(r) .* (1.0 .- w)
+ω(::Type{HuberRho{δ}}, _) where δ = (r, w) -> w .+ (δ ./ abs.(r)) .* (1.0 .- w)
+ϕ(::Type{HuberRho{δ}}   ) where δ = (r, w) -> w
 
 
 """
@@ -63,9 +63,9 @@ end
 
 # Note, sinc(x) = sin(πx)/πx, well defined everywhere
 
-ψ(::Type{AndrewsRho{δ}}) where δ = (r, w) -> (c  = π/δ; w .* sin.(c .* r) ./ c)
-ω(::Type{AndrewsRho{δ}}) where δ = (r, w) -> w .* sinc.(r ./ δ)
-ϕ(::Type{AndrewsRho{δ}}) where δ = (r, w) -> (cr = (π/δ) .* r; w .* cos.(cr))
+ψ(::Type{AndrewsRho{δ}}   ) where δ = (r, w) -> (c  = π/δ; w .* sin.(c .* r) ./ c)
+ω(::Type{AndrewsRho{δ}}, _) where δ = (r, w) -> w .* sinc.(r ./ δ)
+ϕ(::Type{AndrewsRho{δ}}   ) where δ = (r, w) -> (cr = (π/δ) .* r; w .* cos.(cr))
 
 
 """
@@ -87,9 +87,9 @@ Bisquare(δ::Real=1.0; delta::Real=δ) = BisquareRho(delta)
    return sum( κ * (1.0 .- (1.0 .- (r ./ δ).^2).^3) .* w + κ .* .!w )
 end
 
-ψ(::Type{BisquareRho{δ}}) where δ = (r, w) -> w .* r .* (1.0 .- (r ./ δ).^2).^2
-ω(::Type{BisquareRho{δ}}) where δ = (r, w) -> w .* (1.0 .- (r ./ δ).^2).^2
-ϕ(::Type{BisquareRho{δ}}) where δ = (r, w) -> (sr = r ./ δ; w .* (1.0 .+ 5sr.^4 .- 6sr.^2))
+ψ(::Type{BisquareRho{δ}}   ) where δ = (r, w) -> w .* r .* (1.0 .- (r ./ δ).^2).^2
+ω(::Type{BisquareRho{δ}}, _) where δ = (r, w) -> w .* (1.0 .- (r ./ δ).^2).^2
+ϕ(::Type{BisquareRho{δ}}   ) where δ = (r, w) -> (sr = r ./ δ; w .* (1.0 .+ 5sr.^4 .- 6sr.^2))
 
 """
 $TYPEDEF
@@ -110,9 +110,9 @@ end
 # similar to sinc, to avoid NaNs if tanh(0)/0 (lim is 1.0)
 tanhc(x::Real) = ifelse(iszero(x), one(x), tanh(x)/x)
 
-ψ(::Type{LogisticRho{δ}}) where δ = (r, _) -> δ .* tanh.(r ./ δ)
-ω(::Type{LogisticRho{δ}}) where δ = (r, _) -> tanhc.(r ./ δ)
-ϕ(::Type{LogisticRho{δ}}) where δ = (r, w) -> sech.(r ./ δ).^2
+ψ(::Type{LogisticRho{δ}}   ) where δ = (r, _) -> δ .* tanh.(r ./ δ)
+ω(::Type{LogisticRho{δ}}, _) where δ = (r, _) -> tanhc.(r ./ δ)
+ϕ(::Type{LogisticRho{δ}}   ) where δ = (r, w) -> sech.(r ./ δ).^2
 
 
 """
@@ -132,9 +132,9 @@ Fair(δ::Real=1.0; delta::Real=δ) = FairRho(delta)
    return sum( δ^2 .* (sr .- log1p.(sr)) )
 end
 
-ψ(::Type{FairRho{δ}}) where δ = (r, _) -> δ .* r ./ (abs.(r) .+ δ)
-ω(::Type{FairRho{δ}}) where δ = (r, _) -> δ ./ (abs.(r) .+ δ)
-ϕ(::Type{FairRho{δ}}) where δ = (r, _) -> δ^2 ./ (abs.(r) .+ δ).^2
+ψ(::Type{FairRho{δ}}   ) where δ = (r, _) -> δ .* r ./ (abs.(r) .+ δ)
+ω(::Type{FairRho{δ}}, _) where δ = (r, _) -> δ ./ (abs.(r) .+ δ)
+ϕ(::Type{FairRho{δ}}   ) where δ = (r, _) -> δ^2 ./ (abs.(r) .+ δ).^2
 
 
 """
@@ -154,6 +154,27 @@ Talwar(δ::Real=1.0; delta::Real=δ) = TalwarRho(delta)
    return sum( r.^2 ./ 2 .* w .+ δ^2/2 .* .!w)
 end
 
-ψ(::Type{TalwarRho{δ}}) where δ = (r, w) -> w .* r
-ω(::Type{TalwarRho{δ}}) where δ = (_, w) -> w
-ϕ(::Type{TalwarRho{δ}}) where δ = (_, w) -> w
+ψ(::Type{TalwarRho{δ}}   ) where δ = (r, w) -> w .* r
+ω(::Type{TalwarRho{δ}}, _) where δ = (_, w) -> w
+ϕ(::Type{TalwarRho{δ}}   ) where δ = (_, w) -> w
+
+
+"""
+$TYPEDEF
+
+Quantile regression weighing of the residuals corresponding to
+
+``ρ(z) = z(δ - 1(z<0))``
+"""
+struct QuantileRho{δ} <: RobustRho1P{δ}
+   QuantileRho(δ::Real=1.0; delta::Real=δ) = new{delta}()
+end
+
+Quantile(δ::Real=1.0; delta::Real=δ) = QuantileRho(delta)
+
+(::QuantileRho{δ})(r::AVR) where δ = begin
+   return sum( r .* (δ .- (r .<= 0.0)) )
+end
+ψ(::Type{QuantileRho{δ}}   ) where δ = (r, _) -> (δ .- (r .<= 0.0))
+ω(::Type{QuantileRho{δ}}, τ) where δ = (r, _) -> (δ .- (r .<= 0.0)) ./ clip.(r, τ)
+ϕ(::Type{QuantileRho{δ}}   ) where δ = (_, _) -> error("Newton(CG) not available for Quantile Reg.")
