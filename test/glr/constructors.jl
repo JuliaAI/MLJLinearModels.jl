@@ -11,7 +11,7 @@
     logreg2 = LogisticRegression(λ, γ)
     mnreg2  = MultinomialRegression(λ, γ)
     hlreg   = RobustRegression(HuberRho(δ), λ)
-    ladreg  = LADRegression(γ, penalty=:l1)
+    ladreg  = LADRegression(λ)
 
     @test isa(glr.loss, L2Loss)
     @test isa(glr.penalty, NoPenalty)
@@ -54,8 +54,8 @@
     @test hlreg.penalty.scale == λ
     @test hlreg.fit_intercept
 
-    @test isa(ladreg.loss, L1Loss)
-    @test isa(ladreg.penalty, ScaledPenalty{L1Penalty})
+    @test isa(ladreg.loss, RobustLoss{QuantileRho{0.5}})
+    @test isa(ladreg.penalty, ScaledPenalty{L2Penalty})
     @test ladreg.fit_intercept
 
     # ======
@@ -66,6 +66,7 @@
     logreg2 = LogisticRegression(lambda=λ, gamma=γ)
     mnreg2  = MultinomialRegression(lambda=λ, gamma=γ)
     hlreg   = RobustRegression(rho=HuberRho(delta=δ), lambda=λ)
+    qreg    = QuantileRegression(delta=δ, lambda=λ)
 
     @test ridge.penalty.scale == λ
     @test ridge.fit_intercept
@@ -77,4 +78,6 @@
     @test mnreg2.penalty.penalties[2].scale == γ
     @test hlreg.loss.rho isa HuberRho{δ}
     @test hlreg.penalty.scale == λ
+    @test qreg.loss.rho isa QuantileRho{δ}
+    @test qreg.penalty.scale == λ
 end

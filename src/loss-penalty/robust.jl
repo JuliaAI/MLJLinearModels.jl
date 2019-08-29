@@ -1,7 +1,7 @@
 export RobustLoss,
        HuberRho, Huber, AndrewsRho, Andrews,
        BisquareRho, Bisquare, LogisticRho, Logistic,
-       FairRho, Fair, TalwarRho, Talwar
+       FairRho, Fair, TalwarRho, Talwar, QuantileRho, Quantile
 
 abstract type RobustRho end
 
@@ -157,3 +157,24 @@ end
 ψ(::Type{TalwarRho{δ}}) where δ = (r, w) -> w .* r
 ω(::Type{TalwarRho{δ}}) where δ = (_, w) -> w
 ϕ(::Type{TalwarRho{δ}}) where δ = (_, w) -> w
+
+
+"""
+$TYPEDEF
+
+Quantile regression weighing of the residuals corresponding to
+
+``ρ(z) = z(δ - 1(z<0))``
+"""
+struct QuantileRho{δ} <: RobustRho1P{δ}
+   QuantileRho(δ::Real=1.0; delta::Real=δ) = new{delta}()
+end
+
+Quantile(δ::Real=1.0; delta::Real=δ) = QuantileRho(delta)
+
+(::QuantileRho{δ})(r::AVR) where δ = begin
+   return sum( r .* (δ .- (r .<= 0.0)) )
+end
+ψ(::Type{QuantileRho{δ}}) where δ = (r, _) -> (δ .- (r .<= 0.0))
+ω(::Type{QuantileRho{δ}}) where δ = (r, _) -> (δ .- (r .<= 0.0)) ./ r
+ϕ(::Type{QuantileRho{δ}}) where δ = (_, _) -> error("Newton(CG) not available for Quantile Reg.")

@@ -19,7 +19,9 @@ function _fit(glr::GLR{RobustLoss{ρ},<:L2R}, solver::IWLSCG, X, y) where {ρ}
         Mm  = LinearMap(Mθv!, p; ismutating=true, isposdef=true, issymmetric=true)
         Wy  = ω .* y
         b   = X'Wy
-        glr.fit_intercept && (b = vcat(b, sum(Wy)))
+        if glr.fit_intercept
+            b = vcat(b, sum(Wy))
+        end
         # update
         θ  .= (1-κ) .* θ .+ κ .* cg(Mm, b; maxiter=max_cg_steps)
         # check tolerance

@@ -52,7 +52,7 @@ ISTA(; kwa...)  = ProxGrad(;accel = false, kwa...)
     max_iter::Int    = 100
     max_inner::Int   = 200
     tol::Float64     = 1e-4
-    damping::Float64 = 1.0   # should be between 0 and 1, 1 = trust iterates
+    damping::Float64 = 1.0  # should be between 0 and 1, 1 = trust iterates
 end
 
 # ===================== admm.jl

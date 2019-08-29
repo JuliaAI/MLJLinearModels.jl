@@ -3,7 +3,7 @@ export GeneralizedLinearRegression, GLR,
         LassoRegression, ElasticNetRegression,
         LADRegression, MADRegression,
         LogisticRegression, MultinomialRegression,
-        RobustRegression, HuberRegression
+        RobustRegression, HuberRegression, QuantileRegression
 
 """
 GeneralizedLinearRegression{L<:Loss, P<:Penalty}
@@ -35,7 +35,7 @@ const GLR = GeneralizedLinearRegression
 """
 $SIGNATURES
 
-Objective function: ``|y-Xθ|₂²/2``.
+Objective function: ``|Xθ - y|₂²/2``.
 """
 LinearRegression(; fit_intercept::Bool=true) = GLR(fit_intercept=fit_intercept)
 
@@ -43,7 +43,7 @@ LinearRegression(; fit_intercept::Bool=true) = GLR(fit_intercept=fit_intercept)
 """
 $SIGNATURES
 
-Objective function: ``|y-Xθ|₂²/2 + λ|θ|₂²/2``.
+Objective function: ``|Xθ - y|₂²/2 + λ|θ|₂²/2``.
 """
 function RidgeRegression(λ::Real=1.0; lambda::Real=λ, fit_intercept::Bool=true)
     check_pos(lambda)
@@ -54,7 +54,7 @@ end
 """
 $SIGNATURES
 
-Objective function: ``|y - Xθ|₂²/2 + λ|θ|₁``
+Objective function: ``|Xθ - y|₂²/2 + λ|θ|₁``
 """
 function LassoRegression(λ::Real=1.0; lambda::Real=λ, fit_intercept::Bool=true)
     check_pos(lambda)
@@ -65,7 +65,7 @@ end
 """
 $SIGNATURES
 
-Objective function: ``|y - Xθ|₂²/2 + λ|θ|₂²/2 + γ|θ|₁``
+Objective function: ``|Xθ - y|₂²/2 + λ|θ|₂²/2 + γ|θ|₁``
 """
 function ElasticNetRegression(λ::Real=1.0, γ::Real=1.0; lambda::Real=λ, gamma::Real=γ,
                              fit_intercept::Bool=true)
@@ -96,22 +96,6 @@ function _l1l2en(lambda, gamma, penalty, r)
     return penalty
 end
 
-
-"""
-$SIGNATURES
-
-Least Absolute Deviation regression with objective:
-
-``|y - Xθ|₁ + λ|θ|₂²/2 + γ|θ|₁``
-"""
-function LADRegression(λ::Real=1.0, γ::Real=0.0; lambda::Real=λ, gamma::Real=γ,
-                       penalty::Symbol=iszero(gamma) ? :l2 : :en, fit_intercept::Bool=true)
-    penalty = _l1l2en(lambda, gamma, penalty, "LAD regression")
-    GeneralizedLinearRegression(loss=L1Loss(), penalty=penalty, fit_intercept=fit_intercept)
-end
-MADRegression = LADRegression
-
-
 """
 $SIGNATURES
 
@@ -135,7 +119,7 @@ MultinomialRegression(a...; kwa...) = LogisticRegression(a...; multi_class=true,
 """
 $SIGNATURES
 
-Objective function: ``∑ρ(y - Xθ) + λ|θ|₂²`` where ρ is a given function on the residuals and
+Objective function: ``∑ρ(Xθ - y) + λ|θ|₂²`` where ρ is a given function on the residuals and
 δ a positive tuning parameter for the function in question (e.g. for Huber it corresponds to the
 radius of the ball in which residuals are weighed quadratically).
 """
@@ -145,7 +129,43 @@ function RobustRegression(ρ::RobustRho=HuberRho(0.1), λ::Real=1.0; rho::Robust
     GLR(fit_intercept=fit_intercept, loss=RobustLoss(rho), penalty=lambda*L2Penalty())
 end
 
+"""
+$SIGNATURES
+
+Huber Regression with objective:
+
+``∑ρ(Xθ - y) + λ|θ|₂²/2``
+
+Where `ρ` is the Huber function `ρ(r) = r²/2``  if `|r|≤δ` and `ρ(r)=δ(|r|-δ/2)` otherwise. 
+"""
 function HuberRegression(δ::Real=0.5, λ::Real=1.0; delta::Real=δ, lambda::Real=λ,
                          fit_intercept::Bool=true)
     return RobustRegression(HuberRho(delta), lambda; fit_intercept=fit_intercept)
+end
+
+"""
+$SIGNATURES
+
+Quantile Regression with objective:
+
+``∑ρ(Xθ - y) + λ|θ|₂²/2``
+
+Where `ρ` is the check function `ρ(r) = r(δ - 1(r < 0))`.
+"""
+function QuantileRegression(δ::Real=0.5, λ::Real=1.0; delta::Real=δ, lambda::Real=λ,
+                            fit_intercept::Bool=true)
+    return RobustRegression(QuantileRho(delta), lambda; fit_intercept=fit_intercept)
+end
+
+"""
+$SIGNATURES
+
+Least Absolute Deviation regression with objective:
+
+``|Xθ - y|₁ + λ|θ|₂²/2``
+
+This is a specific type of Quantile Regression with `δ=0.5` (median).
+"""
+function LADRegression(λ::Real=1.0; lambda::Real=λ, fit_intercept::Bool=true)
+    return QuantileRegression(0.5, lambda; fit_intercept=fit_intercept)
 end
