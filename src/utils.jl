@@ -177,3 +177,11 @@ $SIGNATURES
 Soft-thresholding S_η(z).
 """
 soft_thresh(z, η) = sign(z) * max(abs(z) - η, 0)
+
+
+"""
+$SIGNATURES
+
+Threshold the number if its absolute value is too close to zero.
+"""
+clip(z, τ) = ifelse(abs(z) < τ, τ, z)

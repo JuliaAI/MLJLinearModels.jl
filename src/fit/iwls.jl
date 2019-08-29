@@ -2,7 +2,7 @@ function _fit(glr::GLR{RobustLoss{ρ},<:L2R}, solver::IWLSCG, X, y) where {ρ}
     λ    = getscale(glr.penalty)
     n    = size(X, 1)
     p    = size(X, 2) + Int(glr.fit_intercept)
-    _Mv! = Mv!(glr, X, y)
+    _Mv! = Mv!(glr, X, y; threshold=solver.threshold)
     κ    = solver.damping # between 0 and 1, 1 = fully take the new iteration
     # cache
     θ  = zeros(p)

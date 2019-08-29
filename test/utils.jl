@@ -76,14 +76,12 @@ end
     @test -R.σ(-x) ≈ (R.σ(x) - 1.0)
 end
 
-
 @testset "Hat matrix" begin
     λ = 3
     X = randn(5, 3)
     X_ = R.augment_X(X, true)
     @test R.form_XtX(X, true, λ) ≈ X_'X_ + λ*I
 end
-
 
 @testset "Soft-thresh" begin
     x = randn(50)
@@ -100,4 +98,14 @@ end
     z[m3] .= x[m3] .+ η
 
     @test z == y
+end
+
+@testset "Clip" begin
+    x = randn(10)
+    x[[1, 4, 7]] .= 1e-7 .* rand(3)
+    tau = 1e-5
+    z = R.clip.(x, tau)
+    mask = abs.(x) .>= tau
+    @test z[mask] == x[mask]
+    @test all(zi == tau for zi in z[.!mask])
 end

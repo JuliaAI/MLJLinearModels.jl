@@ -154,10 +154,10 @@ y1b = y1 .+ 20 .* rand(n) .* (rand(n) .< 0.1)
     θ_ls    = fit(ls, X, y1a)
     θ_lbfgs = fit(rr, X, y1a, solver=LBFGS())
     θ_iwls  = fit(rr, X, y1a, solver=IWLSCG())
-    @test (J(θ1)      - 491.94661) ≤ 1e-5
-    @test (J(θ_ls)    - 614.70403) ≤ 1e-5  # note that LS is crap due to outliers
-    @test (J(θ_lbfgs) - 491.65694) ≤ 1e-5
-    @test (J(θ_iwls)  - 491.65694) ≤ 1e-2  # will typically be O(1e-3)
+    @test isapprox(J(θ1),      491.94661, rtol=1e-5)
+    @test isapprox(J(θ_ls),    614.70403, rtol=1e-5)  # note that LS is crap due to outliers
+    @test isapprox(J(θ_lbfgs), 491.65694, rtol=1e-5)
+    @test isapprox(J(θ_iwls),  491.65694, rtol=1e-5)
 
     # NOTE: newton and newton-cg not available because ϕ = 0 identically
     # will throw an error if called.

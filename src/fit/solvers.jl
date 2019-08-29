@@ -49,10 +49,11 @@ ISTA(; kwa...)  = ProxGrad(;accel = false, kwa...)
 # ===================== iwls.jl
 
 @with_kw struct IWLSCG <: Solver
-    max_iter::Int    = 100
-    max_inner::Int   = 200
-    tol::Float64     = 1e-4
-    damping::Float64 = 1.0  # should be between 0 and 1, 1 = trust iterates
+    max_iter::Int      = 100
+    max_inner::Int     = 200
+    tol::Float64       = 1e-4
+    damping::Float64   = 1.0   # should be between 0 and 1, 1 = trust iterates
+    threshold::Float64 = 1e-6  # threshold for the residuals used for instance in quantile reg
 end
 
 # ===================== admm.jl

@@ -85,10 +85,11 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} w
 end
 
 # For IWLS
-function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} where δ
+function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y;
+             threshold=1e-6) where ρ <: RobustRho1P{δ} where δ
     p  = size(X, 2)
     λ  = getscale(glr.penalty)
-    ω_ = ω(ρ)
+    ω_ = ω(ρ, threshold)
     # For one θ, we get one system of equation to solve
     # which we solve via an iterative method so, one θ
     # gives one way of applying the relevant matrix (X'ΛX+λI)
