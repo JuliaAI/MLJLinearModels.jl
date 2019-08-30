@@ -55,7 +55,7 @@ Unless otherwise specified:
 
 **Note**: these models were all tested for correctness whenever a direct comparison with another package was possible, usually by comparing the objective function at the coefficients returned (cf. the tests):
 - (_against [scikit-learn](https://scikit-learn.org/)_): Lasso, Elastic-Net, Logistic (L1/L2/EN), Multinomial (L1/L2/EN)
-- (_against [quantreg](https://cran.r-project.org/web/packages/quantreg/index.html)_): Quantile
+- (_against [quantreg](https://cran.r-project.org/web/packages/quantreg/index.html)_): Quantile (0/L1)
 
 Systematic timing benchmarks have not been run yet but it's planned (see [this issue](https://github.com/alan-turing-institute/MLJLinearModels.jl/issues/14)).
 
@@ -67,16 +67,10 @@ Systematic timing benchmarks have not been run yet but it's planned (see [this i
 
 ### Possible future models
 
-#### WIP
-
-* Quantile reg with ADMM, IWLS, (? IP, Frisch Newton)
-* LAD with ADMM
-
 #### Future
 
 | Model                     | Formulation                  | Comments |
 | :------------------------ | :--------------------------- | :------- |
-| Huber L1/ElasticNet       | HuberLosss + No/L2 + L1      |  ⭒       |
 | Group Lasso               | L2Loss + ∑L1 over groups     |  ⭒       |
 | Adaptive Lasso            | L2Loss + weighted L1         |  ⭒ [A](http://myweb.uiowa.edu/pbreheny/7600/s16/notes/2-29.pdf) |
 | SCAD                      | L2Loss + SCAD                |  A, [B](https://arxiv.org/abs/0903.5474), [C](https://orfe.princeton.edu/~jqfan/papers/01/penlike.pdf) |

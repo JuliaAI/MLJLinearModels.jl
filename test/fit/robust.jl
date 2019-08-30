@@ -145,7 +145,6 @@ n, p = 500, 100
 ((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p;  seed=51112, sparse=0.1)
 # pepper with outliers
 y1a  = outlify(y1, 0.1)
-θ_ls = X_ \ y1a
 
 @testset "Robust+L1" begin
     δ  = 0.1
@@ -155,6 +154,7 @@ y1a  = outlify(y1, 0.1)
     # this is a nice case where the robust is actually smooth
     rr = RobustRegression(rho=Huber(δ), lambda=λ, gamma=γ)
     J  = objective(rr, X, y1a)
+    θ_ls    = X_ \ y1a
     θ_fista = fit(rr, X, y1a, solver=FISTA())
     θ_ista  = fit(rr, X, y1a, solver=ISTA())
     @test isapprox(J(θ_ls),    391.66463, rtol=1e-5)
