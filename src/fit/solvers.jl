@@ -58,18 +58,18 @@ end
 
 # ===================== admm.jl
 
-@with_kw struct ADMM <: Solver
-    max_iter::Int  = 100
-    tol::Float64   = 1e-4
-    alpha::Float64 = 1.5  # over-relaxation (recommended between 1.5 and 1.8)
-    rho::Float64   = 1.0  # Lagrangian parameter (should be decreased if poor condition)
-end
-
-@with_kw struct FADMM <: Solver
-    max_iter::Int  = 100
-    tol::Float64   = 1e-4
-    eta::Float64   = 0.999 # restart parameter
-    rho::Float64   = 1.0   # Lagrangian parameter (should be decreased if poor condition)
-    tau::Float64   = 2.0   # Increase / decrease of ρ should be > 1
-    mu::Float64    = 10.0  #
-end
+# @with_kw struct ADMM <: Solver
+#     max_iter::Int  = 100
+#     tol::Float64   = 1e-4
+#     alpha::Float64 = 1.5  # over-relaxation (recommended between 1.5 and 1.8)
+#     rho::Float64   = 1.0  # Lagrangian parameter (should be decreased if poor condition)
+# end
+#
+# @with_kw struct FADMM <: Solver
+#     max_iter::Int  = 100
+#     tol::Float64   = 1e-4
+#     eta::Float64   = 0.999 # restart parameter
+#     rho::Float64   = 1.0   # Lagrangian parameter (should be decreased if poor condition)
+#     tau::Float64   = 2.0   # Increase / decrease of ρ should be > 1
+#     mu::Float64    = 10.0  #
+# end

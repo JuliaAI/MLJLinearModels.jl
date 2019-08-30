@@ -1,18 +1,28 @@
 const R = MLJLinearModels
 const CI = get(ENV, "CI", "false") == "true"
 
-SKLEARN = DO_SKLEARN && !CI
-SKLEARN && using PyCall
-SK_LM = SKLEARN ? pyimport("sklearn.linear_model") : nothing
-PY_RND = SKLEARN ? pyimport("random") : nothing
+DO_COMPARISONS = DO_COMPARISONS && !CI
+DO_COMPARISONS && (using PyCall; using RCall)
+SKLEARN_LM = nothing
+PY_RND     = nothing
+if DO_COMPARISONS
+    SKLEARN_LM = pyimport("sklearn.linear_model")
+    PY_RND     = pyimport("random")
+    QUANTREG   = rimport("quantreg")
+end
 
-m(s) = println("\n== $s ==\n")
+m(s, p=true) = println("\n== $s ==" * ifelse(p, "\n", ""))
 mm(s) = println("\n > $s < \n")
 
 nnz(θ) = sum(abs.(θ) .> 0)
 
+"""Make portion s of vector 0."""
 sparsify!(θ, s) = (θ .*= (rand(length(θ)) .< s))
 
+"""Add outliers to portion s of vector."""
+outlify(y, s) = (n = length(y); y .+ 20 * randn(n) .* (rand(n) .< s))
+
+"""Generate continuous (X, y) with and without intercept."""
 function generate_continuous(n, p; seed=0, sparse=1)
     Random.seed!(seed)
     X  = randn(n, p)
@@ -28,6 +38,7 @@ function generate_continuous(n, p; seed=0, sparse=1)
     return ((X, y, θ), (X_, y1, θ1))
 end
 
+"""Generate continuous X and binary y with and without intercept."""
 function generate_binary(n, p; seed=0, sparse=1)
     Random.seed!(seed)
     X  = randn(n, p)
@@ -45,6 +56,7 @@ function generate_binary(n, p; seed=0, sparse=1)
     return ((X, y, θ), (X_, y1, θ1))
 end
 
+"""Simple function to sample from a multinomial."""
 function multi_rand(Mp)
     # Mp[i, :] sums to 1
     n, c = size(Mp)
@@ -64,6 +76,7 @@ function multi_rand(Mp)
     return y
 end
 
+"""Generate continuous X and multiclass y with and without intercept."""
 function generate_multiclass(n, p, c; seed=0, sparse=1)
     Random.seed!(seed)
     X   = randn(n, p)

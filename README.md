@@ -27,7 +27,7 @@ The core aims of this package are:
 | OLS & Ridge         | L2Loss + 0/L2      | Analytical² or CG³                |              |
 | Lasso & Elastic-Net | L2Loss + 0/L2 + L1 | (F)ISTA⁴                          |              |
 | Robust 0/L2         | RobustLoss⁵ + 0/L2 | Newton, NewtonCG, LBFGS, IWLS-CG⁶ | no scale⁷    |
-| Quantile⁸ 0/L2       | RobustLoss + 0/L2  | LBFGS, IWLS-CG                    |              |
+| Quantile⁸ 0/L2      | RobustLoss + 0/L2  | LBFGS, IWLS-CG                    |              |
 
 1. "0" stands for no penalty
 2. Analytical means the solution is computed in "one shot" using the `\` solver,
@@ -50,11 +50,17 @@ Unless otherwise specified:
 * Newton-like solvers use Hager-Zhang line search (default in [`Optim.jl`]((https://github.com/JuliaNLSolvers/Optim.jl)))
 * ISTA, FISTA solvers use backtracking line search and a shrinkage factor of `β=0.8`
 
+**Note**: these models were all tested for correctness whenever a direct comparison with another package was possible, usually by comparing the objective function at the coefficients returned (cf. the tests):
+- (_against [scikit-learn](https://scikit-learn.org/)_): Lasso, Elastic-Net, Logistic (L1/L2/EN), Multinomial (L1/L2/EN)
+- (_against [quantreg](https://cran.r-project.org/web/packages/quantreg/index.html)_): Quantile
+
+Systematic timing benchmarks have not been run yet but it's planned (see [this issue](https://github.com/alan-turing-institute/MLJLinearModels.jl/issues/14)).
+
 ### Current limitations
 
 * The models are built and tested assuming `n > p`; if this doesn't hold, tricks should be employed to speed up computations; these have not been implemented yet.
-* Stochastic solvers that would be appropriate for huge models have not yet been implemented.
-* "Meta" functionalities such as One-vs-All or Cross-Validation are left to other packages such as MLJ.
+* CV-aware code not implemented yet (code that re-uses computations when fitting over a number of hyper-parameters);  "Meta" functionalities such as One-vs-All or Cross-Validation are left to other packages such as MLJ.
+* Stochastic solvers have not yet been implemented.
 
 ### Possible future models
 
@@ -70,7 +76,6 @@ Unless otherwise specified:
 | Huber L1/ElasticNet       | HuberLosss + No/L2 + L1      |  ⭒       |
 | Group Lasso               | L2Loss + ∑L1 over groups     |  ⭒       |
 | Adaptive Lasso            | L2Loss + weighted L1         |  ⭒ [A](http://myweb.uiowa.edu/pbreheny/7600/s16/notes/2-29.pdf) |
-| LAD                       | L1Loss                       | People seem to use a simplex algorithm (Barrodale and Roberts), prox like ADMM should be ok too [G](https://web.stanford.edu/~boyd/papers/admm/least_abs_deviations/lad.html), or [F](https://link.springer.com/content/pdf/10.1155/S1110865704401139.pdf) |
 | SCAD                      | L2Loss + SCAD                |  A, [B](https://arxiv.org/abs/0903.5474), [C](https://orfe.princeton.edu/~jqfan/papers/01/penlike.pdf) |
 | MCP                       | L2Loss + MCP                 |  A        |
 | OMP                       | L2Loss + L0Loss              |  [D](https://www.cs.technion.ac.il/~ronrubin/Publications/KSVD-OMP-v2.pdf) |
