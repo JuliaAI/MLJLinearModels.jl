@@ -16,9 +16,8 @@ m("GLR", false); begin
 end
 
 m("FIT", false); begin
-    mm("analytical"); include("fit/analytical.jl")
-    mm("newton");     include("fit/newton.jl")
-    mm("proxgrad");   include("fit/proxgrad.jl")
-    mm("robust");     include("fit/robust.jl")
-    mm("quantile");   include("fit/quantile.jl")
+    mm("ols-ridge-lasso-elnet");  include("fit/ols-ridge-lasso-elnet.jl")
+    mm("logistic & multinomial"); include("fit/logistic-multinomial.jl")
+    mm("robust");                 include("fit/robust.jl")
+    mm("quantile & LAD");         include("fit/quantile.jl")
 end

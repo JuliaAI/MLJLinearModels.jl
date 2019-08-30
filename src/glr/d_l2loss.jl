@@ -52,15 +52,9 @@ function smooth_fg!(glr::GLR{L2Loss,<:ENR}, X, y)
     λ = getscale_l2(glr.penalty)
     p = size(X, 2)
     (g, θ) -> begin
-        Xθ = apply_X(X, θ)
-        if glr.fit_intercept
-            t = Xθ .- y
-            mul!(view(g, 1:p), X', Xθ .- y)
-            g[end] = sum(t)
-            g .+= λ .* θ
-        else
-            mul!(g, X', Xθ .- y)
-        end
-        return glr.loss(Xθ, y) + get_l2(glr.penalty)(θ)
+        r = apply_X(X, θ) .- y
+        apply_Xt!(g, X, r)
+        g .+= λ .* θ
+        return glr.loss(r) + get_l2(glr.penalty)(θ)
     end
 end

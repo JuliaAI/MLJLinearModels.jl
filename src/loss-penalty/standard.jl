@@ -71,6 +71,7 @@ function lp(v::AbstractVector{<:Real}, p)
 end
 
 (l::LPLoss)(a::AVR, b::AVR) = lp(a .- b, getp(l))
+(l::LPLoss)(r::AVR)         = lp(r, getp(l))
 (p::LPPenalty)(θ::AVR)      = lp(θ, getp(p))
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
