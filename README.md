@@ -27,7 +27,7 @@ The core aims of this package are:
 | OLS & Ridge         | L2Loss + 0/L2      | Analytical² or CG³                |              |
 | Lasso & Elastic-Net | L2Loss + 0/L2 + L1 | (F)ISTA⁴                          |              |
 | Robust 0/L2         | RobustLoss⁵ + 0/L2 | Newton, NewtonCG, LBFGS, IWLS-CG⁶ | no scale⁷    |
-| Quantile⁸ 0/L2       | RobustLoss + 0/L2  | LBFGS, IWLS-CG                    |              |
+| Quantile⁸ 0/L2      | RobustLoss + 0/L2  | LBFGS, IWLS-CG                    |              |
 
 1. "0" stands for no penalty
 2. Analytical means the solution is computed in "one shot" using the `\` solver,
@@ -49,6 +49,10 @@ Unless otherwise specified:
 
 * Newton-like solvers use Hager-Zhang line search (default in [`Optim.jl`]((https://github.com/JuliaNLSolvers/Optim.jl)))
 * ISTA, FISTA solvers use backtracking line search and a shrinkage factor of `β=0.8`
+
+**Note**: these models were all tested for correctness whenever a direct comparison with another package was possible, usually by comparing the objective function at the coefficients returned (cf. the tests):
+- (_against scikit-learn_ (python)): Lasso, Elastic-Net, Logistic (L1/L2/EN), Multinomial (L1/L2/EN)
+- (_against quantreg_ (R)): Quantile
 
 ### Current limitations
 
