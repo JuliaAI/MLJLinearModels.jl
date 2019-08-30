@@ -1,5 +1,8 @@
 export objective, smooth_objective
 
+# NOTE: RobustLoss are not always everywhere  smooth but "smooth-enough".
+const SMOOTH_LOSS = Union{L2Loss, LogisticLoss, MultinomialLoss, RobustLoss}
+
 """
 $SIGNATURES
 
@@ -11,6 +14,7 @@ objective(glr::GLR) = glr.loss + glr.penalty
 $SIGNATURES
 
 Return a function computing the objective at a given point `θ`.
+Note that the [`apply_X`](@ref) takes care of a potential intercept.
 """
 objective(glr::GLR, X, y; c::Int=1) = θ -> objective(glr)(y, apply_X(X, θ, c), θ)
 
@@ -21,8 +25,6 @@ $SIGNATURES
 Return a function computing the smooth part of the objective at a given point `θ`.
 """
 smooth_objective(glr::GLR, X, y; c::Int=1) = θ -> smooth_objective(glr)(y, apply_X(X, θ, c), θ)
-
-const SMOOTH_LOSS = Union{L2Loss, LogisticLoss, MultinomialLoss}
 
 """
 $SIGNATURES

@@ -123,10 +123,11 @@ Objective function: ``∑ρ(Xθ - y) + λ|θ|₂²`` where ρ is a given functio
 δ a positive tuning parameter for the function in question (e.g. for Huber it corresponds to the
 radius of the ball in which residuals are weighed quadratically).
 """
-function RobustRegression(ρ::RobustRho=HuberRho(0.1), λ::Real=1.0; rho::RobustRho=ρ,
-                          lambda::Real=λ, fit_intercept::Bool=true)
-    check_pos.(lambda)
-    GLR(fit_intercept=fit_intercept, loss=RobustLoss(rho), penalty=lambda*L2Penalty())
+function RobustRegression(ρ::RobustRho=HuberRho(0.1), λ::Real=1.0, γ::Real=0.0;
+                          rho::RobustRho=ρ, lambda::Real=λ, gamma::Real=γ,
+                          penalty::Symbol=iszero(gamma) ? :l2 : :en, fit_intercept::Bool=true)
+    penalty = _l1l2en(lambda, gamma, penalty, "Robust regression")
+    GLR(fit_intercept=fit_intercept, loss=RobustLoss(rho), penalty=penalty)
 end
 
 """
@@ -136,11 +137,14 @@ Huber Regression with objective:
 
 ``∑ρ(Xθ - y) + λ|θ|₂²/2``
 
-Where `ρ` is the Huber function `ρ(r) = r²/2``  if `|r|≤δ` and `ρ(r)=δ(|r|-δ/2)` otherwise. 
+Where `ρ` is the Huber function `ρ(r) = r²/2``  if `|r|≤δ` and `ρ(r)=δ(|r|-δ/2)` otherwise.
 """
-function HuberRegression(δ::Real=0.5, λ::Real=1.0; delta::Real=δ, lambda::Real=λ,
+function HuberRegression(δ::Real=0.5, λ::Real=1.0, γ::Real=0.0;
+                         delta::Real=δ, lambda::Real=λ, gamma::Real=γ,
+                         penalty::Symbol=iszero(gamma) ? :l2 : :en,
                          fit_intercept::Bool=true)
-    return RobustRegression(HuberRho(delta), lambda; fit_intercept=fit_intercept)
+    return RobustRegression(HuberRho(delta), lambda, gamma;
+                            penalty=penalty, fit_intercept=fit_intercept)
 end
 
 """
@@ -152,9 +156,12 @@ Quantile Regression with objective:
 
 Where `ρ` is the check function `ρ(r) = r(δ - 1(r < 0))`.
 """
-function QuantileRegression(δ::Real=0.5, λ::Real=1.0; delta::Real=δ, lambda::Real=λ,
+function QuantileRegression(δ::Real=0.5, λ::Real=1.0, γ::Real=0.0;
+                            delta::Real=δ, lambda::Real=λ, gamma::Real=γ,
+                            penalty::Symbol=iszero(gamma) ? :l2 : :en,
                             fit_intercept::Bool=true)
-    return RobustRegression(QuantileRho(delta), lambda; fit_intercept=fit_intercept)
+    return RobustRegression(QuantileRho(delta), lambda, gamma;
+                            penalty=penalty, fit_intercept=fit_intercept)
 end
 
 """
@@ -166,6 +173,10 @@ Least Absolute Deviation regression with objective:
 
 This is a specific type of Quantile Regression with `δ=0.5` (median).
 """
-function LADRegression(λ::Real=1.0; lambda::Real=λ, fit_intercept::Bool=true)
-    return QuantileRegression(0.5, lambda; fit_intercept=fit_intercept)
+function LADRegression(λ::Real=1.0, γ::Real=0.0;
+                       lambda::Real=λ, gamma::Real=γ,
+                       penalty::Symbol=iszero(gamma) ? :l2 : :en,
+                       fit_intercept::Bool=true)
+    return QuantileRegression(0.5, lambda, gamma;
+                              penalty=penalty, fit_intercept=fit_intercept)
 end

@@ -6,7 +6,7 @@ Random.seed!(543)
 y1a = outlify(y1, 0.1)
 
 @testset "QuantileReg" begin
-    δ = 0.5 # LAD regression
+    δ = 0.5 # effectively LAD regression
     λ = 1.0
     rr = QuantileRegression(δ, lambda=λ)
     J = objective(rr, X, y1a)
@@ -45,4 +45,28 @@ y1a = outlify(y1, 0.1)
         @test isapprox(J(θ_lbfgs), 486.36730, rtol=1e-5)
         @test isapprox(J(θ_iwls),  486.36730, rtol=1e-4)
     end
+end
+
+###########################
+## With Sparsity penalty ##
+###########################
+
+n, p = 500, 100
+((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p;  seed=51112, sparse=0.1)
+# pepper with outliers
+y1a  = outlify(y1, 0.1)
+θ_ls = X_ \ y1a
+
+@testset "LAD+L1" begin
+    λ = 5.0
+    γ = 10.0
+    rr = LADRegression(λ, γ)
+    J  = objective(rr, X, y1a)
+    θ_fista = fit(rr, X, y1a, solver=FISTA())
+    θ_ista  = fit(rr, X, y1a, solver=ISTA())
+    @test isapprox(J(θ_ls),    943.33942, rtol=1e-5)
+    @test isapprox(J(θ_fista), 390.53177, rtol=1e-5)
+    @test isapprox(J(θ_ista),  390.53177, rtol=1e-3)
+    @test nnz(θ_fista) == 55
+    @test nnz(θ_ista)  == 51 # interesting, things look a bit unstable?
 end

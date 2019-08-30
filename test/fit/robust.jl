@@ -136,3 +136,31 @@ end
     @test (J(θ_lbfgs)    -  2.44343) ≤ 1e-5
     @test (J(θ_iwls)     -  2.44343) ≤ 2e-3
 end
+
+###########################
+## With Sparsity penalty ##
+###########################
+
+n, p = 500, 100
+((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p;  seed=51112, sparse=0.1)
+# pepper with outliers
+y1a  = outlify(y1, 0.1)
+θ_ls = X_ \ y1a
+
+@testset "Robust+L1" begin
+    δ  = 0.1
+    λ  = 5.0
+    γ  = 10.0
+
+    # this is a nice case where the robust is actually smooth
+    rr = RobustRegression(rho=Huber(δ), lambda=λ, gamma=γ)
+    J  = objective(rr, X, y1a)
+    θ_fista = fit(rr, X, y1a, solver=FISTA())
+    θ_ista  = fit(rr, X, y1a, solver=ISTA())
+    @test isapprox(J(θ_ls),    391.66463, rtol=1e-5)
+    @test isapprox(J(θ_fista),  99.10028, rtol=1e-5) # <- ref value
+    @test isapprox(J(θ_ista),   99.10028, rtol=1e-5) # ista stops a bit early?
+    @test nnz(θ_ls)    == 101
+    @test nnz(θ_fista) == 6
+    @test nnz(θ_ista)  == 6
+end

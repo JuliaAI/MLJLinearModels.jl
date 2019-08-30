@@ -115,3 +115,19 @@ function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y;
         end
     end
 end
+
+
+# this is a bit of an abuse in that in some cases the ρ is not everywhere differentiable
+function smooth_fg!(glr::GLR{RobustLoss{ρ},<:ENR}, X, y) where ρ <: RobustRho1P{δ} where δ
+    λ  = getscale_l2(glr.penalty)
+    p  = size(X, 2)
+    ψ_ = ψ(ρ)
+    (g, θ) -> begin
+        r  = apply_X(X, θ) .- y
+        w  = convert.(Float64, abs.(r) .<= δ)
+        ψr = ψ_(r, w)
+        apply_Xt!(g, X, ψr)
+        g .+= λ .* θ
+        return glr.loss(r) + get_l2(glr.penalty)(θ)
+    end
+end

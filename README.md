@@ -22,21 +22,24 @@ The core aims of this package are:
 
 ## Implemented
 
-| Regressors          | Formulation¹       | Available solvers                 | Comments     |
-| :------------------ | :----------------- | :-------------------------------- | :----------- |
-| OLS & Ridge         | L2Loss + 0/L2      | Analytical² or CG³                |              |
-| Lasso & Elastic-Net | L2Loss + 0/L2 + L1 | (F)ISTA⁴                          |              |
-| Robust 0/L2         | RobustLoss⁵ + 0/L2 | Newton, NewtonCG, LBFGS, IWLS-CG⁶ | no scale⁷    |
-| Quantile⁸ 0/L2      | RobustLoss + 0/L2  | LBFGS, IWLS-CG                    |              |
+| Regressors          | Formulation¹           | Available solvers                 | Comments  |
+| :------------------ | :--------------------- | :-------------------------------- | :-------- |
+| OLS & Ridge         | L2Loss + 0/L2          | Analytical² or CG³                |           |
+| Lasso & Elastic-Net | L2Loss + 0/L2 + L1     | (F)ISTA⁴                          |           |
+| Robust 0/L2         | RobustLoss⁵ + 0/L2     | Newton, NewtonCG, LBFGS, IWLS-CG⁶ | no scale⁷ |
+| Robust L1/EN        | RobustLoss + 0/L2 + L1 | (F)ISTA                           |           |
+| Quantile⁸ + 0/L2    | RobustLoss + 0/L2      | LBFGS, IWLS-CG                    |           |
+| Quantile L1/EN      | RobustLoss + 0/L2 + L1 | (F)ISTA                           |           |
+
 
 1. "0" stands for no penalty
 2. Analytical means the solution is computed in "one shot" using the `\` solver,
 3. CG = conjugate gradient
 4. (Accelerated) Proximal Gradient Descent
-5. _Huber_, _Andrews_, _Bisquare_, _Logistic_, _Fair_ and _Talwar_ weighing functions available
+5. _Huber_, _Andrews_, _Bisquare_, _Logistic_, _Fair_ and _Talwar_ weighing functions available.
 6. Iteratively re-Weighted Least Squares where each system is solved iteratively via CG
-7. In other packages such as Scikit-Learn, a scale factor is estimated along with the parameters, this is a bit ad-hoc and corresponds more to a statistical perspective, further it does not work well with penalties; we recommend using cross-validation to set the parameter of the Huber Loss. (**TODO**: _document_)
-8. Includes as special case the Least Absolute Deviation regression (LAD regression) when taking the 0.5 quantile.
+7. In other packages such as Scikit-Learn, a scale factor is estimated along with the parameters, this is a bit ad-hoc and corresponds more to a statistical perspective, further it does not work well with penalties; we recommend using cross-validation to set the parameter of the Huber Loss.
+8. Includes as special case the _least absolute deviation_ (LAD) regression when `δ=0.5`.
 
 | Classifiers       | Formulation                 | Available solvers        | Comments       |
 | :-----------------| :-------------------------- | :----------------------- | :------------- |
@@ -133,7 +136,6 @@ There's also [GLM.jl](https://github.com/JuliaStats/GLM.jl) which is more geared
     * _Statsmodels_, [M Estimators for Robust Linear Modeling](https://www.statsmodels.org/dev/examples/notebooks/generated/robust_models_1.html). For a list of weight functions beyond Huber's.
     * **O'Leary**, [Robust Regression Computation using Iteratively Reweighted Least Squares](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.306.8839&rep=rep1&type=pdf), 1990. Discussion of a few common robust regressions and implementation with IWLS.
 
-
 ## Dev notes
 
 * Probit Loss --> via StatsFuns // Φ(x) (normcdf); ϕ(x) (normpdf); -xϕ(x)
@@ -142,7 +144,3 @@ There's also [GLM.jl](https://github.com/JuliaStats/GLM.jl) which is more geared
 * https://www.ljll.math.upmc.fr/~plc/prox.pdf
 * proximal QN http://www.stat.cmu.edu/~ryantibs/convexopt-S15/lectures/24-prox-newton.pdf; https://www.cs.utexas.edu/~inderjit/public_papers/Prox-QN_nips2014.pdf; https://github.com/yuekai/PNOPT; https://arxiv.org/pdf/1206.1623.pdf
 * group lasso http://myweb.uiowa.edu/pbreheny/7600/s16/notes/4-27.pdf
-
----
-
-* LBFGSB https://www.researchgate.net/profile/Jose_Morales23/publication/220493046_Remark_on_Algorithm_778_L-BFGS-B_Fortran_Subroutines_for_Large-Scale_Bound_Constrained_Optimization/links/546ec9920cf2b5fc17607f33/Remark-on-Algorithm-778-L-BFGS-B-Fortran-Subroutines-for-Large-Scale-Bound-Constrained-Optimization.pdf

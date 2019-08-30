@@ -5,7 +5,7 @@ export fit
 # TODO: in the future, have cases where if the things are too big, take another default.
 # also should check if p > n in which case should do dual stuff (or other appropriate alternative)
 
-_solver(::GLR{L2Loss,<:L2R},	 np::NTuple{2,Int}) = Analytical()
+_solver(::GLR{L2Loss,<:L2R}, np::NTuple{2,Int}) = Analytical()
 
 _solver(::GLR{LogisticLoss,<:L2R}, 	  np::NTuple{2,Int}) = LBFGS()
 _solver(::GLR{MultinomialLoss,<:L2R}, np::NTuple{2,Int}) = LBFGS()
