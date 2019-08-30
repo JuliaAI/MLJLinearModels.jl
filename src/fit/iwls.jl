@@ -30,6 +30,6 @@ function _fit(glr::GLR{RobustLoss{ρ},<:L2R}, solver::IWLSCG, X, y) where {ρ}
         copyto!(θ_, θ)
         k  += 1
     end
-    tol ≤ solver.tol || @warn "IWLS did not converge in $(pgd.max_iter)."
+    tol ≤ solver.tol || @warn "IWLS did not converge in $(solver.max_iter) iterations."
     return θ
 end

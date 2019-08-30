@@ -35,6 +35,6 @@ include("fit/newton.jl")
 # include("fit/pnewton.jl")
 include("fit/proxgrad.jl")
 include("fit/iwls.jl")
-include("fit/admm.jl")
+# include("fit/admm.jl")
 
 end # module
