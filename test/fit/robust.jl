@@ -136,31 +136,3 @@ end
     @test (J(θ_lbfgs)    -  2.44343) ≤ 1e-5
     @test (J(θ_iwls)     -  2.44343) ≤ 2e-3
 end
-
-# adding some outliers (both positive and negative)
-Random.seed!(543)
-y1a = y1 .+ 20 .* randn(n) .* (rand(n) .< 0.1)
-# adding some outliers, all positive
-y1b = y1 .+ 20 .* rand(n) .* (rand(n) .< 0.1)
-
-@testset "QuantileReg" begin
-    δ = 0.5 # LAD regression
-    λ = 1.0
-    rr = QuantileRegression(δ, lambda=λ)
-    J = objective(rr, X, y1a)
-    o = RobustLoss(Quantile(δ)) + λ * L2Penalty()
-    @test J(θ1) ≈ o(y1a, X_*θ1, θ1)
-    ls = LinearRegression()
-    θ_ls    = fit(ls, X, y1a)
-    θ_lbfgs = fit(rr, X, y1a, solver=LBFGS())
-    θ_iwls  = fit(rr, X, y1a, solver=IWLSCG())
-    @test isapprox(J(θ1),      491.94661, rtol=1e-5)
-    @test isapprox(J(θ_ls),    614.70403, rtol=1e-5)  # note that LS is crap due to outliers
-    @test isapprox(J(θ_lbfgs), 491.65694, rtol=1e-5)
-    @test isapprox(J(θ_iwls),  491.65694, rtol=1e-5)
-
-    # NOTE: newton and newton-cg not available because ϕ = 0 identically
-    # will throw an error if called.
-    @test_throws ErrorException fit(rr, X, y1, solver=Newton())
-    @test_throws ErrorException fit(rr, X, y1, solver=NewtonCG())
-end

@@ -59,6 +59,6 @@ function _fit(glr::GLR, solver::ProxGrad, X, y)
         # update niter
         k += 1
     end
-    tol ≤ solver.tol || @warn "Proximal GD did not converge in $(solver.max_iter)."
+    tol ≤ solver.tol || @warn "Proximal GD did not converge in $(solver.max_iter) iterations."
     return θ
 end
