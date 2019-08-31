@@ -49,15 +49,27 @@ end
 """
 $SIGNATURES
 
-In-place application of X*θ (only for regression case).
+In-place application of X*θ.
 """
-function apply_X!(Xθ, X, θ)
+function apply_X!(Xθ, X, θ, c=1)
 	p = size(X, 2)
-	if length(θ) == p
-		mul!(Xθ, X, θ)
+	if c == 1
+		if length(θ) == p
+			mul!(Xθ, X, θ)
+		else
+			mul!(Xθ, X, θ[1:p])
+			Xθ .+= θ[end]
+		end
 	else
-		mul!(Xθ, X, θ[1:p])
-		Xθ .+= θ[end]
+		noβ = length(θ) == p * c
+		W 	= TEMP_NC[]
+		copyto!(W, reshape(θ, p + Int(!noβ), c))
+		if noβ
+			mul!(Xθ, X, W)
+		else
+			mul!(Xθ, X, view(W, 1:p, p))
+			Xθ .+= view(W, p+1, :)'
+		end
 	end
 end
 

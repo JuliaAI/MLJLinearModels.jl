@@ -3,6 +3,7 @@ n, p = 50, 5
 
 @testset "GH> Ridge" begin
     # with fit_intercept
+    R.allocate(n, p+1)
     λ = 0.5
     r = RidgeRegression(λ)
     hv! = R.Hv!(r, X, y)
@@ -11,6 +12,7 @@ n, p = 50, 5
     hv!(hv, v)
     @test hv ≈ X_'*(X_*v) .+ λ * v
     # without fit_intercept
+    R.allocate(n, p)
     r = RidgeRegression(λ; fit_intercept=false)
     hv! = R.Hv!(r, X, y)
     v = randn(length(θ))
@@ -20,25 +22,28 @@ n, p = 50, 5
 end
 
 @testset "GH> EN/Lasso" begin
+    # with fit_intercept
+    R.allocate(n, p+1)
     λ = 3.4
     γ = 2.7
     r = LassoRegression(λ)
-    fg! = R.smooth_fg!(r, X, y)
+    fg! = R.smooth_fg!(r, X, y1)
     g = similar(θ1)
     f = fg!(g, θ1)
-    @test f ≈ sum(abs2.(X_*θ1 .- y))/2
-    @test g ≈ X_'*(X_*θ1 .- y)
+    @test f ≈ sum(abs2.(X_*θ1 .- y1))/2
+    @test g ≈ X_'*(X_*θ1 .- y1)
 
     r = ElasticNetRegression(λ, γ)
-    fg! = R.smooth_fg!(r, X, y)
+    fg! = R.smooth_fg!(r, X, y1)
     g = similar(θ1)
     f = fg!(g, θ1)
-    @test f ≈ sum(abs2.(X_*θ1 .- y))/2 + λ * norm(θ1)^2/2
-    @test g ≈ X_' * (X_*θ1 .- y) .+ λ * θ1
+    @test f ≈ sum(abs2.(X_*θ1 .- y1))/2 + λ * norm(θ1)^2/2
+    @test g ≈ X_' * (X_*θ1 .- y1) .+ λ * θ1
 end
 
 @testset "GH> LogitL2" begin
     # fgh! without fit_intercept
+    R.allocate(n, p)
     λ = 0.5
     lr = LogisticRegression(λ; fit_intercept=false)
     fgh! = R.fgh!(lr, X, y)
@@ -53,6 +58,7 @@ end
     @test H ≈ X' * (Diagonal(R.σ.(y .* (X * θ))) * X) + λ * I
 
     # fgh! with fit_intercept
+    R.allocate(n, p+1)
     λ = 0.5
     lr1 = LogisticRegression(λ)
     fgh! = R.fgh!(lr1, X, y)
@@ -67,6 +73,7 @@ end
     @test H1 ≈ X_' * (Diagonal(R.σ.(y .* (X_ * θ1))) * X_) + λ * I
 
     # Hv! without  fit_intercept
+    R.allocate(n, p)
     Hv! = R.Hv!(lr, X, y)
     v   = randn(p)
     Hv  = similar(v)
@@ -74,6 +81,7 @@ end
     @test Hv ≈ H * v
 
     # Hv! with fit_intercept
+    R.allocate(n, p+1)
     Hv! = R.Hv!(lr1, X, y)
     v   = randn(p+1)
     Hv  = similar(v)
