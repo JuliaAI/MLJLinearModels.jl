@@ -28,17 +28,19 @@ function Hv!(glr::GLR{L2Loss,<:L2R}, X, y)
             copyto!(Xt1, sum(X, dims=1))  # -- X'1
             vₑ  = v[end]
             # update for the first p rows   -- (X'X + λI)v[1:p] + (X'1)v[end]
-            mul!(TEMP_N[], X, vₐ)
-            mul!(Hvₐ, X', TEMP_N[])
+            Xvₐ = TEMP_N[]
+            mul!(Xvₐ, X, vₐ)
+            mul!(Hvₐ, X', Xvₐ)
             Hvₐ .+= λ .* vₐ .+ Xt1 .* vₑ
             # update for the last row       -- (X'1)'v + n v[end]
             Hv[end] = dot(Xt1, vₐ) + (n+λ) * vₑ
         end
     else
         (Hv, v) -> begin
-            mul!(TEMP_N[], X, v)    # -- Xv
-            mul!(Hv, X', TEMP_N[])  # -- X'Xv
-            Hv .+= λ .* v           # -- X'Xv + λv
+            Xv = TEMP_N[]
+            mul!(Xv, X, v)       # -- Xv
+            mul!(Hv, X', Xv)     # -- X'Xv
+            Hv .+= λ .* v        # -- X'Xv + λv
         end
     end
 end
@@ -58,10 +60,12 @@ function smooth_fg!(glr::GLR{L2Loss,<:ENR}, X, y)
     λ = getscale_l2(glr.penalty)
     (g, θ) -> begin
         # cache contains the residuals (Xθ-y)
-        apply_X!(TEMP_N[], X, θ)
-        TEMP_N[] .-= y
-        apply_Xt!(g, X, TEMP_N[])
+        Xθ = TEMP_N[]
+        apply_X!(Xθ, X, θ)
+        r   = TEMP_N[]
+        r .-= y             # -- r = Xθ-y
+        apply_Xt!(g, X, r)
         g .+= λ .* θ
-        return glr.loss(TEMP_N[]) + get_l2(glr.penalty)(θ)
+        return glr.loss(r) + get_l2(glr.penalty)(θ)
     end
 end
