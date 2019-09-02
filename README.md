@@ -116,6 +116,7 @@ If you're looking for specific functionalities/algorithms, it's probably a good 
 - (unmaintained) [Regression.jl](https://github.com/lindahua/Regression.jl)
 - (unmaintained) [LARS.jl](https://github.com/simonster/LARS.jl)
 - (unmaintained) [FISTA.jl](https://github.com/klkeys/FISTA.jl)
+- (unmaintained) [RobustLeastSquares.jl](https://github.com/FugroRoames/RobustLeastSquares.jl)
 
 There's also [GLM.jl](https://github.com/JuliaStats/GLM.jl) which is more geared towards statistical analysis for reasonably-sized datasets and does (as far as I'm aware) lack a few key functionalities for ML such as penalised regressions or multinomial regression.
 
