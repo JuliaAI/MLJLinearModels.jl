@@ -14,7 +14,7 @@ end
 
 function _get_ψr(r, w, ψ)
     ψr  = SCRATCH_N3[]
-    ψr .= ψ(r, w)
+    ψr .= ψ.(r, w)
     return ψr
 end
 
@@ -49,7 +49,7 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} 
             # Hessian via ϕ functiono
             H === nothing || begin
                 # Hessian allocates a ton anyway so use of scratch is a bit pointless
-                ϕr = ϕ_(r, w)
+                ϕr = ϕ_.(r, w)
                 ΛX = ϕr .* X
                 mul!(view(H, 1:p, 1:p), X', ΛX)
                 ΛXt1 = sum(ΛX, dims=1)
@@ -73,7 +73,7 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} 
                 g .+= λ .* θ
             end
             # Hessian via ϕ function
-            H === nothing || (mul!(H, X', ϕ_(r, w) .* X); add_λI!(H, λ))
+            H === nothing || (mul!(H, X', ϕ_.(r, w) .* X); add_λI!(H, λ))
             f === nothing || return glr.loss(r) + glr.penalty(θ)
         end
     end
@@ -87,8 +87,9 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} w
     # see d_logistic.jl for more comments on this (similar procedure)
     if glr.fit_intercept
         (Hv, θ, v) -> begin
-            r = _get_residuals(X, θ, y)
-            w = _get_w(r, δ)
+            r  = _get_residuals(X, θ, y)
+            w  = _get_w(r, δ)
+            w .= ϕ_.(r, w)
             # views on first p rows (intercept row treated after)
             a    = 1:p
             Hvₐ  = view(Hv, a)
@@ -98,7 +99,8 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} w
             vₑ   = v[end]
             # update for first p rows
             t    = SCRATCH_N3[]
-            t   .= w .* (X * vₐ)
+            apply_X!(t, X, vₐ)
+            t  .*= w
             apply_Xt!(Hvₐ, X, t)
             Hvₐ .+= λ .* vₐ .+ XtΛ1 .* vₑ
             # update for the last row (intercept)
@@ -108,7 +110,7 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} w
         (Hv, θ, v) -> begin
             r  = _get_residuals(X, θ, y)
             w  = _get_w(r, δ)
-            w .= ϕ_(r, w)
+            w .= ϕ_.(r, w)
             t  = SCRATCH_N3[]
             apply_X!(t, X, v)
             t .*= w
@@ -131,7 +133,7 @@ function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y;
         r = _get_residuals(X, θ, y)
         w = _get_w(r, δ)
         # ω = ψ(r)/r ; weighing factor for IWLS
-        ωr .= ω_(r, w)
+        ωr .= ω_.(r, w)
         # function defining the application of (X'ΛX + λI)
         if glr.fit_intercept
             (Mv, v) -> begin
