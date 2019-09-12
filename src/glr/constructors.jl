@@ -68,7 +68,7 @@ $SIGNATURES
 Objective function: ``|Xθ - y|₂²/2 + λ|θ|₂²/2 + γ|θ|₁``
 """
 function ElasticNetRegression(λ::Real=1.0, γ::Real=1.0; lambda::Real=λ, gamma::Real=γ,
-                             fit_intercept::Bool=true)
+                              fit_intercept::Bool=true)
     check_pos.((lambda, gamma))
     GLR(fit_intercept=fit_intercept, penalty=lambda*L2Penalty()+gamma*L1Penalty())
 end
