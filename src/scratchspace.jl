@@ -5,29 +5,29 @@
 #
 # For now all of these are Float64 scratch spaces.
 
-const TEMP_N   = Ref(zeros(0))
-const TEMP_N2  = Ref(zeros(0))
-const TEMP_N3  = Ref(zeros(0))
-const TEMP_P   = Ref(zeros(0))
-const TEMP_NC  = Ref(zeros(0,0))
-const TEMP_NC2 = Ref(zeros(0,0))
+const SCRATCH_N   = Ref(zeros(0))
+const SCRATCH_N2  = Ref(zeros(0))
+const SCRATCH_N3  = Ref(zeros(0))
+const SCRATCH_P   = Ref(zeros(0))
+const SCRATCH_NC  = Ref(zeros(0,0))
+const SCRATCH_NC2 = Ref(zeros(0,0))
 
 allocate(n, p, c=0) = begin
-    TEMP_N[]  = zeros(n)
-    TEMP_N2[] = zeros(n)
-    TEMP_N3[] = zeros(n)
-    TEMP_P[]  = zeros(p)
+    SCRATCH_N[]  = zeros(n)
+    SCRATCH_N2[] = zeros(n)
+    SCRATCH_N3[] = zeros(n)
+    SCRATCH_P[]  = zeros(p)
     if !iszero(c)
-        TEMP_NC[]  = zeros(n, c)
-        TEMP_NC2[] = zeros(n, c)
+        SCRATCH_NC[]  = zeros(n, c)
+        SCRATCH_NC2[] = zeros(n, c)
     end
 end
 
 deallocate() = begin
-    TEMP_N[]   = zeros(0)
-    TEMP_N2[]  = zeros(0)
-    TEMP_N3[]  = zeros(0)
-    TEMP_P[]   = zeros(0)
-    TEMP_NC[]  = zeros(0,0)
-    TEMP_NC2[] = zeros(0,0)
+    SCRATCH_N[]   = zeros(0)
+    SCRATCH_N2[]  = zeros(0)
+    SCRATCH_N3[]  = zeros(0)
+    SCRATCH_P[]   = zeros(0)
+    SCRATCH_NC[]  = zeros(0,0)
+    SCRATCH_NC2[] = zeros(0,0)
 end

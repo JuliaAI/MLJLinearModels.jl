@@ -62,7 +62,7 @@ function apply_X!(Xθ, X, θ, c=1)
 		end
 	else
 		noβ = length(θ) == p * c
-		W 	= TEMP_NC[]
+		W 	= SCRATCH_NC[]
 		copyto!(W, reshape(θ, p + Int(!noβ), c))
 		if noβ
 			mul!(Xθ, X, W)

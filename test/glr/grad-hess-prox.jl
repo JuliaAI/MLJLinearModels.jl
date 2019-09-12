@@ -140,18 +140,15 @@ end
 
 @testset "GH> Huber" begin
     δ, λ  = 0.5, 3.4
-    hlr   = HuberRegression(δ, λ; fit_intercept=false)
-    hlr1  = HuberRegression(δ, λ)
-    fgh!  = R.fgh!(hlr, X, y)
-    fgh1! = R.fgh!(hlr1, X, y1)
 
-    θ_  = randn(p) # otherwise the residuals are too small and everything is in the l1-ball
-    θ1_ = randn(p+1)
+    # without intercept
+    R.allocate(n, p)
+    hlr  = HuberRegression(δ, λ; fit_intercept=false)
+    fgh! = R.fgh!(hlr, X, y)
+    θ_   = randn(p) # otherwise the residuals are too small and everything is in the l1-ball
 
     g = similar(θ)
     H = zeros(p, p)
-    g1 = similar(θ1)
-    H1 = zeros(p+1, p+1)
 
     f = fgh!(0.0, g, H, θ_)
     r = X*θ_ .- y
@@ -160,6 +157,22 @@ end
     @test g ≈ (X' * (r .* mask)) .+ (X' * (δ .* sign.(r) .* .!mask)) .+ λ .* θ_
     @test H == X' * (mask .* X) + λ*I
 
+    Hv! = R.Hv!(hlr, X, y)
+    Hv = similar(θ_)
+    v = randn(p)
+    Hv!(Hv, θ_, v)
+
+    @test Hv ≈ H * v
+
+    # with intercept
+    R.allocate(n, p+1)
+    hlr1  = HuberRegression(δ, λ)
+    fgh1! = R.fgh!(hlr1, X, y1)
+    θ1_   = randn(p+1)
+
+    g1 = similar(θ1)
+    H1 = zeros(p+1, p+1)
+
     f1 = fgh1!(0.0, g1, H1, θ1_)
     r1 = X_*θ1_ .- y1
     mask = abs.(r1) .<= δ
@@ -167,17 +180,10 @@ end
     @test g1 ≈ (X_' * (r1 .* mask)) .+ (X_' * (δ .* sign.(r1) .* .!mask)) .+ λ .* θ1_
     @test H1 ≈ X_' * (mask .* X_) + λ*I
 
-    Hv! = R.Hv!(hlr, X, y)
     Hv1! = R.Hv!(hlr1, X, y1)
-
-    Hv = similar(θ_)
-    v = randn(p)
     Hv1 = similar(θ1_)
     v1 = randn(p+1)
-
-    Hv!(Hv, θ_, v)
     Hv1!(Hv1, θ1_, v1)
 
-    @test Hv ≈ H * v
     @test Hv1 ≈ H1 * v1
 end

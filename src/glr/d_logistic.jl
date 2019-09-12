@@ -15,13 +15,13 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
     λ = getscale(glr.penalty)
     if glr.fit_intercept
         (f, g, H, θ) -> begin
-            Xθ = TEMP_N[]
+            Xθ = SCRATCH_N[]
             apply_X!(Xθ, X, θ)                       # -- Xθ = apply_X(X, θ)
             # precompute σ(yXθ) use -σ(-x) = (σ(x)-1)
-            w  = TEMP_N2[]
+            w  = SCRATCH_N2[]
             w .= σ.(Xθ .* y)                         # -- w  = σ.(Xθ .* y)
             g === nothing || begin
-                t  = TEMP_N3[]
+                t  = SCRATCH_N3[]
                 t .= y .* (w .- 1.0)                 # -- t = y .* (w .- 1.0)
                 apply_Xt!(g, X, t)                   # -- g = X't
                 g .+= λ .* θ
@@ -32,7 +32,7 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
                 # probably not really worth it
                 ΛX = w .* X                         # !! big allocs
                 mul!(view(H, 1:p, 1:p), X', ΛX)     # -- H[1:p,1:p] = X'ΛX
-                ΛXt1 = view(TEMP_P[], 1:p)
+                ΛXt1 = view(SCRATCH_P[], 1:p)
                 copyto!(ΛXt1, sum(ΛX, dims=1))      # -- (ΛX)'1
                 @inbounds for i = 1:p
                     H[i, end] = H[end, i] = ΛXt1[i] # -- H[:,p+1] = H[p+1,:] = (ΛX)'1
@@ -46,12 +46,12 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
         # see comments above, same computations just no additional things for
         # fit_intercept
         (f, g, H, θ) -> begin
-            Xθ = TEMP_N[]
+            Xθ = SCRATCH_N[]
             apply_X!(Xθ, X, θ)
-            w  = TEMP_N2[]
+            w  = SCRATCH_N2[]
             w .= σ.(y .* Xθ)
             g === nothing || begin
-                t  = TEMP_N3[]
+                t  = SCRATCH_N3[]
                 t .= y .* (w .- 1.0)
                 apply_Xt!(g, X, t)
                 g .+= λ .* θ
@@ -73,19 +73,19 @@ function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y)
         # rows a 1:p = [X'ΛX + λI | X'Λ1]
         # row  e end = [1'ΛX      | sum(a)+λ]
         (Hv, θ, v) -> begin
-            Xθ = TEMP_N[]
+            Xθ = SCRATCH_N[]
             apply_X!(Xθ, X, θ)                       # -- Xθ = apply_X(X, θ)
-            w  = TEMP_N2[]
+            w  = SCRATCH_N2[]
             w .= σ.(Xθ .* y)                         # -- w  = σ.(Xθ .* y)
             # view on the first p rows
             a    = 1:p
             Hvₐ  = view(Hv, a)
             vₐ   = view(v,  a)
-            XtΛ1 = view(TEMP_P[], 1:p)
+            XtΛ1 = view(SCRATCH_P[], 1:p)
             mul!(XtΛ1, X', w)                        # -- X'Λ1; O(np)
             vₑ   = v[end]
             # update for the first p rows -- (X'X + λI)v[1:p] + (X'1)v[end]
-            Xvₐ  = TEMP_N[]
+            Xvₐ  = SCRATCH_N[]
             mul!(Xvₐ, X, vₐ)
             Xvₐ .*=  w                               # --  ΛXvₐ
             mul!(Hvₐ, X', Xvₐ)                       # -- (X'ΛX)vₐ
@@ -95,13 +95,13 @@ function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y)
         end
     else
         (Hv, θ, v) -> begin
-            Xθ = TEMP_N[]
+            Xθ = SCRATCH_N[]
             apply_X!(Xθ, X, θ)
-            w  = TEMP_N2[]
+            w  = SCRATCH_N2[]
             w .= σ.(Xθ .* y)                # -- σ(yXθ)
-            Xv = TEMP_N3[]
+            Xv = SCRATCH_N3[]
             mul!(Xv, X, v)
-            Xv .*= TEMP_N2[]                # -- ΛXv
+            Xv .*= SCRATCH_N2[]                # -- ΛXv
             mul!(Hv, X', Xv)                # -- X'ΛXv
             Hv .+= λ .* v
         end
