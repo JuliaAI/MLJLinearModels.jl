@@ -143,24 +143,50 @@ function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
     c    = length(unique(y))
     λ    = getscale(glr.penalty)
     (f, g, θ) -> begin
-        P = apply_X(X, θ, c)                                 # O(npc) store n * c
-        M = exp.(P)                                          # O(npc) store n * c
+        P  = SCRATCH_NC[]
+        apply_X!(P, X, θ, c)                                 # O(npc) store n * c
+        M  = SCRATCH_NC2[]
+        M .= exp.(P)                                         # O(npc) store n * c
         g === nothing || begin
-            ΛM  = M ./ sum(M, dims=2)                        # O(nc)  store n * c
-            Q   = BitArray(y[i] == j for i = 1:n, j=1:c)
-            G   = X'ΛM .- X'Q                                # O(npc) store n * c
-            if glr.fit_intercept
-                G = vcat(G, sum(ΛM, dims=1) .- sum(Q, dims=1))
+            ΛM  = SCRATCH_NC3[]
+            ΛM .= M ./ sum(M, dims=2)                        # O(nc)  store n * c
+            Q   = SCRATCH_NC4[]
+            @inbounds for i = 1:n, j=1:c
+                Q[i, j] = ifelse(y[i] == j, 1.0, 0.0)
             end
-            g  .= reshape(G, (p + Int(glr.fit_intercept)) * c)
+            ∑ΛM = sum(ΛM, dims=1)
+            ∑Q  = sum(Q, dims=1)
+            R   = ΛM
+            R .-= Q
+            G   = SCRATCH_PC[]
+            if glr.fit_intercept
+                mul!(view(G, 1:p, :), X', R)
+                @inbounds for k in 1:c
+                    G[end, k] = ∑ΛM[k] - ∑Q[k]
+                end
+            else
+                mul!(G, X', R)
+            end
+            g  .= reshape(G, (p+Int(glr.fit_intercept))*c)
             g .+= λ .* θ
         end
         f === nothing || begin
             # we re-use pre-computations here, see also MultinomialLoss
-            ms = maximum(P, dims=2)
-            ss = sum(M ./ exp.(ms), dims=2)
-            @inbounds ps = [P[i, y[i]] for i in eachindex(y)]
-            return sum(log.(ss) .+ ms .- ps) + glr.penalty(θ)
+            # ms = maximum(P, dims=2)
+            # ss = sum(M ./ exp.(ms), dims=2)
+            ms   = maximum(P, dims=2)
+            ems  = SCRATCH_N[]
+            @inbounds for i in 1:n
+                ems[i] = exp(ms[i])
+            end
+            ΛM  = SCRATCH_NC2[] # note that _NC is already linked to P
+            ΛM .= M ./ ems
+            ss  = sum(ΛM, dims=2)
+            t   = 0.0
+            @inbounds for i in eachindex(y)
+                t += log(ss[i]) + ms[i] - P[i, y[i]]
+            end
+            return sum(t) + glr.penalty(θ)
         end
     end
 end

@@ -62,12 +62,12 @@ function apply_X!(Xθ, X, θ, c=1)
 		end
 	else
 		noβ = length(θ) == p * c
-		W 	= SCRATCH_NC[]
+		W 	= SCRATCH_PC[]
 		copyto!(W, reshape(θ, p + Int(!noβ), c))
 		if noβ
 			mul!(Xθ, X, W)
 		else
-			mul!(Xθ, X, view(W, 1:p, p))
+			mul!(Xθ, X, view(W, 1:p, :))
 			Xθ .+= view(W, p+1, :)'
 		end
 	end
