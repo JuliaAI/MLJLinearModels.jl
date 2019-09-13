@@ -1,3 +1,23 @@
+function _get_residuals(X, θ, y)
+    Xθ  = SCRATCH_N[]
+    apply_X!(Xθ, X, θ)
+    r   = Xθ
+    r .-= y
+    return r
+end
+
+function _get_w(r, δ)
+    w  = SCRATCH_N2[]
+    w .= convert.(Float64, abs.(r) .<= δ)
+    return w
+end
+
+function _get_ψr(r, w, ψ)
+    ψr  = SCRATCH_N3[]
+    ψr .= ψ.(r, w)
+    return ψr
+end
+
 # ------------------------ #
 #  -- Robust Regression -- #
 # ------------------------ #

@@ -2,9 +2,17 @@ n, p = 50, 5
 ((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p; seed=1234)
 
 @testset "GH> Ridge" begin
+<<<<<<< HEAD
+=======
+    # with fit_intercept
+    R.allocate(n, p+1)
+>>>>>>> master
     λ = 0.5
     # without fit_intercept
+<<<<<<< HEAD
     # >> Hv!
+=======
+>>>>>>> master
     R.allocate(n, p)
     r = RidgeRegression(λ; fit_intercept=false)
     hv! = R.Hv!(r, X, y)
@@ -24,6 +32,7 @@ n, p = 50, 5
 end
 
 @testset "GH> EN/Lasso" begin
+<<<<<<< HEAD
     # without fit_intercept
     R.allocate(n, p)
     λ = 6.2
@@ -35,6 +44,8 @@ end
     @test f ≈               sum(abs2.(X*θ .- y))/2
     @test g ≈               X' * (X * θ .- y)
 
+=======
+>>>>>>> master
     # with fit_intercept
     R.allocate(n, p+1)
     λ = 3.4
@@ -43,16 +54,26 @@ end
     fg! = R.smooth_fg!(r, X, y1)
     g = similar(θ1)
     f = fg!(g, θ1)
+<<<<<<< HEAD
     @test f ≈               sum(abs2.(X_*θ1 .- y1))/2
     @test g ≈               X_' * (X_ * θ1 .- y1)
+=======
+    @test f ≈ sum(abs2.(X_*θ1 .- y1))/2
+    @test g ≈ X_'*(X_*θ1 .- y1)
+>>>>>>> master
 
     # elasticnet (with intercept)
     r = ElasticNetRegression(λ, γ)
     fg! = R.smooth_fg!(r, X, y1)
     g = similar(θ1)
     f = fg!(g, θ1)
+<<<<<<< HEAD
     @test f ≈               sum(abs2.(X_*θ1 .- y1))/2 + λ .* norm(θ1)^2/2
     @test g ≈               X_' * (X_*θ1 .- y1) .+ λ .* θ1
+=======
+    @test f ≈ sum(abs2.(X_*θ1 .- y1))/2 + λ * norm(θ1)^2/2
+    @test g ≈ X_' * (X_*θ1 .- y1) .+ λ * θ1
+>>>>>>> master
 end
 
 @testset "GH> LogitL2" begin
@@ -90,8 +111,21 @@ end
     H1 = zeros(p+1, p+1)
     f1 = fgh!(f1, g1, H1, θ1)
     @test f1 == J(θ1)
+<<<<<<< HEAD
     @test g1 ≈              -X_' * (y .* R.σ.(-y .* (X_ * θ1))) .+ λ .* θ1
     @test H1 ≈               X_' * (Diagonal(R.σ.(y .* (X_ * θ1))) * X_) + λ * I
+=======
+    @test g1 ≈ -X_' * (y .* R.σ.(-y .* (X_ * θ1))) .+ λ .* θ1
+    @test H1 ≈ X_' * (Diagonal(R.σ.(y .* (X_ * θ1))) * X_) + λ * I
+
+    # Hv! without  fit_intercept
+    R.allocate(n, p)
+    Hv! = R.Hv!(lr, X, y)
+    v   = randn(p)
+    Hv  = similar(v)
+    Hv!(Hv, θ, v)
+    @test Hv ≈ H * v
+>>>>>>> master
 
     # Hv! with fit_intercept
     R.allocate(n, p+1)
@@ -99,8 +133,12 @@ end
     v   = randn(p+1)
     Hv  = similar(v)
     Hv!(Hv, θ1, v)
+<<<<<<< HEAD
     @test Hv ≈               H1 * v
 end
+=======
+    @test Hv ≈ H1 * v end
+>>>>>>> master
 
 # Comparison with sklearn
 @testset "GH> MultinL2" begin
@@ -189,6 +227,22 @@ end
     g1 = similar(θ1)
     H1 = zeros(p+1, p+1)
 
+    Hv! = R.Hv!(hlr, X, y)
+    Hv = similar(θ_)
+    v = randn(p)
+    Hv!(Hv, θ_, v)
+
+    @test Hv ≈ H * v
+
+    # with intercept
+    R.allocate(n, p+1)
+    hlr1  = HuberRegression(δ, λ)
+    fgh1! = R.fgh!(hlr1, X, y1)
+    θ1_   = randn(p+1)
+
+    g1 = similar(θ1)
+    H1 = zeros(p+1, p+1)
+
     f1 = fgh1!(0.0, g1, H1, θ1_)
     r1 = X_*θ1_ .- y1
     mask = abs.(r1) .<= δ
@@ -201,5 +255,9 @@ end
     v1 = randn(p+1)
     Hv1!(Hv1, θ1_, v1)
 
+<<<<<<< HEAD
     @test Hv1 ≈              H1 * v1
+=======
+    @test Hv1 ≈ H1 * v1
+>>>>>>> master
 end

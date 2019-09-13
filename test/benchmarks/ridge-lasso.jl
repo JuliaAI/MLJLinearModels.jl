@@ -1,8 +1,14 @@
+<<<<<<< HEAD
+=======
+# WIP WIP !
+
+>>>>>>> master
 using MLJLinearModels
 using BenchmarkTools, Random, LinearAlgebra
 DO_COMPARISONS = false; include("../testutils.jl")
 
 n, p = 50_000, 500
+<<<<<<< HEAD
 ((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p;  seed=512, sparse=0.5)
 
 # =============== #
@@ -62,6 +68,13 @@ r = R.get_residuals!(X, θ, y)
 
 
 # =======
+=======
+((X, _, _), (X_, y1, θ1)) = generate_continuous(n, p;  seed=512, sparse=0.1)
+
+λ  = 50
+lr = LassoRegression(λ)
+J  = objective(lr, X, y1)
+>>>>>>> master
 
 fista = FISTA()
 ista = ISTA()
