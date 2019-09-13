@@ -38,17 +38,20 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} 
     ϕ_ = ϕ(ρ)
     if glr.fit_intercept
         (f, g, H, θ) -> begin
-            r = _get_residuals(X, θ, y)
-            w = _get_w(r, δ)
+            r  = SCRATCH_N[]
+            get_residuals!(r, X, θ, y)
+            w  = SCRATCH_N2[]
+            w .= convert.(Float64, abs.(r) .<= δ)
             # gradient via ψ function
             g === nothing || begin
-                ψr = _get_ψr(r, w, ψ_)
+                ψr  = SCRATCH_N3[]
+                ψr .= ψ_.(r, w)
                 apply_Xt!(g, X, ψr)
                 g .+= λ .* θ
             end
             # Hessian via ϕ functiono
             H === nothing || begin
-                # Hessian allocates a ton anyway so use of scratch is a bit pointless
+                # NOTE: Hessian allocates a ton anyway so use of scratch is a bit pointless
                 ϕr = ϕ_.(r, w)
                 ΛX = ϕr .* X
                 mul!(view(H, 1:p, 1:p), X', ΛX)
@@ -64,11 +67,14 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} 
         end
     else
         (f, g, H, θ) -> begin
-            r = _get_residuals(X, θ, y)
-            w = _get_w(r, δ)
+            r = SCRATCH_N[]
+            get_residuals!(r, X, θ, y)
+            w = SCRATCH_N2[]
+            w .= convert.(Float64, abs.(r) .<= δ)
             # gradient via ψ function
             g === nothing || begin
-                ψr = _get_ψr(r, w, ψ_)
+                ψr  = SCRATCH_N3[]
+                ψr .= ψ_.(r, w)
                 apply_Xt!(g, X, ψr)
                 g .+= λ .* θ
             end
@@ -87,8 +93,10 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} w
     # see d_logistic.jl for more comments on this (similar procedure)
     if glr.fit_intercept
         (Hv, θ, v) -> begin
-            r  = _get_residuals(X, θ, y)
-            w  = _get_w(r, δ)
+            r  = SCRATCH_N[]
+            get_residuals!(r, X, θ, y)
+            w  = SCRATCH_N2[]
+            w .= convert.(Float64, abs.(r) .<= δ)
             w .= ϕ_.(r, w)
             # views on first p rows (intercept row treated after)
             a    = 1:p
@@ -108,8 +116,10 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} w
         end
     else
         (Hv, θ, v) -> begin
-            r  = _get_residuals(X, θ, y)
-            w  = _get_w(r, δ)
+            r  = SCRATCH_N[]
+            get_residuals!(r, X, θ, y)
+            w  = SCRATCH_N2[]
+            w .= convert.(Float64, abs.(r) .<= δ)
             w .= ϕ_.(r, w)
             t  = SCRATCH_N3[]
             apply_X!(t, X, v)
@@ -119,6 +129,7 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} w
         end
     end
 end
+
 
 # For IWLS
 function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y;
@@ -130,24 +141,38 @@ function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y;
     # which we solve via an iterative method so, one θ
     # gives one way of applying the relevant matrix (X'ΛX+λI)
     (ωr, θ) -> begin
-        r = _get_residuals(X, θ, y)
-        w = _get_w(r, δ)
+        r   = SCRATCH_N[]
+        get_residuals!(r, X, θ, y)
+        w   = SCRATCH_N2[]
+        w  .= convert.(Float64, abs.(r) .<= δ)
         # ω = ψ(r)/r ; weighing factor for IWLS
         ωr .= ω_.(r, w)
         # function defining the application of (X'ΛX + λI)
         if glr.fit_intercept
             (Mv, v) -> begin
-                a    = 1:p
-                vₐ   = view(v, a)
-                Mvₐ  = view(Mv, a)
-                XtW1 = vec(sum(ωr .* X, dims=1))
-                vₑ   = v[end]
-                mul!(Mvₐ, X', ωr .* (X * vₐ))
+                a     = 1:p
+                vₐ    = view(v, a)
+                Mvₐ   = view(Mv, a)
+                XtW1  = view(SCRATCH_P[], a)
+                @inbounds for j in a
+                    XtW1[j] = dot(ωr, view(X, :, j))
+                end
+                vₑ = v[end]
+                t  = SCRATCH_N[]
+                apply_X!(t, X, vₐ)
+                t .*= ωr
+                mul!(Mvₐ, X', t)
                 Mvₐ .+= λ .* vₐ .+ XtW1 .* vₑ
                 Mv[end] = dot(XtW1, vₐ) + (sum(ωr)+λ) * vₑ
             end
         else
-            (Mv, v) -> (mul!(Mv, X', ωr .* (X * v));  Mv .+= λ .* v)
+            (Mv, v) -> begin
+                t  = SCRATCH_N[]
+                apply_X!(t, X, v)
+                t .*= ωr
+                mul!(Mv, X', t)
+                Mv .+= λ .* v
+            end
         end
     end
 end
@@ -159,9 +184,12 @@ function smooth_fg!(glr::GLR{RobustLoss{ρ},<:ENR}, X, y) where ρ <: RobustRho1
     p  = size(X, 2)
     ψ_ = ψ(ρ)
     (g, θ) -> begin
-        r  = _get_residuals(X, θ, y)
-        w  = _get_w(r, δ)
-        ψr = _get_ψr(r, w, ψ_)
+        r   = SCRATCH_N[]
+        get_residuals!(r, X, θ, y)
+        w   = SCRATCH_N2[]
+        w  .= convert.(Float64, abs.(r) .<= δ)
+        ψr  = SCRATCH_N3[]
+        ψr .= ψ_.(r, w)
         apply_Xt!(g, X, ψr)
         g .+= λ .* θ
         return glr.loss(r) + get_l2(glr.penalty)(θ)

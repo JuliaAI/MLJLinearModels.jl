@@ -40,3 +40,14 @@ $SIGNATURES
 Return a model corresponding to the smooth part of the objective.
 """
 get_smooth(glr::GLR) = (o = smooth_objective(glr); GLR(o.loss, o.penalty, glr.fit_intercept))
+
+
+"""
+$SIGNATURES
+
+Helper function to compute the residuals.
+"""
+function get_residuals!(r, X, θ, y)
+    apply_X!(r, X, θ)
+    r .-= y
+end
