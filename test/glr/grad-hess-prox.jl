@@ -2,26 +2,39 @@ n, p = 50, 5
 ((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p; seed=1234)
 
 @testset "GH> Ridge" begin
-    # with fit_intercept
-    R.allocate(n, p+1)
     λ = 0.5
-    r = RidgeRegression(λ)
-    hv! = R.Hv!(r, X, y)
-    v = randn(p+1)
-    hv = similar(v)
-    hv!(hv, v)
-    @test hv ≈ X_'*(X_*v) .+ λ * v
     # without fit_intercept
+    # >> Hv!
     R.allocate(n, p)
     r = RidgeRegression(λ; fit_intercept=false)
     hv! = R.Hv!(r, X, y)
     v = randn(length(θ))
     hv = similar(v)
     hv!(hv, v)
-    @test hv ≈ X'*(X*v) .+ λ * v
+    @test hv ≈              X' * (X * v) .+ λ * v
+    # ------------------
+    # with fit_intercept
+    R.allocate(n, p+1)
+    r = RidgeRegression(λ)
+    hv! = R.Hv!(r, X, y)
+    v = randn(p+1)
+    hv = similar(v)
+    hv!(hv, v)
+    @test hv ≈              X_' * (X_ * v) .+ λ * v
 end
 
 @testset "GH> EN/Lasso" begin
+    # without fit_intercept
+    R.allocate(n, p)
+    λ = 6.2
+    γ = 0.7
+    r = LassoRegression(λ; fit_intercept=false)
+    fg! = R.smooth_fg!(r, X, y)
+    g = similar(θ)
+    f = fg!(g, θ)
+    @test f ≈               sum(abs2.(X*θ .- y))/2
+    @test g ≈               X' * (X * θ .- y)
+
     # with fit_intercept
     R.allocate(n, p+1)
     λ = 3.4
@@ -30,15 +43,16 @@ end
     fg! = R.smooth_fg!(r, X, y1)
     g = similar(θ1)
     f = fg!(g, θ1)
-    @test f ≈ sum(abs2.(X_*θ1 .- y1))/2
-    @test g ≈ X_'*(X_*θ1 .- y1)
+    @test f ≈               sum(abs2.(X_*θ1 .- y1))/2
+    @test g ≈               X_' * (X_ * θ1 .- y1)
 
+    # elasticnet (with intercept)
     r = ElasticNetRegression(λ, γ)
     fg! = R.smooth_fg!(r, X, y1)
     g = similar(θ1)
     f = fg!(g, θ1)
-    @test f ≈ sum(abs2.(X_*θ1 .- y1))/2 + λ * norm(θ1)^2/2
-    @test g ≈ X_' * (X_*θ1 .- y1) .+ λ * θ1
+    @test f ≈               sum(abs2.(X_*θ1 .- y1))/2 + λ .* norm(θ1)^2/2
+    @test g ≈               X_' * (X_*θ1 .- y1) .+ λ .* θ1
 end
 
 @testset "GH> LogitL2" begin
@@ -54,8 +68,15 @@ end
     H = zeros(p, p)
     f = fgh!(f, g, H, θ)
     @test f == J(θ)
-    @test g ≈ -X' * (y .* R.σ.(-y .* (X * θ))) .+ λ .* θ
-    @test H ≈ X' * (Diagonal(R.σ.(y .* (X * θ))) * X) + λ * I
+    @test g ≈               -X' * (y .* R.σ.(-y .* (X * θ))) .+ λ .* θ
+    @test H ≈                X' * (Diagonal(R.σ.(y .* (X * θ))) * X) + λ * I
+
+    # Hv! without  fit_intercept
+    Hv! = R.Hv!(lr, X, y)
+    v   = randn(p)
+    Hv  = similar(v)
+    Hv!(Hv, θ, v)
+    @test Hv ≈               H * v
 
     # fgh! with fit_intercept
     R.allocate(n, p+1)
@@ -69,16 +90,8 @@ end
     H1 = zeros(p+1, p+1)
     f1 = fgh!(f1, g1, H1, θ1)
     @test f1 == J(θ1)
-    @test g1 ≈ -X_' * (y .* R.σ.(-y .* (X_ * θ1))) .+ λ .* θ1
-    @test H1 ≈ X_' * (Diagonal(R.σ.(y .* (X_ * θ1))) * X_) + λ * I
-
-    # Hv! without  fit_intercept
-    R.allocate(n, p)
-    Hv! = R.Hv!(lr, X, y)
-    v   = randn(p)
-    Hv  = similar(v)
-    Hv!(Hv, θ, v)
-    @test Hv ≈ H * v
+    @test g1 ≈              -X_' * (y .* R.σ.(-y .* (X_ * θ1))) .+ λ .* θ1
+    @test H1 ≈               X_' * (Diagonal(R.σ.(y .* (X_ * θ1))) * X_) + λ * I
 
     # Hv! with fit_intercept
     R.allocate(n, p+1)
@@ -86,8 +99,10 @@ end
     v   = randn(p+1)
     Hv  = similar(v)
     Hv!(Hv, θ1, v)
-    @test Hv ≈ H1 * v end
+    @test Hv ≈               H1 * v
+end
 
+# Comparison with sklearn
 @testset "GH> MultinL2" begin
     X = [ 0.78843 -0.28336;
          -0.75568  0.22546;
@@ -155,15 +170,15 @@ end
     r = X*θ_ .- y
     @test f == hlr.loss(r) + hlr.penalty(θ_)
     mask = abs.(r) .<= δ
-    @test g ≈ (X' * (r .* mask)) .+ (X' * (δ .* sign.(r) .* .!mask)) .+ λ .* θ_
-    @test H == X' * (mask .* X) + λ*I
+    @test g ≈               (X' * (r .* mask)) .+ (X' * (δ .* sign.(r) .* .!mask)) .+ λ .* θ_
+    @test H ≈                X' * (mask .* X) + λ*I
 
     Hv! = R.Hv!(hlr, X, y)
     Hv = similar(θ_)
     v = randn(p)
     Hv!(Hv, θ_, v)
 
-    @test Hv ≈ H * v
+    @test Hv ≈               H * v
 
     # with intercept
     R.allocate(n, p+1)
@@ -178,13 +193,13 @@ end
     r1 = X_*θ1_ .- y1
     mask = abs.(r1) .<= δ
     @test f1 == hlr1.loss(r1) + hlr1.penalty(θ1_)
-    @test g1 ≈ (X_' * (r1 .* mask)) .+ (X_' * (δ .* sign.(r1) .* .!mask)) .+ λ .* θ1_
-    @test H1 ≈ X_' * (mask .* X_) + λ*I
+    @test g1 ≈              (X_' * (r1 .* mask)) .+ (X_' * (δ .* sign.(r1) .* .!mask)) .+ λ .* θ1_
+    @test H1 ≈               X_' * (mask .* X_) + λ*I
 
     Hv1! = R.Hv!(hlr1, X, y1)
     Hv1 = similar(θ1_)
     v1 = randn(p+1)
     Hv1!(Hv1, θ1_, v1)
 
-    @test Hv1 ≈ H1 * v1
+    @test Hv1 ≈              H1 * v1
 end
