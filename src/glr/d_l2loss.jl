@@ -24,16 +24,24 @@ function Hv!(glr::GLR{L2Loss,<:L2R}, X, y)
             a   = 1:p
             Hvₐ = view(Hv, a)
             vₐ  = view(v,  a)
-            Xt1 = vec(sum(X, dims=1))
+            Xt1 = view(SCRATCH_P[], a)
+            copyto!(Xt1, sum(X, dims=1))  # -- X'1
             vₑ  = v[end]
-            # update for the first p rows -- (X'X + λI)v[1:p] + (X'1)v[end]
-            mul!(Hvₐ, X', X * vₐ)
+            # update for the first p rows   -- (X'X + λI)v[1:p] + (X'1)v[end]
+            Xvₐ = SCRATCH_N[]
+            mul!(Xvₐ, X, vₐ)
+            mul!(Hvₐ, X', Xvₐ)
             Hvₐ .+= λ .* vₐ .+ Xt1 .* vₑ
-            # update for the last row -- (X'1)'v + n v[end]
+            # update for the last row       -- (X'1)'v + n v[end]
             Hv[end] = dot(Xt1, vₐ) + (n+λ) * vₑ
         end
     else
-        (Hv, v) -> (mul!(Hv, X', X * v); Hv .+= λ .* v)
+        (Hv, v) -> begin
+            Xv = SCRATCH_N[]
+            mul!(Xv, X, v)       # -- Xv
+            mul!(Hv, X', Xv)     # -- X'Xv
+            Hv .+= λ .* v        # -- X'Xv + λv
+        end
     end
 end
 
@@ -50,9 +58,12 @@ end
 
 function smooth_fg!(glr::GLR{L2Loss,<:ENR}, X, y)
     λ = getscale_l2(glr.penalty)
-    p = size(X, 2)
     (g, θ) -> begin
-        r = apply_X(X, θ) .- y
+        # cache contains the residuals (Xθ-y)
+        Xθ = SCRATCH_N[]
+        apply_X!(Xθ, X, θ)
+        r   = SCRATCH_N[]
+        r .-= y             # -- r = Xθ-y
         apply_Xt!(g, X, r)
         g .+= λ .* θ
         return glr.loss(r) + get_l2(glr.penalty)(θ)

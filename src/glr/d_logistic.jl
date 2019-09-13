@@ -15,33 +15,51 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
     λ = getscale(glr.penalty)
     if glr.fit_intercept
         (f, g, H, θ) -> begin
-            Xθ = apply_X(X, θ)
+            Xθ = SCRATCH_N[]
+            apply_X!(Xθ, X, θ)                       # -- Xθ = apply_X(X, θ)
             # precompute σ(yXθ) use -σ(-x) = (σ(x)-1)
-            w  = σ.(Xθ .* y)
+            w  = SCRATCH_N2[]
+            w .= σ.(Xθ .* y)                         # -- w  = σ.(Xθ .* y)
             g === nothing || begin
-                tmp = y .* (w .- 1.0)
-                apply_Xt!(g, X, tmp)
+                t  = SCRATCH_N3[]
+                t .= y .* (w .- 1.0)                 # -- t = y .* (w .- 1.0)
+                apply_Xt!(g, X, t)                   # -- g = X't
                 g .+= λ .* θ
             end
             H === nothing || begin
-                ΛX = w .* X
-                mul!(view(H, 1:p, 1:p), X', ΛX)
-                ΛXt1 = sum(ΛX, dims=1)
+                # NOTE: we could try to be clever to reduce the allocations for
+                # ΛX but computing the full hessian allocates a lot anyway so
+                # probably not really worth it
+                ΛX = w .* X                         # !! big allocs
+                mul!(view(H, 1:p, 1:p), X', ΛX)     # -- H[1:p,1:p] = X'ΛX
+                ΛXt1 = view(SCRATCH_P[], 1:p)
+                copyto!(ΛXt1, sum(ΛX, dims=1))      # -- (ΛX)'1
                 @inbounds for i = 1:p
-                    H[i, end] = H[end, i] = ΛXt1[i]
+                    H[i, end] = H[end, i] = ΛXt1[i] # -- H[:,p+1] = H[p+1,:] = (ΛX)'1
                 end
-                H[end, end] = sum(w)
-                add_λI!(H, λ)
+                H[end, end] = sum(w)                # -- 1'Λ1'
+                add_λI!(H, λ)                       # -- H = X'ΛX + λI
             end
             f === nothing || return J(y, Xθ, θ)
         end
     else
+        # see comments above, same computations just no additional things for
+        # fit_intercept
         (f, g, H, θ) -> begin
-            Xθ = apply_X(X, θ)
-            # precompute σ(yXθ) use -σ(-x) = σ(x)(σ(x)-1)
-            w = σ.(y .* Xθ)
-            g === nothing || (mul!(g, X', y .* (w .- 1.0)); g .+= λ .* θ)
-            H === nothing || (mul!(H, X', w .* X); add_λI!(H, λ))
+            Xθ = SCRATCH_N[]
+            apply_X!(Xθ, X, θ)
+            w  = SCRATCH_N2[]
+            w .= σ.(y .* Xθ)
+            g === nothing || begin
+                t  = SCRATCH_N3[]
+                t .= y .* (w .- 1.0)
+                apply_Xt!(g, X, t)
+                g .+= λ .* θ
+            end
+            H === nothing || begin
+                mul!(H, X', w .* X)
+                add_λI!(H, λ)
+            end
             f === nothing || return J(y, Xθ, θ)
         end
     end
@@ -55,24 +73,36 @@ function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y)
         # rows a 1:p = [X'ΛX + λI | X'Λ1]
         # row  e end = [1'ΛX      | sum(a)+λ]
         (Hv, θ, v) -> begin
-            # precompute σ(yXθ) use -σ(-x) = (σ(x)-1)
-            w = σ.(apply_X(X, θ) .* y)
+            Xθ = SCRATCH_N[]
+            apply_X!(Xθ, X, θ)                       # -- Xθ = apply_X(X, θ)
+            w  = SCRATCH_N2[]
+            w .= σ.(Xθ .* y)                         # -- w  = σ.(Xθ .* y)
             # view on the first p rows
             a    = 1:p
             Hvₐ  = view(Hv, a)
             vₐ   = view(v,  a)
-            XtΛ1 = X' * w     # X'Λ1; O(np)
+            XtΛ1 = view(SCRATCH_P[], 1:p)
+            mul!(XtΛ1, X', w)                        # -- X'Λ1; O(np)
             vₑ   = v[end]
             # update for the first p rows -- (X'X + λI)v[1:p] + (X'1)v[end]
-            mul!(Hvₐ, X', w .* (X * vₐ)) # (X'ΛX)vₐ
+            Xvₐ  = SCRATCH_N[]
+            mul!(Xvₐ, X, vₐ)
+            Xvₐ .*=  w                               # --  ΛXvₐ
+            mul!(Hvₐ, X', Xvₐ)                       # -- (X'ΛX)vₐ
             Hvₐ .+= λ .* vₐ .+ XtΛ1 .* vₑ
             # update for the last row -- (X'1)'v + n v[end]
             Hv[end] = dot(XtΛ1, vₐ) + (sum(w)+λ) * vₑ
         end
     else
         (Hv, θ, v) -> begin
-            w = σ.(apply_X(X, θ) .* y)
-            mul!(Hv, X', w .* (X * v))
+            Xθ = SCRATCH_N[]
+            apply_X!(Xθ, X, θ)
+            w  = SCRATCH_N2[]
+            w .= σ.(Xθ .* y)                # -- σ(yXθ)
+            Xv = SCRATCH_N3[]
+            mul!(Xv, X, v)
+            Xv .*= SCRATCH_N2[]                # -- ΛXv
+            mul!(Hv, X', Xv)                # -- X'ΛXv
             Hv .+= λ .* v
         end
     end
@@ -113,24 +143,50 @@ function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
     c    = length(unique(y))
     λ    = getscale(glr.penalty)
     (f, g, θ) -> begin
-        P = apply_X(X, θ, c)                                 # O(npc) store n * c
-        M = exp.(P)                                          # O(npc) store n * c
+        P  = SCRATCH_NC[]
+        apply_X!(P, X, θ, c)                                 # O(npc) store n * c
+        M  = SCRATCH_NC2[]
+        M .= exp.(P)                                         # O(npc) store n * c
         g === nothing || begin
-            ΛM  = M ./ sum(M, dims=2)                        # O(nc)  store n * c
-            Q   = BitArray(y[i] == j for i = 1:n, j=1:c)
-            G   = X'ΛM .- X'Q                                # O(npc) store n * c
-            if glr.fit_intercept
-                G = vcat(G, sum(ΛM, dims=1) .- sum(Q, dims=1))
+            ΛM  = SCRATCH_NC3[]
+            ΛM .= M ./ sum(M, dims=2)                        # O(nc)  store n * c
+            Q   = SCRATCH_NC4[]
+            @inbounds for i = 1:n, j=1:c
+                Q[i, j] = ifelse(y[i] == j, 1.0, 0.0)
             end
-            g  .= reshape(G, (p + Int(glr.fit_intercept)) * c)
+            ∑ΛM = sum(ΛM, dims=1)
+            ∑Q  = sum(Q, dims=1)
+            R   = ΛM
+            R .-= Q
+            G   = SCRATCH_PC[]
+            if glr.fit_intercept
+                mul!(view(G, 1:p, :), X', R)
+                @inbounds for k in 1:c
+                    G[end, k] = ∑ΛM[k] - ∑Q[k]
+                end
+            else
+                mul!(G, X', R)
+            end
+            g  .= reshape(G, (p+Int(glr.fit_intercept))*c)
             g .+= λ .* θ
         end
         f === nothing || begin
             # we re-use pre-computations here, see also MultinomialLoss
-            ms = maximum(P, dims=2)
-            ss = sum(M ./ exp.(ms), dims=2)
-            @inbounds ps = [P[i, y[i]] for i in eachindex(y)]
-            return sum(log.(ss) .+ ms .- ps) + glr.penalty(θ)
+            # ms = maximum(P, dims=2)
+            # ss = sum(M ./ exp.(ms), dims=2)
+            ms   = maximum(P, dims=2)
+            ems  = SCRATCH_N[]
+            @inbounds for i in 1:n
+                ems[i] = exp(ms[i])
+            end
+            ΛM  = SCRATCH_NC2[] # note that _NC is already linked to P
+            ΛM .= M ./ ems
+            ss  = sum(ΛM, dims=2)
+            t   = 0.0
+            @inbounds for i in eachindex(y)
+                t += log(ss[i]) + ms[i] - P[i, y[i]]
+            end
+            return sum(t) + glr.penalty(θ)
         end
     end
 end

@@ -10,6 +10,8 @@ import Base.+, Base.-, Base.*, Base./, Base.convert
 
 const AVR = AbstractVector{<:Real}
 
+include("scratchspace.jl")
+
 include("utils.jl")
 
 # > Loss / penalty definitions <
