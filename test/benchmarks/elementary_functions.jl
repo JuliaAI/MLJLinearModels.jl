@@ -29,7 +29,7 @@ r = R.SCRATCH_N[]
 @btime R.get_residuals!($r, $X, $θ, $y);
 
 # Sept 13, 2019 :: 7.9 ms (0 allocations: 0 bytes)
-@btime R.apply_Xt!($Xtθ, $X, $y);§
+@btime R.apply_Xt!($Xtθ, $X, $y);
 
 # --------------
 # With intercept
@@ -38,12 +38,13 @@ R.allocate(n, p+1)
 
 Xθ = similar(y)
 Xtθ = similar(θ1)
+r = R.SCRATCH_N[]
 
 # Sept 13, 2019 :: 7.949 ms (1 allocation: 48 bytes) -- alloc for the view
 @btime R.apply_X!($Xθ, $X, $θ1);
 
 # Sept 13, 2019 :: 7.955 ms (1 allocation: 48 bytes) -- mostly apply_X!
-@btime R.get_residuals!($X, $θ1, $y);
+@btime R.get_residuals!($r, $X, $θ1, $y);
 
 # Sept 13, 2019 :: 7.883 ms (1 allocation: 48 bytes)
 @btime R.apply_Xt!($Xtθ, $X, $y);
