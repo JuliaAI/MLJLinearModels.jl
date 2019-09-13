@@ -1,14 +1,8 @@
-<<<<<<< HEAD
-=======
-# WIP WIP !
-
->>>>>>> master
 using MLJLinearModels
 using BenchmarkTools, Random, LinearAlgebra
 DO_COMPARISONS = false; include("../testutils.jl")
 
 n, p = 50_000, 500
-<<<<<<< HEAD
 ((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p;  seed=512, sparse=0.5)
 
 # =============== #

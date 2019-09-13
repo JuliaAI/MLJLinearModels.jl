@@ -57,11 +57,7 @@ function apply_X!(Xθ, X, θ, c=1)
 		if length(θ) == p
 			mul!(Xθ, X, θ)
 		else
-<<<<<<< HEAD
 			mul!(Xθ, X, view(θ, 1:p))
-=======
-			mul!(Xθ, X, θ[1:p])
->>>>>>> master
 			Xθ .+= θ[end]
 		end
 	else
