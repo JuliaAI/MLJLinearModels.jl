@@ -63,6 +63,7 @@ Systematic timing benchmarks have not been run yet but it's planned (see [this i
 
 * The models are built and tested assuming `n > p`; if this doesn't hold, tricks should be employed to speed up computations; these have not been implemented yet.
 * CV-aware code not implemented yet (code that re-uses computations when fitting over a number of hyper-parameters);  "Meta" functionalities such as One-vs-All or Cross-Validation are left to other packages such as MLJ.
+* No support yet for sparse matrices.
 * Stochastic solvers have not yet been implemented.
 * All computations are assumed to be done in Float64.
 

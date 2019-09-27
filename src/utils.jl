@@ -175,11 +175,12 @@ $SIGNATURES
 
 In place computation of `H = H + λI` where  `H` is a square matrix.
 """
-function add_λI!(H::Matrix, λ::Real)
+function add_λI!(H::Matrix, λ::Real, penalize_intercept::Bool=false)
 	λ = convert(eltype(H), λ)
-	@inbounds for i in 1:size(H, 1)
+	@inbounds for i in 1:size(H, 1)-1
 		H[i,i] += λ
 	end
+	H[end, end] += ifelse(penalize_intercept, λ, zero(eltype(H)))
 end
 
 

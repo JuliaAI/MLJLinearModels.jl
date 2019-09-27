@@ -25,20 +25,21 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
                 t .= y .* (w .- 1.0)                 # -- t = y .* (w .- 1.0)
                 apply_Xt!(g, X, t)                   # -- g = X't
                 g .+= λ .* θ
+                glr.penalize_intercept || (g[end] = θ[end])
             end
             H === nothing || begin
                 # NOTE: we could try to be clever to reduce the allocations for
                 # ΛX but computing the full hessian allocates a lot anyway so
                 # probably not really worth it
-                ΛX = w .* X                         # !! big allocs
-                mul!(view(H, 1:p, 1:p), X', ΛX)     # -- H[1:p,1:p] = X'ΛX
+                ΛX = w .* X                           # !! big allocs
+                mul!(view(H, 1:p, 1:p), X', ΛX)       # -- H[1:p,1:p] = X'ΛX
                 ΛXt1 = view(SCRATCH_P[], 1:p)
-                copyto!(ΛXt1, sum(ΛX, dims=1))      # -- (ΛX)'1
+                copyto!(ΛXt1, sum(ΛX, dims=1))        # -- (ΛX)'1
                 @inbounds for i = 1:p
-                    H[i, end] = H[end, i] = ΛXt1[i] # -- H[:,p+1] = H[p+1,:] = (ΛX)'1
+                    H[i, end] = H[end, i] = ΛXt1[i]   # -- H[:,p+1] = H[p+1,:] = (ΛX)'1
                 end
-                H[end, end] = sum(w)                # -- 1'Λ1'
-                add_λI!(H, λ)                       # -- H = X'ΛX + λI
+                H[end, end] = sum(w)                  # -- 1'Λ1'
+                add_λI!(H, λ, glr.penalize_intercept) # -- H = X'ΛX + λI
             end
             f === nothing || return J(y, Xθ, θ)
         end
@@ -55,10 +56,11 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
                 t .= y .* (w .- 1.0)
                 apply_Xt!(g, X, t)
                 g .+= λ .* θ
+                glr.penalize_intercept || (g[end] = θ[end])
             end
             H === nothing || begin
                 mul!(H, X', w .* X)
-                add_λI!(H, λ)
+                add_λI!(H, λ, glr.penalize_intercept)
             end
             f === nothing || return J(y, Xθ, θ)
         end
@@ -91,7 +93,7 @@ function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y)
             mul!(Hvₐ, X', Xvₐ)                       # -- (X'ΛX)vₐ
             Hvₐ .+= λ .* vₐ .+ XtΛ1 .* vₑ
             # update for the last row -- (X'1)'v + n v[end]
-            Hv[end] = dot(XtΛ1, vₐ) + (sum(w)+λ) * vₑ
+            Hv[end] = dot(XtΛ1, vₐ) + (sum(w) + ifelse(glr.penalize_intercept, λ, zero(λ))) * vₑ
         end
     else
         (Hv, θ, v) -> begin
@@ -169,6 +171,7 @@ function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
             end
             g  .= reshape(G, (p+Int(glr.fit_intercept))*c)
             g .+= λ .* θ
+            glr.penalize_intercept || (g[end] = θ[end])
         end
         f === nothing || begin
             # we re-use pre-computations here, see also MultinomialLoss
@@ -218,6 +221,7 @@ function Hv!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
             Hv .= reshape(Hv_mat, p * c)
         end
         Hv .+= λ .* v
+        Hv[end] = v[end]
     end
 end
 
