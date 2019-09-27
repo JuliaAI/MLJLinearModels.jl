@@ -64,7 +64,7 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} 
                 add_λI!(H, λ, glr.penalize_intercept)
             end
             # function value
-            f === nothing || return glr.loss(r) + glr.penalty(θ)
+            f === nothing || return glr.loss(r) + glr.penalty(view_θ(glr, θ))
         end
     else
         (f, g, H, θ) -> begin
@@ -113,7 +113,7 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} w
             apply_Xt!(Hvₐ, X, t)
             Hvₐ .+= λ .* vₐ .+ XtΛ1 .* vₑ
             # update for the last row (intercept)
-            Hv[end] = dot(XtΛ1, vₐ) + (sum(w) + ifelse(glr.penalize_intercept, λ, zero(λ))) * vₑ
+            Hv[end] = dot(XtΛ1, vₐ) + (sum(w) + λ_if_penalize_intercept(glr, λ)) * vₑ
         end
     else
         (Hv, θ, v) -> begin
@@ -164,8 +164,7 @@ function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y;
                 t .*= ωr
                 mul!(Mvₐ, X', t)
                 Mvₐ .+= λ .* vₐ .+ XtW1 .* vₑ
-                Mv[end] = dot(XtW1, vₐ) +
-                            (sum(ωr) + ifelse(glr.penalize_intercept, λ, zero(λ))) * vₑ
+                Mv[end] = dot(XtW1, vₐ) + (sum(ωr) + λ_if_penalize_intercept(glr, λ)) * vₑ
             end
         else
             (Mv, v) -> begin
@@ -194,6 +193,7 @@ function smooth_fg!(glr::GLR{RobustLoss{ρ},<:ENR}, X, y) where ρ <: RobustRho1
         ψr .= ψ_.(r, w)
         apply_Xt!(g, X, ψr)
         g .+= λ .* θ
-        return glr.loss(r) + get_l2(glr.penalty)(θ)
+        glr.fit_intercept && (glr.penalize_intercept || (g[end] = θ[end]))
+        return glr.loss(r) + get_l2(glr.penalty)(view_θ(glr, θ))
     end
 end

@@ -41,7 +41,7 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
                 H[end, end] = sum(w)                  # -- 1'Λ1'
                 add_λI!(H, λ, glr.penalize_intercept) # -- H = X'ΛX + λI
             end
-            f === nothing || return J(y, Xθ, θ)
+            f === nothing || return J(y, Xθ, view_θ(glr, θ))
         end
     else
         # see comments above, same computations just no additional things for
@@ -56,7 +56,6 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
                 t .= y .* (w .- 1.0)
                 apply_Xt!(g, X, t)
                 g .+= λ .* θ
-                glr.penalize_intercept || (g[end] = θ[end])
             end
             H === nothing || begin
                 mul!(H, X', w .* X)
@@ -93,7 +92,7 @@ function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y)
             mul!(Hvₐ, X', Xvₐ)                       # -- (X'ΛX)vₐ
             Hvₐ .+= λ .* vₐ .+ XtΛ1 .* vₑ
             # update for the last row -- (X'1)'v + n v[end]
-            Hv[end] = dot(XtΛ1, vₐ) + (sum(w) + ifelse(glr.penalize_intercept, λ, zero(λ))) * vₑ
+            Hv[end] = dot(XtΛ1, vₐ) + (sum(w) + λ_if_penalize_intercept(glr, λ)) * vₑ
         end
     else
         (Hv, θ, v) -> begin
@@ -169,9 +168,9 @@ function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
             else
                 mul!(G, X', R)
             end
-            g  .= reshape(G, (p+Int(glr.fit_intercept))*c)
+            g  .= reshape(G, (p + Int(glr.fit_intercept)) * c)
             g .+= λ .* θ
-            glr.penalize_intercept || (g[end] = θ[end])
+            glr.fit_intercept && (glr.penalize_intercept || (g[end] = θ[end]))
         end
         f === nothing || begin
             # we re-use pre-computations here, see also MultinomialLoss
@@ -189,7 +188,7 @@ function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
             @inbounds for i in eachindex(y)
                 t += log(ss[i]) + ms[i] - P[i, y[i]]
             end
-            return sum(t) + glr.penalty(θ)
+            return sum(t) + glr.penalty(view_θ(glr, θ))
         end
     end
 end
@@ -221,7 +220,7 @@ function Hv!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
             Hv .= reshape(Hv_mat, p * c)
         end
         Hv .+= λ .* v
-        Hv[end] = v[end]
+        glr.fit_intercept && (glr.penalize_intercept || (Hv[end] = v[end]))
     end
 end
 

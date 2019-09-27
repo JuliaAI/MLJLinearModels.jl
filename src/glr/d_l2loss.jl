@@ -34,7 +34,7 @@ function Hv!(glr::GLR{L2Loss,<:L2R}, X, y)
             mul!(Hvₐ, X', Xvₐ)
             Hvₐ .+= λ .* vₐ .+ Xt1 .* vₑ
             # update for the last row       -- (X'1)'v + n v[end]
-            Hv[end] = dot(Xt1, vₐ) + (n + ifelse(glr.penalize_intercept, λ, zero(λ))) * vₑ
+            Hv[end] = dot(Xt1, vₐ) + (n + λ_if_penalize_intercept(glr, λ)) * vₑ
         end
     else
         (Hv, v) -> begin
@@ -66,6 +66,6 @@ function smooth_fg!(glr::GLR{L2Loss,<:ENR}, X, y)
         apply_Xt!(g, X, r)
         g .+= λ .* θ
         glr.fit_intercept && (glr.penalize_intercept || (g[end] = θ[end]))
-        return glr.loss(r) + get_l2(glr.penalty)(θ)
+        return glr.loss(r) + get_l2(glr.penalty)(view_θ(glr, θ))
     end
 end

@@ -198,3 +198,22 @@ $SIGNATURES
 Threshold the number if its absolute value is too close to zero.
 """
 clip(z, τ) = ifelse(abs(z) < τ, τ, z)
+
+
+"""
+$SIGNATURES
+
+Return λ if penalize intercept otherwise 0, useful in computations of Hessian.
+"""
+λ_if_penalize_intercept(glr, λ) = ifelse(glr.penalize_intercept, λ, zero(λ))
+
+"""
+$SIGNATURES
+
+Return a view of θ if the last element should not be penalized.
+"""
+@inline function view_θ(glr, θ)
+	f = glr.fit_intercept && !glr.penalize_intercept
+	f && return view(θ, 1:length(θ)-1)
+	θ
+end
