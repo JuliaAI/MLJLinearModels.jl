@@ -1,5 +1,6 @@
 n, p = 50, 5
 ((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p; seed=1234)
+maskint = vcat(ones(p), 0.0)
 
 @testset "GH> Ridge" begin
     λ = 0.5
@@ -15,12 +16,21 @@ n, p = 50, 5
     # ------------------
     # with fit_intercept
     R.allocate(n, p+1)
-    r = RidgeRegression(λ)
+    r = RidgeRegression(λ; penalize_intercept=true)
     hv! = R.Hv!(r, X, y)
     v = randn(p+1)
     hv = similar(v)
     hv!(hv, v)
     @test hv ≈              X_' * (X_ * v) .+ λ * v
+    # ------------------
+    # with fit_intercept but no penalty
+    R.allocate(n, p+1)
+    r = RidgeRegression(λ)
+    hv! = R.Hv!(r, X, y)
+    v = randn(p+1)
+    hv = similar(v)
+    hv!(hv, v)
+    @test hv ≈              X_' * (X_ * v) .+ λ * v .* vcat(ones(p), 0.0)
 end
 
 @testset "GH> EN/Lasso" begin
@@ -38,7 +48,7 @@ end
     R.allocate(n, p+1)
     λ = 3.4
     γ = 2.7
-    r = LassoRegression(λ)
+    r = LassoRegression(λ; penalize_intercept=true)
     fg! = R.smooth_fg!(r, X, y1)
     g = similar(θ1)
     f = fg!(g, θ1)
@@ -46,12 +56,20 @@ end
     @test g ≈               X_' * (X_ * θ1 .- y1)
 
     # elasticnet (with intercept)
-    r = ElasticNetRegression(λ, γ)
+    r = ElasticNetRegression(λ, γ; penalize_intercept=true)
     fg! = R.smooth_fg!(r, X, y1)
     g = similar(θ1)
     f = fg!(g, θ1)
     @test f ≈               sum(abs2.(X_*θ1 .- y1))/2 + λ .* norm(θ1)^2/2
     @test g ≈               X_' * (X_*θ1 .- y1) .+ λ .* θ1
+
+    # elasticnet with intercept but no penalty of intercept
+    r = ElasticNetRegression(λ, γ)
+    fg! = R.smooth_fg!(r, X, y1)
+    g = similar(θ1)
+    f = fg!(g, θ1)
+    @test f ≈               sum(abs2.(X_*θ1 .- y1))/2 + λ .* norm(θ1 .* maskint)^2/2
+    @test g ≈               X_' * (X_*θ1 .- y1) .+ λ .* θ1 .* vcat(ones(p), 0)
 end
 
 @testset "GH> LogitL2" begin
@@ -80,7 +98,7 @@ end
     # fgh! with fit_intercept
     R.allocate(n, p+1)
     λ = 0.5
-    lr1 = LogisticRegression(λ)
+    lr1 = LogisticRegression(λ; penalize_intercept=true)
     fgh! = R.fgh!(lr1, X, y)
     θ1 = randn(p+1)
     J  = objective(lr1, X, y)
@@ -94,6 +112,24 @@ end
 
     # Hv! with fit_intercept
     R.allocate(n, p+1)
+    Hv! = R.Hv!(lr1, X, y)
+    v   = randn(p+1)
+    Hv  = similar(v)
+    Hv!(Hv, θ1, v)
+    @test Hv ≈               H1 * v
+
+    # fgh! with fit intercept and no penalty on intercept
+    lr1 = LogisticRegression(λ)
+    fgh! = R.fgh!(lr1, X, y)
+    θ1 = randn(p+1)
+    J  = objective(lr1, X, y)
+    f1 = 0.0
+    g1 = similar(θ1)
+    H1 = zeros(p+1, p+1)
+    f1 = fgh!(f1, g1, H1, θ1)
+    @test f1 == J(θ1)
+    @test g1 ≈              -X_' * (y .* R.σ.(-y .* (X_ * θ1))) .+ λ .* θ1 .* maskint
+    @test H1 ≈               X_' * (Diagonal(R.σ.(y .* (X_ * θ1))) * X_) + λ * diagm(maskint)
     Hv! = R.Hv!(lr1, X, y)
     v   = randn(p+1)
     Hv  = similar(v)
@@ -140,7 +176,7 @@ end
     Hv1_sk = [-0.20815994906492608, -0.03987039776759468, 0.38689109859835424, 0.3516398288195569,
                0.0703034889451111, -0.3054162498173413, -0.14347987975463106, -0.03043309117751647,
                -0.08147484878101276]
-    mnr1 = MultinomialRegression(0.0)
+    mnr1 = MultinomialRegression(0.0; penalize_intercept=true)
     fg! = R.fg!(mnr1, X, y)
     f = fg!(0.0, nothing, θ1)
     @test  f ≈ mnl(y, R.apply_X(X, θ1, 3))
@@ -181,7 +217,7 @@ end
 
     # with intercept
     R.allocate(n, p+1)
-    hlr1  = HuberRegression(δ, λ)
+    hlr1  = HuberRegression(δ, λ; penalize_intercept=true)
     fgh1! = R.fgh!(hlr1, X, y1)
     θ1_   = randn(p+1)
 
@@ -197,7 +233,7 @@ end
 
     # with intercept
     R.allocate(n, p+1)
-    hlr1  = HuberRegression(δ, λ)
+    hlr1  = HuberRegression(δ, λ; penalize_intercept=true)
     fgh1! = R.fgh!(hlr1, X, y1)
     θ1_   = randn(p+1)
 
@@ -210,6 +246,30 @@ end
     @test f1 == hlr1.loss(r1) + hlr1.penalty(θ1_)
     @test g1 ≈              (X_' * (r1 .* mask)) .+ (X_' * (δ .* sign.(r1) .* .!mask)) .+ λ .* θ1_
     @test H1 ≈               X_' * (mask .* X_) + λ*I
+
+    Hv1! = R.Hv!(hlr1, X, y1)
+    Hv1 = similar(θ1_)
+    v1 = randn(p+1)
+    Hv1!(Hv1, θ1_, v1)
+
+    @test Hv1 ≈              H1 * v1
+
+    # with intercept and no penalty on intercept
+    R.allocate(n, p+1)
+    hlr1  = HuberRegression(δ, λ)
+    fgh1! = R.fgh!(hlr1, X, y1)
+    θ1_   = randn(p+1)
+
+    g1 = similar(θ1)
+    H1 = zeros(p+1, p+1)
+
+    f1 = fgh1!(0.0, g1, H1, θ1_)
+    r1 = X_*θ1_ .- y1
+    mask = abs.(r1) .<= δ
+    @test f1 == hlr1.loss(r1) + hlr1.penalty(θ1_ .* maskint)
+    @test g1 ≈              (X_' * (r1 .* mask)) .+ (X_' * (δ .* sign.(r1) .* .!mask)) .+
+                                λ .* θ1_ .* maskint
+    @test H1 ≈               X_' * (mask .* X_) + λ * diagm(maskint)
 
     Hv1! = R.Hv!(hlr1, X, y1)
     Hv1 = similar(θ1_)

@@ -25,7 +25,7 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
                 t .= y .* (w .- 1.0)                 # -- t = y .* (w .- 1.0)
                 apply_Xt!(g, X, t)                   # -- g = X't
                 g .+= λ .* θ
-                glr.penalize_intercept || (g[end] = θ[end])
+                glr.penalize_intercept || (g[end] -= λ * θ[end])
             end
             H === nothing || begin
                 # NOTE: we could try to be clever to reduce the allocations for
@@ -59,7 +59,7 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
             end
             H === nothing || begin
                 mul!(H, X', w .* X)
-                add_λI!(H, λ, glr.penalize_intercept)
+                add_λI!(H, λ)
             end
             f === nothing || return J(y, Xθ, θ)
         end
@@ -170,7 +170,7 @@ function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
             end
             g  .= reshape(G, (p + Int(glr.fit_intercept)) * c)
             g .+= λ .* θ
-            glr.fit_intercept && (glr.penalize_intercept || (g[end] = θ[end]))
+            glr.fit_intercept && (glr.penalize_intercept || (g[end] -= λ * θ[end]))
         end
         f === nothing || begin
             # we re-use pre-computations here, see also MultinomialLoss
@@ -220,7 +220,7 @@ function Hv!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
             Hv .= reshape(Hv_mat, p * c)
         end
         Hv .+= λ .* v
-        glr.fit_intercept && (glr.penalize_intercept || (Hv[end] = v[end]))
+        glr.fit_intercept && (glr.penalize_intercept || (Hv[end] -= λ * v[end]))
     end
 end
 

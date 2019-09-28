@@ -65,7 +65,7 @@ function smooth_fg!(glr::GLR{L2Loss,<:ENR}, X, y)
         get_residuals!(r, X, θ, y) # -- r = Xθ-y
         apply_Xt!(g, X, r)
         g .+= λ .* θ
-        glr.fit_intercept && (glr.penalize_intercept || (g[end] = θ[end]))
+        glr.fit_intercept && (glr.penalize_intercept || (g[end] -= λ * θ[end]))
         return glr.loss(r) + get_l2(glr.penalty)(view_θ(glr, θ))
     end
 end

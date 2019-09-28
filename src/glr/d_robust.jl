@@ -48,7 +48,7 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} 
                 ψr .= ψ_.(r, w)
                 apply_Xt!(g, X, ψr)
                 g .+= λ .* θ
-                glr.penalize_intercept || (g[end] = θ[end])
+                glr.penalize_intercept || (g[end] -= λ * θ[end])
             end
             # Hessian via ϕ functiono
             H === nothing || begin
@@ -193,7 +193,7 @@ function smooth_fg!(glr::GLR{RobustLoss{ρ},<:ENR}, X, y) where ρ <: RobustRho1
         ψr .= ψ_.(r, w)
         apply_Xt!(g, X, ψr)
         g .+= λ .* θ
-        glr.fit_intercept && (glr.penalize_intercept || (g[end] = θ[end]))
+        glr.fit_intercept && (glr.penalize_intercept || (g[end] -= λ * θ[end]))
         return glr.loss(r) + get_l2(glr.penalty)(view_θ(glr, θ))
     end
 end

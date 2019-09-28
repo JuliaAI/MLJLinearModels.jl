@@ -20,6 +20,9 @@ The core aims of this package are:
 - focus on performance including in "big data" settings exploiting packages such as [`Optim.jl`](https://github.com/JuliaNLSolvers/Optim.jl), [`IterativeSolvers.jl`](https://github.com/JuliaMath/IterativeSolvers.jl),
 - use a "machine learning" perspective, i.e.: focus essentially on prediction, hyper-parameters should be obtained via a data-driven procedure such as cross-validation.
 
+All models allow to fit an intercept and allow the penalty to be applied or not on the intercept (not applied by default).
+All models attempt to be efficient in terms of memory allocation to avoid unnecessary copies of the data.
+
 ## Implemented
 
 | Regressors          | Formulation¹           | Available solvers                 | Comments  |
