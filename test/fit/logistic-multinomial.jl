@@ -17,7 +17,7 @@ n, p = 500, 5
     @test isapprox(J(θ_lbfgs),    280.37472, rtol=1e-5)
 
     # With intercept
-    lr1 = LogisticRegression(λ)
+    lr1 = LogisticRegression(λ; penalize_intercept=true)
     J   = objective(lr1, X, y1)
     θ_newton   = fit(lr1, X, y1, solver=Newton())
     θ_newtoncg = fit(lr1, X, y1, solver=NewtonCG())
@@ -26,6 +26,17 @@ n, p = 500, 5
     @test isapprox(J(θ_newton),   209.32539, rtol=1e-5) # <- ref value
     @test isapprox(J(θ_newtoncg), 209.32539, rtol=1e-5)
     @test isapprox(J(θ_lbfgs),    209.32539, rtol=1e-5)
+
+    # with intercept and not penalizing it
+    lr1 = LogisticRegression(λ)
+    J   = objective(lr1, X, y1)
+    θ_newton   = fit(lr1, X, y1, solver=Newton())
+    θ_newtoncg = fit(lr1, X, y1, solver=NewtonCG())
+    θ_lbfgs    = fit(lr1, X, y1, solver=NewtonCG())
+    @test isapprox(J(θ1),         212.29192, rtol=1e-5)
+    @test isapprox(J(θ_newton),   207.71595, rtol=1e-5) # <- ref value
+    @test isapprox(J(θ_newtoncg), 207.71595, rtol=1e-5)
+    @test isapprox(J(θ_lbfgs),    207.71595, rtol=1e-5)
 
     if DO_COMPARISONS
         # This checks that the parameters recovered using Sklearn lead
@@ -38,12 +49,8 @@ n, p = 500, 5
         lr_sk_lbfgs.fit(X, y1)
         θ1_sk_lbfgs = vcat(lr_sk_lbfgs.coef_[:], lr_sk_lbfgs.intercept_)
         # Comparing with ours
-        @test isapprox(J(θ1_sk_ncg),   209.32539, rtol=1e-3)
-        @test isapprox(J(θ1_sk_lbfgs), 209.32539, rtol=1e-3)
-        # NOTE in fact here we get better results but that's not really meaningful given
-        # the stopping criterions are not identical etc.
-        @test 209.32539 < J(θ1_sk_ncg)
-        @test 209.32539 < J(θ1_sk_lbfgs)
+        @test isapprox(J(θ1_sk_ncg),   207.71595, rtol=1e-5)
+        @test isapprox(J(θ1_sk_lbfgs), 207.71595, rtol=1e-5)
     end
 end
 
@@ -62,13 +69,21 @@ n, p, c = 500, 5, 4
     @test isapprox(J(θ_lbfgs),    384.33810, rtol=1e-5)
 
     #  With intercept
-    mnr = MultinomialRegression(λ)
+    mnr = MultinomialRegression(λ; penalize_intercept=true)
     J   = objective(mnr, X, y1; c=c)
     θ_newtoncg = fit(mnr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(mnr, X, y1, solver=R.LBFGS())
     @test isapprox(J(θ),          1244.46404, rtol=1e-5)
     @test isapprox(J(θ_newtoncg),  388.75018, rtol=1e-5) # <- ref value
     @test isapprox(J(θ_lbfgs),     388.75018, rtol=1e-5)
+
+    mnr = MultinomialRegression(λ)
+    J   = objective(mnr, X, y1; c=c)
+    θ_newtoncg = fit(mnr, X, y1, solver=NewtonCG())
+    θ_lbfgs    = fit(mnr, X, y1, solver=R.LBFGS())
+    @test isapprox(J(θ),          1242.70990, rtol=1e-5)
+    @test isapprox(J(θ_newtoncg),  383.93018, rtol=1e-5) # <- ref value
+    @test isapprox(J(θ_lbfgs),     383.93018, rtol=1e-5)
 
     if DO_COMPARISONS
         lr_sk_ncg = SKLEARN_LM.LogisticRegression(C=1.0/λ, solver="newton-cg",
@@ -80,14 +95,10 @@ n, p, c = 500, 5, 4
         lr_sk_lbfgs.fit(X, y1)
         θ1_sk_lbfgs = vec(vcat(lr_sk_ncg.coef_', lr_sk_ncg.intercept_'))
         # Comparing with ours
-        @test isapprox(J(θ1_sk_ncg),   388.75018, rtol=5e-3)
-        @test isapprox(J(θ1_sk_lbfgs), 388.75018, rtol=5e-3)
-        # Again we get better results but it doesn't really matter
-        @test 388.75018 < J(θ1_sk_ncg)
-        @test 388.75018 < J(θ1_sk_lbfgs)
+        @test isapprox(J(θ1_sk_ncg),   385.67895, rtol=1e-5)
+        @test isapprox(J(θ1_sk_lbfgs), 385.67895, rtol=1e-5)
     end
 end
-
 
 n, p = 500, 100
 (_, (X, y, θ)) = generate_binary(n, p;  seed=52551, sparse=0.1)
@@ -97,7 +108,7 @@ n, p = 500, 100
     α = 0.03
     λ = α * (1 - ρ) * n
     γ = α * ρ * n
-    enlr = LogisticRegression(λ, γ)
+    enlr = LogisticRegression(λ, γ; penalize_intercept=true)
     J    = objective(enlr, X, y)
     θ_fista = fit(enlr, X, y)
     θ_ista  = fit(enlr, X, y, solver=ISTA())
@@ -114,8 +125,8 @@ n, p = 500, 100
     J    = objective(enlr, X, y)
     θ_fista = fit(enlr, X, y)
     @test isapprox(J(θ),       263.76834, rtol=1e-5)
-    @test isapprox(J(θ_fista), 246.66020, rtol=1e-5) # <- ref value
-    @test nnz(θ_fista) == 18
+    @test isapprox(J(θ_fista), 245.65841, rtol=1e-5) # <- ref value
+    @test nnz(θ_fista) == 17
 
     if DO_COMPARISONS
         # NOTE: this algorithm is stochastic so can't have hard tests
@@ -123,7 +134,7 @@ n, p = 500, 100
         enlr_sk = SKLEARN_LM.LogisticRegression(penalty="elasticnet", C=1.0/γ, l1_ratio=1, solver="saga")
         enlr_sk.fit(X, y)
         θ_sk = vcat(enlr_sk.coef_[:], enlr_sk.intercept_)
-        @test isapprox(J(θ_sk), 246.66020, rtol=1e-2)
+        @test isapprox(J(θ_sk), 245.658, rtol=1e-3)
         @test 17 ≤ nnz(θ_sk) ≤ 19
     end
 end
@@ -134,7 +145,7 @@ n, p, c = 1000, 100, 3
 @testset "Multin/EN" begin
     λ = 10
     γ = 50
-    enmnr = MultinomialRegression(λ, γ)
+    enmnr = MultinomialRegression(λ, γ; penalize_intercept=true)
     J     = objective(enmnr, X, y; c=c)
     θ_fista = fit(enmnr, X, y)
     θ_ista  = fit(enmnr, X, y)
@@ -148,9 +159,9 @@ n, p, c = 1000, 100, 3
     enmnr = MultinomialRegression(γ; penalty=:l1)
     J     = objective(enmnr, X, y; c=c)
     θ_fista = fit(enmnr, X, y)
-    @test isapprox(J(θ),       1455.77040, rtol=1e-5)
-    @test isapprox(J(θ_fista),  912.37720, rtol=1e-5) # <- ref value
-    @test nnz(θ_fista) == 15
+    @test isapprox(J(θ),       1432.37281, rtol=1e-5)
+    @test isapprox(J(θ_fista),  912.25297, rtol=1e-5) # <- ref value
+    @test nnz(θ_fista) == 16
 
     if DO_COMPARISONS
         # NOTE: this algorithm is stochastic
@@ -159,7 +170,7 @@ n, p, c = 1000, 100, 3
                                             solver="saga", multi_class="multinomial")
         enmnr_sk.fit(X, y)
         θ_sk = enmnr_sk.coef_'[:]
-        @test isapprox(J(θ_sk), 912.37720, rtol=1e-2)
+        @test isapprox(J(θ_sk), 912.39215, rtol=1e-3)
         @test 14 ≤ nnz(θ_sk) ≤ 16
     end
 end

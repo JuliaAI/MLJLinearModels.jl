@@ -19,5 +19,6 @@ function prox!(glr::GLR{<:Loss,<:Union{L1R,CompositePenalty}})
     γ = getscale_l1(glr.penalty)
     (p, α, z) -> begin
         p .= soft_thresh.(z, α * γ)
+        glr.fit_intercept && (glr.penalize_intercept || (p[end] = z[end]))
     end
 end

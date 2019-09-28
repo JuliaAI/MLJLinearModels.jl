@@ -5,7 +5,7 @@
     glr     = GeneralizedLinearRegression()
     ols     = LinearRegression()
     ridge   = RidgeRegression(λ; fit_intercept=false)
-    lasso   = LassoRegression(λ)
+    lasso   = LassoRegression(λ; penalize_intercept=true)
     logreg0 = LogisticRegression(penalty=:none)
     logreg1 = LogisticRegression(λ)
     logreg2 = LogisticRegression(λ, γ)
@@ -16,6 +16,7 @@
     @test isa(glr.loss, L2Loss)
     @test isa(glr.penalty, NoPenalty)
     @test glr.fit_intercept
+    @test !glr.penalize_intercept
 
     @test isa(ols.loss, L2Loss)
     @test isa(ols.penalty, NoPenalty)
@@ -29,6 +30,7 @@
     @test isa(lasso.loss, L2Loss)
     @test isa(lasso.penalty, ScaledPenalty{L1Penalty})
     @test lasso.penalty.scale == λ
+    @test lasso.penalize_intercept
 
     @test isa(logreg0.loss, LogisticLoss)
     @test isa(logreg0.penalty, NoPenalty)
