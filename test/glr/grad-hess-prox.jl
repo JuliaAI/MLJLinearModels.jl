@@ -129,7 +129,7 @@ end
     f1 = fgh!(f1, g1, H1, θ1)
     @test f1 == J(θ1)
     @test g1 ≈              -X_' * (y .* R.σ.(-y .* (X_ * θ1))) .+ λ .* θ1 .* maskint
-    @test H1 ≈               X_' * (Diagonal(R.σ.(y .* (X_ * θ1))) * X_) + λ * diagm(maskint)
+    @test H1 ≈               X_' * (Diagonal(R.σ.(y .* (X_ * θ1))) * X_) + λ * Diagonal(maskint)
     Hv! = R.Hv!(lr1, X, y)
     v   = randn(p+1)
     Hv  = similar(v)
@@ -269,7 +269,7 @@ end
     @test f1 == hlr1.loss(r1) + hlr1.penalty(θ1_ .* maskint)
     @test g1 ≈              (X_' * (r1 .* mask)) .+ (X_' * (δ .* sign.(r1) .* .!mask)) .+
                                 λ .* θ1_ .* maskint
-    @test H1 ≈               X_' * (mask .* X_) + λ * diagm(maskint)
+    @test H1 ≈               X_' * (mask .* X_) + λ * Diagonal(maskint)
 
     Hv1! = R.Hv!(hlr1, X, y1)
     Hv1 = similar(θ1_)
