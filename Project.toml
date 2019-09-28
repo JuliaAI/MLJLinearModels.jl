@@ -11,6 +11,14 @@ LinearMaps = "7a12625a-238d-50fd-b39a-03d52299707e"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 
+[compat]
+DocStringExtensions = ">= 0.7.0"
+Optim = ">= 0.19"
+IterativeSolvers = ">= 0.8"
+Parameters = ">= 0.10"
+LinearMaps = ">= 2.5"
+julia = "^1.0.0"
+
 [extras]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
