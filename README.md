@@ -20,6 +20,9 @@ The core aims of this package are:
 - focus on performance including in "big data" settings exploiting packages such as [`Optim.jl`](https://github.com/JuliaNLSolvers/Optim.jl), [`IterativeSolvers.jl`](https://github.com/JuliaMath/IterativeSolvers.jl),
 - use a "machine learning" perspective, i.e.: focus essentially on prediction, hyper-parameters should be obtained via a data-driven procedure such as cross-validation.
 
+All models allow to fit an intercept and allow the penalty to be applied or not on the intercept (not applied by default).
+All models attempt to be efficient in terms of memory allocation to avoid unnecessary copies of the data.
+
 ## Implemented
 
 | Regressors          | Formulation¹           | Available solvers                 | Comments  |
@@ -63,6 +66,7 @@ Systematic timing benchmarks have not been run yet but it's planned (see [this i
 
 * The models are built and tested assuming `n > p`; if this doesn't hold, tricks should be employed to speed up computations; these have not been implemented yet.
 * CV-aware code not implemented yet (code that re-uses computations when fitting over a number of hyper-parameters);  "Meta" functionalities such as One-vs-All or Cross-Validation are left to other packages such as MLJ.
+* No support yet for sparse matrices.
 * Stochastic solvers have not yet been implemented.
 * All computations are assumed to be done in Float64.
 

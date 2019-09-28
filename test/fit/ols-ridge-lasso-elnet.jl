@@ -19,7 +19,7 @@ end
 @testset "ridgereg" begin
     λ   = 1.0
     rr  = RidgeRegression(lambda=λ, fit_intercept=false)
-    rr1 = RidgeRegression(λ)
+    rr1 = RidgeRegression(λ, penalize_intercept=true)
 
     β_ref  = (X'X + λ*I) \ (X'y)
     β_ref1 = (X_'X_ + λ*I) \ (X_'y1)
@@ -53,7 +53,7 @@ n, p = 500, 100
     @test nnz(θ_ista)  == 12
 
     # with intercept
-    lr1 = LassoRegression(λ)
+    lr1 = LassoRegression(λ, penalize_intercept=true)
     J   = objective(lr1, X, y1)
     θ_ls    = X_ \ y1
     θ_fista = fit(lr1, X, y1)
@@ -66,11 +66,25 @@ n, p = 500, 100
     @test nnz(θ_fista) == 9   # sparse
     @test nnz(θ_ista)  == 9
 
+    # with intercept and not penalizing intercept
+    lr1 = LassoRegression(λ)
+    J   = objective(lr1, X, y1)
+    θ_ls    = X_ \ y1
+    θ_fista = fit(lr1, X, y1)
+    θ_ista  = fit(lr1, X, y1, solver=ISTA())
+    @test isapprox(J(θ_ls),    353.71225, rtol=1e-5)
+    @test isapprox(J(θ_fista), 312.93073, rtol=1e-5) # <- ref values
+    @test isapprox(J(θ_ista),  312.93073, rtol=1e-5)
+    # sparsity
+    @test nnz(θ_ls)    == 101 # not sparse
+    @test nnz(θ_fista) == 10  # sparse
+    @test nnz(θ_ista)  == 10
+
     if DO_COMPARISONS
         lr_sk = SKLEARN_LM.Lasso(alpha=λ/n)
         lr_sk.fit(X, y1)
         θ1_sk = vcat(lr_sk.coef_[:], lr_sk.intercept_)
-        @test isapprox(J(θ1_sk), 312.93487, rtol=1e-3)
+        @test isapprox(J(θ1_sk), 312.93072, rtol=1e-5)
         @test nnz(θ1_sk) == 10
     end
 end
@@ -80,24 +94,38 @@ end
     α = 0.1
     λ = α * (1 - ρ) * n
     γ = α * ρ * n
-    enr = ElasticNetRegression(λ, γ)
+    enr = ElasticNetRegression(λ, γ; penalize_intercept=true)
     J   = objective(enr, X, y1)
     θ_ls    = X_ \ y1
     θ_fista = fit(enr, X, y1)
     θ_ista  = fit(enr, X, y1, solver=ISTA())
     @test isapprox(J(θ_ls),    220.38693, rtol=1e-5)
-    @test isapprox(J(θ_fista), 199.79860, rtol=1e-5) # <- ref values
+    @test isapprox(J(θ_fista), 199.79860, rtol=1e-5)
     @test isapprox(J(θ_ista),  199.79860, rtol=1e-5)
     # sparsity
     @test nnz(θ_ls)    == 101 # not sparse
     @test nnz(θ_fista) == 10   # sparse
     @test nnz(θ_ista)  == 10
 
+    # not penalizing intercept
+    enr = ElasticNetRegression(λ, γ)
+    J   = objective(enr, X, y1)
+    θ_ls    = X_ \ y1
+    θ_fista = fit(enr, X, y1)
+    θ_ista  = fit(enr, X, y1, solver=ISTA())
+    @test isapprox(J(θ_ls),    220.34333, rtol=1e-5)
+    @test isapprox(J(θ_fista), 199.78497, rtol=1e-5)
+    @test isapprox(J(θ_ista),  199.78497, rtol=1e-5)
+    # sparsity
+    @test nnz(θ_ls)    == 101 # not sparse
+    @test nnz(θ_fista) == 11   # sparse
+    @test nnz(θ_ista)  == 11
+
     if DO_COMPARISONS
         enr_sk = SKLEARN_LM.ElasticNet(alpha=α, l1_ratio=ρ)
         enr_sk.fit(X, y1)
         θ_sk = vcat(enr_sk.coef_[:], enr_sk.intercept_)
-        @test isapprox(J(θ_sk), 199.79860, rtol=5e-4)
+        @test isapprox(J(θ_sk), 199.78496, rtol=1e-5)
         @test nnz(θ_sk) == 11
     end
 end
