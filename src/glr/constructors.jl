@@ -58,7 +58,7 @@ end
 """
 $SIGNATURES
 
-Objective function: ``|Xθ - y|₂²/2 + λ|θ|₁``
+Objective function: ``|Xθ - y|₂²/2 + λ|θ|₁``.
 """
 function LassoRegression(λ::Real=1.0; lambda::Real=λ, fit_intercept::Bool=true,
                          penalize_intercept::Bool=false)
@@ -72,7 +72,7 @@ end
 """
 $SIGNATURES
 
-Objective function: ``|Xθ - y|₂²/2 + λ|θ|₂²/2 + γ|θ|₁``
+Objective function: ``|Xθ - y|₂²/2 + λ|θ|₂²/2 + γ|θ|₁``.
 """
 function ElasticNetRegression(λ::Real=1.0, γ::Real=1.0; lambda::Real=λ, gamma::Real=γ,
                               fit_intercept::Bool=true, penalize_intercept::Bool=false)
@@ -131,9 +131,7 @@ MultinomialRegression(a...; kwa...) = LogisticRegression(a...; multi_class=true,
 """
 $SIGNATURES
 
-Objective function: ``∑ρ(Xθ - y) + λ|θ|₂²`` where ρ is a given function on the residuals and
-δ a positive tuning parameter for the function in question (e.g. for Huber it corresponds to the
-radius of the ball in which residuals are weighed quadratically).
+Objective function: ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` where ρ is a given function on the residuals.
 """
 function RobustRegression(ρ::RobustRho=HuberRho(0.1), λ::Real=1.0, γ::Real=0.0;
                           rho::RobustRho=ρ, lambda::Real=λ, gamma::Real=γ,
@@ -151,7 +149,7 @@ $SIGNATURES
 
 Huber Regression with objective:
 
-``∑ρ(Xθ - y) + λ|θ|₂²/2 + γ|θ|``
+``∑ρ(Xθ - y) + λ|θ|₂²/2 + γ|θ|₁``
 
 Where `ρ` is the Huber function `ρ(r) = r²/2``  if `|r|≤δ` and `ρ(r)=δ(|r|-δ/2)` otherwise.
 """
@@ -169,7 +167,7 @@ $SIGNATURES
 
 Quantile Regression with objective:
 
-``∑ρ(Xθ - y) + λ|θ|₂²/2 + γ|θ|``
+``∑ρ(Xθ - y) + λ|θ|₂²/2 + γ|θ|₁``
 
 Where `ρ` is the check function `ρ(r) = r(δ - 1(r < 0))`.
 """
@@ -187,7 +185,7 @@ $SIGNATURES
 
 Least Absolute Deviation regression with objective:
 
-``|Xθ - y|₁ + λ|θ|₂²/2 + γ|θ|``
+``|Xθ - y|₁ + λ|θ|₂²/2 + γ|θ|₁``
 
 This is a specific type of Quantile Regression with `δ=0.5` (median).
 """

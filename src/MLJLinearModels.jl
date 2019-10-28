@@ -6,9 +6,13 @@ import LinearMaps: LinearMap
 import IterativeSolvers: cg
 import Optim
 
+import MLJBase
+
 import Base.+, Base.-, Base.*, Base./, Base.convert
 
 const AVR = AbstractVector{<:Real}
+
+const Option{T} = Union{Nothing,T}
 
 include("scratchspace.jl")
 
@@ -38,5 +42,8 @@ include("fit/newton.jl")
 include("fit/proxgrad.jl")
 include("fit/iwls.jl")
 # include("fit/admm.jl")
+
+# > Interface <
+include("mlj/interface.jl")
 
 end # module

@@ -152,6 +152,21 @@ sigmoid(x) = sigmoid(float(x))
 """
 $SIGNATURES
 
+Return the softmax computed in a numerically stable way:
+
+``σ(x) = exp.(x) ./ sum(exp.(x))``
+
+Implementation taken from NNlib.jl.
+"""
+function softmax(X::AbstractMatrix{<:Real})
+	max_ = maximum(X, dims=2)
+	exp_ = exp.(X .- max_)
+	return exp_ ./ sum(exp_, dims=2)
+end
+
+"""
+$SIGNATURES
+
 Return the log sigmoid computed in a numerically stable way:
 
 ``logσ(x) = -log(1+exp(-x)) = log(exp(x)/(exp(x) + 1)) = x - log(1+exp(x))``
