@@ -28,7 +28,7 @@ end
     γ = 0.1
 
     Xt = MLJBase.table(X)
-    yc = categorical(y1)
+    yc = MLJBase.categorical(y1)
 
     lr = LogisticClassifier(lambda=λ, gamma=γ)
     fr, = MLJBase.fit(lr, 1, Xt, yc)
@@ -48,7 +48,7 @@ end
     γ = 0.2
 
     Xt = MLJBase.table(X)
-    yc = categorical(y1)
+    yc = MLJBase.categorical(y1)
 
     mc = MultinomialClassifier(lambda=λ, gamma=γ)
     fr, = MLJBase.fit(mc, 1, Xt, yc)

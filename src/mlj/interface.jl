@@ -98,9 +98,9 @@ MLJBase.metadata_pkg.(ALL_MODELS,
 
 descr_(M) = descr(M) *
     "\n→ based on [MLJLinearModels](https://github.com/alan-turing-institute/MLJLinearModels.jl)" *
-    "\n→ do `@load $M pkg=\"MLJLinearModels\" to use the model.`" *
-    "\n→ do `?$M` for documentation."
-lp_(M) = "MLJLinearModels.$M"
+    "\n→ do `@load $(MLJBase.name(M)) pkg=\"MLJLinearModels\" to use the model.`" *
+    "\n→ do `?$(MLJBase.name(M))` for documentation."
+lp_(M) = "MLJLinearModels.$(MLJBase.name(M))"
 
 for M in REG_MODELS
     MLJBase.metadata_model(M,

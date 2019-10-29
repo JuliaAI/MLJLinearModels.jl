@@ -1,4 +1,5 @@
-using MLJLinearModels, Test, LinearAlgebra, Random, MLJBase
+using MLJLinearModels, Test, LinearAlgebra, Random
+import MLJBase
 DO_COMPARISONS = false; include("testutils.jl")
 
 m("UTILS"); include("utils.jl")
