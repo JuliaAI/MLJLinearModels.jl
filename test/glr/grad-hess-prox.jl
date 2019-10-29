@@ -1,5 +1,5 @@
 n, p = 50, 5
-((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p; seed=1234)
+((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p; seed=1234)
 maskint = vcat(ones(p), 0.0)
 
 @testset "GH> Ridge" begin
@@ -21,7 +21,7 @@ maskint = vcat(ones(p), 0.0)
     v = randn(p+1)
     hv = similar(v)
     hv!(hv, v)
-    @test hv ≈              X_' * (X_ * v) .+ λ * v
+    @test hv ≈              X1' * (X1 * v) .+ λ * v
     # ------------------
     # with fit_intercept but no penalty
     R.allocate(n, p+1)
@@ -30,7 +30,7 @@ maskint = vcat(ones(p), 0.0)
     v = randn(p+1)
     hv = similar(v)
     hv!(hv, v)
-    @test hv ≈              X_' * (X_ * v) .+ λ * v .* vcat(ones(p), 0.0)
+    @test hv ≈              X1' * (X1 * v) .+ λ * v .* vcat(ones(p), 0.0)
 end
 
 @testset "GH> EN/Lasso" begin
@@ -52,24 +52,24 @@ end
     fg! = R.smooth_fg!(r, X, y1)
     g = similar(θ1)
     f = fg!(g, θ1)
-    @test f ≈               sum(abs2.(X_*θ1 .- y1))/2
-    @test g ≈               X_' * (X_ * θ1 .- y1)
+    @test f ≈               sum(abs2.(X1*θ1 .- y1))/2
+    @test g ≈               X1' * (X1 * θ1 .- y1)
 
     # elasticnet (with intercept)
     r = ElasticNetRegression(λ, γ; penalize_intercept=true)
     fg! = R.smooth_fg!(r, X, y1)
     g = similar(θ1)
     f = fg!(g, θ1)
-    @test f ≈               sum(abs2.(X_*θ1 .- y1))/2 + λ .* norm(θ1)^2/2
-    @test g ≈               X_' * (X_*θ1 .- y1) .+ λ .* θ1
+    @test f ≈               sum(abs2.(X1*θ1 .- y1))/2 + λ .* norm(θ1)^2/2
+    @test g ≈               X1' * (X1*θ1 .- y1) .+ λ .* θ1
 
     # elasticnet with intercept but no penalty of intercept
     r = ElasticNetRegression(λ, γ)
     fg! = R.smooth_fg!(r, X, y1)
     g = similar(θ1)
     f = fg!(g, θ1)
-    @test f ≈               sum(abs2.(X_*θ1 .- y1))/2 + λ .* norm(θ1 .* maskint)^2/2
-    @test g ≈               X_' * (X_*θ1 .- y1) .+ λ .* θ1 .* vcat(ones(p), 0)
+    @test f ≈               sum(abs2.(X1*θ1 .- y1))/2 + λ .* norm(θ1 .* maskint)^2/2
+    @test g ≈               X1' * (X1*θ1 .- y1) .+ λ .* θ1 .* vcat(ones(p), 0)
 end
 
 @testset "GH> LogitL2" begin
@@ -107,8 +107,8 @@ end
     H1 = zeros(p+1, p+1)
     f1 = fgh!(f1, g1, H1, θ1)
     @test f1 == J(θ1)
-    @test g1 ≈              -X_' * (y .* R.σ.(-y .* (X_ * θ1))) .+ λ .* θ1
-    @test H1 ≈               X_' * (Diagonal(R.σ.(y .* (X_ * θ1))) * X_) + λ * I
+    @test g1 ≈              -X1' * (y .* R.σ.(-y .* (X1 * θ1))) .+ λ .* θ1
+    @test H1 ≈               X1' * (Diagonal(R.σ.(y .* (X1 * θ1))) * X1) + λ * I
 
     # Hv! with fit_intercept
     R.allocate(n, p+1)
@@ -128,8 +128,8 @@ end
     H1 = zeros(p+1, p+1)
     f1 = fgh!(f1, g1, H1, θ1)
     @test f1 == J(θ1)
-    @test g1 ≈              -X_' * (y .* R.σ.(-y .* (X_ * θ1))) .+ λ .* θ1 .* maskint
-    @test H1 ≈               X_' * (Diagonal(R.σ.(y .* (X_ * θ1))) * X_) + λ * Diagonal(maskint)
+    @test g1 ≈              -X1' * (y .* R.σ.(-y .* (X1 * θ1))) .+ λ .* θ1 .* maskint
+    @test H1 ≈               X1' * (Diagonal(R.σ.(y .* (X1 * θ1))) * X1) + λ * Diagonal(maskint)
     Hv! = R.Hv!(lr1, X, y)
     v   = randn(p+1)
     Hv  = similar(v)
@@ -241,11 +241,11 @@ end
     H1 = zeros(p+1, p+1)
 
     f1 = fgh1!(0.0, g1, H1, θ1_)
-    r1 = X_*θ1_ .- y1
+    r1 = X1*θ1_ .- y1
     mask = abs.(r1) .<= δ
     @test f1 == hlr1.loss(r1) + hlr1.penalty(θ1_)
-    @test g1 ≈              (X_' * (r1 .* mask)) .+ (X_' * (δ .* sign.(r1) .* .!mask)) .+ λ .* θ1_
-    @test H1 ≈               X_' * (mask .* X_) + λ*I
+    @test g1 ≈              (X1' * (r1 .* mask)) .+ (X1' * (δ .* sign.(r1) .* .!mask)) .+ λ .* θ1_
+    @test H1 ≈               X1' * (mask .* X1) + λ*I
 
     Hv1! = R.Hv!(hlr1, X, y1)
     Hv1 = similar(θ1_)
@@ -264,12 +264,12 @@ end
     H1 = zeros(p+1, p+1)
 
     f1 = fgh1!(0.0, g1, H1, θ1_)
-    r1 = X_*θ1_ .- y1
+    r1 = X1*θ1_ .- y1
     mask = abs.(r1) .<= δ
     @test f1 == hlr1.loss(r1) + hlr1.penalty(θ1_ .* maskint)
-    @test g1 ≈              (X_' * (r1 .* mask)) .+ (X_' * (δ .* sign.(r1) .* .!mask)) .+
+    @test g1 ≈              (X1' * (r1 .* mask)) .+ (X1' * (δ .* sign.(r1) .* .!mask)) .+
                                 λ .* θ1_ .* maskint
-    @test H1 ≈               X_' * (mask .* X_) + λ * Diagonal(maskint)
+    @test H1 ≈               X1' * (mask .* X1) + λ * Diagonal(maskint)
 
     Hv1! = R.Hv!(hlr1, X, y1)
     Hv1 = similar(θ1_)

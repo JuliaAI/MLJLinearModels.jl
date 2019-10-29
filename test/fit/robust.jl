@@ -1,5 +1,5 @@
 n, p = 500, 5
-((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p; seed=525)
+((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p; seed=525)
 
 # NOTE: in these cases, if available, θ_newton is used as reference.
 # so if the others are not far, it's assumed all have converged to the
@@ -31,7 +31,7 @@ n, p = 500, 5
     hr = HuberRegression(δ, λ; penalize_intercept=true)
     J = objective(hr, X, y1)
     o = RobustLoss(Huber(δ)) + λ * L2Penalty()
-    @test J(θ1) == o(y1, X_*θ1, θ1)
+    @test J(θ1) == o(y1, X1*θ1, θ1)
     θ_newton   = fit(hr, X, y1, solver=Newton())
     θ_newtoncg = fit(hr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(hr, X, y1, solver=LBFGS())
@@ -66,7 +66,7 @@ end
     rr = RobustRegression(rho=Andrews(δ), lambda=λ; penalize_intercept=true)
     J = objective(rr, X, y1)
     o = RobustLoss(AndrewsRho(δ)) + λ * L2Penalty()
-    @test J(θ1) == o(y1, X_*θ1, θ1)
+    @test J(θ1) == o(y1, X1*θ1, θ1)
     θ_newton   = fit(rr, X, y1, solver=Newton())
     θ_newtoncg = fit(rr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(rr, X, y1, solver=LBFGS())
@@ -84,7 +84,7 @@ end
     rr = RobustRegression(rho=Bisquare(δ), lambda=λ; penalize_intercept=true)
     J = objective(rr, X, y1)
     o = RobustLoss(BisquareRho(δ)) + λ * L2Penalty()
-    @test J(θ1) == o(y1, X_*θ1, θ1)
+    @test J(θ1) == o(y1, X1*θ1, θ1)
     θ_newton   = fit(rr, X, y1, solver=Newton())
     θ_newtoncg = fit(rr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(rr, X, y1, solver=LBFGS())
@@ -102,7 +102,7 @@ end
     rr = RobustRegression(rho=Logistic(delta=δ), lambda=λ, penalize_intercept=true)
     J = objective(rr, X, y1)
     o = RobustLoss(LogisticRho(δ)) + λ * L2Penalty()
-    @test J(θ1) ≈ o(y1, X_*θ1, θ1)
+    @test J(θ1) ≈ o(y1, X1*θ1, θ1)
     θ_newton = fit(rr, X, y1, solver=Newton())
     θ_newtoncg = fit(rr, X, y1, solver=NewtonCG())
     θ_lbfgs = fit(rr, X, y1, solver=LBFGS())
@@ -120,7 +120,7 @@ end
     rr = RobustRegression(rho=Fair(δ), lambda=λ, penalize_intercept=true)
     J = objective(rr, X, y1)
     o = RobustLoss(Fair(δ)) + λ * L2Penalty()
-    @test J(θ1) ≈ o(y1, X_*θ1, θ1)
+    @test J(θ1) ≈ o(y1, X1*θ1, θ1)
     θ_newton   = fit(rr, X, y1, solver=Newton())
     θ_newtoncg = fit(rr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(rr, X, y1, solver=LBFGS())
@@ -140,7 +140,7 @@ end
     rr = RobustRegression(rho=Talwar(δ), lambda=λ, penalize_intercept=true)
     J = objective(rr, X, y1)
     o = RobustLoss(Talwar(δ)) + λ * L2Penalty()
-    @test J(θ1) == o(y1, X_*θ1, θ1)
+    @test J(θ1) == o(y1, X1*θ1, θ1)
     θ_newton   = fit(rr, X, y1, solver=Newton())
     θ_newtoncg = fit(rr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(rr, X, y1, solver=LBFGS())
@@ -157,7 +157,7 @@ end
 ###########################
 
 n, p = 500, 100
-((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p;  seed=51112, sparse=0.1)
+((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p;  seed=51112, sparse=0.1)
 # pepper with outliers
 y1a  = outlify(y1, 0.1)
 
@@ -169,7 +169,7 @@ y1a  = outlify(y1, 0.1)
     # this is a nice case where the robust is actually smooth
     rr = RobustRegression(rho=Huber(δ), lambda=λ, gamma=γ, penalize_intercept=true)
     J  = objective(rr, X, y1a)
-    θ_ls    = X_ \ y1a
+    θ_ls    = X1 \ y1a
     θ_fista = fit(rr, X, y1a, solver=FISTA())
     θ_ista  = fit(rr, X, y1a, solver=ISTA())
     @test isapprox(J(θ_ls),    391.66463, rtol=1e-5)

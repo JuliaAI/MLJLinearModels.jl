@@ -1,5 +1,5 @@
 n, p = 500, 5
-((X, y, θ), (X_, y1, θ1)) = generate_binary(n, p; seed=52)
+((X, y, θ), (X1, y1, θ1)) = generate_binary(n, p; seed=52)
 
 @testset "Logreg" begin
     # No intercept
@@ -55,7 +55,7 @@ n, p = 500, 5
 end
 
 n, p, c = 500, 5, 4
-((X, y, θ), (X_, y1, θ1)) = generate_multiclass(n, p, c; seed=525)
+((X, y, θ), (X1, y1, θ1)) = generate_multiclass(n, p, c; seed=525)
 
 @testset "Multinomial" begin
     # No intercept

@@ -22,3 +22,8 @@ m("FIT", false); begin
     mm("robust");                 include("fit/robust.jl")
     mm("quantile & LAD");         include("fit/quantile.jl")
 end
+
+m("MLJ", false); begin
+    mm("metadata");    include("interface/meta.jl")
+    mm("fit-predict"); include("interface/fitpredict.jl")
+end

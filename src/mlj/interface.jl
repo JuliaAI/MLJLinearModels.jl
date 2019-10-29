@@ -14,19 +14,19 @@ const ALL_MODELS = (REG_MODELS..., CLF_MODELS...)
    REGRESSORS
    ========== =#
 
-function MLJBase.fit(m::LinearRegressor, verb::Int, X, y)
+function MLJBase.fit(m::Union{REG_MODELS...}, verb::Int, X, y)
     Xmatrix = MLJBase.matrix(X)
     reg     = glr(m)
-    solver  = m.solver === nothing ? _solver(reg) : m.solver
+    solver  = m.solver === nothing ? _solver(reg, size(Xmatrix)) : m.solver
     # get the parameters
-    θ = fit(reg, Xmatrix, y, solver)
+    θ = fit(reg, Xmatrix, y; solver=solver)
     # return
     return θ, nothing, NamedTuple{}()
 end
 
-MLJBase.predict(m::LinearRegressor, θ, Xnew) = apply_X(MLJBase.matrix(Xnew), θ)
+MLJBase.predict(m::Union{REG_MODELS...}, θ, Xnew) = apply_X(MLJBase.matrix(Xnew), θ)
 
-function MLJBase.fitted_params(m::LinearRegressor, θ)
+function MLJBase.fitted_params(m::Union{REG_MODELS...}, θ)
     m.fit_intercept && return (coefs = θ[1:end-1], intercept = θ[end])
     return (coefs = θ, intercept = nothing)
 end
@@ -37,19 +37,21 @@ end
 
 function MLJBase.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     Xmatrix  = MLJBase.matrix(X)
-    yplain   = MLJBase.int(y)
+    yplain   = convert.(Int, MLJBase.int(y))
     classes  = MLJBase.classes(y[1])
     nclasses = length(classes)
     if nclasses == 2
-        yplain .-= 2one(yplain[1]) # to -1/+1 range
+        # recode
+        yplain[yplain .== 1] .= -1
+        yplain[yplain .== 2] .= 1
         c = 1
     else
         c = nclasses
     end
     clf    = glr(m)
-    solver = m.solver === nothing ? _solver(clf) : m.solver
+    solver = m.solver === nothing ? _solver(clf, size(Xmatrix)) : m.solver
     # get the parameters
-    θ = fit(reg, Xmatrix, yplain, solver)
+    θ = fit(clf, Xmatrix, yplain, solver=solver)
     # return
     return (θ, c, classes), nothing, NamedTuple{}()
 end
@@ -68,10 +70,10 @@ function MLJBase.predict(m::Union{CLF_MODELS...}, (θ, c, classes), Xnew)
     return [MLJBase.UnivariateFinite(classes, preds[i, :]) for i in 1:size(Xmatrix,1)]
 end
 
-function MLJBase.fitted_params(m::Union{CLF_MODELS...}, (θ, c))
+function MLJBase.fitted_params(m::Union{CLF_MODELS...}, (θ, c, classes))
     if c > 1
         if m.fit_intercept
-            W = reshape(θ, p, c)
+            W = reshape(θ, div(length(θ), c), c)
             return (coefs = W, intercept = nothing)
         end
         W = reshape(θ, p+1, c)
