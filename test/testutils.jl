@@ -26,7 +26,7 @@ outlify(y, s) = (n = length(y); y .+ 20 * randn(n) .* (rand(n) .< s))
 function generate_continuous(n, p; seed=0, sparse=1)
     Random.seed!(seed)
     X  = randn(n, p)
-    X_ = R.augment_X(X, true)
+    X1 = R.augment_X(X, true)
     θ  = randn(p)
     θ1 = randn(p+1)
     sparse < 1 && begin
@@ -34,15 +34,15 @@ function generate_continuous(n, p; seed=0, sparse=1)
         sparsify!(θ1, sparse)
     end
     y  = X*θ + 0.1 * randn(n)
-    y1 = X_*θ1 + 0.1 * randn(n)
-    return ((X, y, θ), (X_, y1, θ1))
+    y1 = X1*θ1 + 0.1 * randn(n)
+    return ((X, y, θ), (X1, y1, θ1))
 end
 
 """Generate continuous X and binary y with and without intercept."""
 function generate_binary(n, p; seed=0, sparse=1)
     Random.seed!(seed)
     X  = randn(n, p)
-    X_ = R.augment_X(X, true)
+    X1 = R.augment_X(X, true)
     θ  = randn(p)
     θ1 = randn(p+1)
     sparse < 1 && begin
@@ -51,9 +51,9 @@ function generate_binary(n, p; seed=0, sparse=1)
     end
     y  = rand(n) .< R.σ.(X*θ)
     y  = y .* ones(Int, n) .- .!y .* ones(Int, n)
-    y1 = rand(n) .< R.σ.(X_*θ1)
+    y1 = rand(n) .< R.σ.(X1*θ1)
     y1 = y1 .* ones(Int, n) .- .!y1 .* ones(Int, n)
-    return ((X, y, θ), (X_, y1, θ1))
+    return ((X, y, θ), (X1, y1, θ1))
 end
 
 """Simple function to sample from a multinomial."""
@@ -80,7 +80,7 @@ end
 function generate_multiclass(n, p, c; seed=0, sparse=1)
     Random.seed!(seed)
     X   = randn(n, p)
-    X_  = R.augment_X(X, true)
+    X1  = R.augment_X(X, true)
     θ   = randn(p * c)
     θ1  = randn((p+1) * c)
     sparse < 1 && begin
@@ -99,5 +99,5 @@ function generate_multiclass(n, p, c; seed=0, sparse=1)
 
     y  = multi_rand(Mn)
     y1 = multi_rand(Mn1)
-    return ((X, y, θ), (X_, y1, θ1))
+    return ((X, y, θ), (X1, y1, θ1))
 end

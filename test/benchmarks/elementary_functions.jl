@@ -3,7 +3,7 @@ using BenchmarkTools, Random, LinearAlgebra
 DO_COMPARISONS = false; include("../testutils.jl")
 
 n, p = 50_000, 500
-((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p;  seed=512, sparse=0.5)
+((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p;  seed=512, sparse=0.5)
 
 # ======================== #
 # ELEMENTARIES

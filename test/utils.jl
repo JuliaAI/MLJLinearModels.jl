@@ -10,20 +10,20 @@ end
 
 @testset "Augment" begin
     X = randn(5, 3)
-    X_ = R.augment_X(X, false)
-    @test X_ === X
-    X_ = R.augment_X(X, true)
-    @test X_ == hcat(X, ones(5, 1))
+    X1 = R.augment_X(X, false)
+    @test X1 === X
+    X1 = R.augment_X(X, true)
+    @test X1 == hcat(X, ones(5, 1))
 end
 
 @testset "Apply" begin
     n, p = 5, 3
     X = randn(n, p)
-    X_ = R.augment_X(X, true)
+    X1 = R.augment_X(X, true)
     θ = randn(p)
     θ1 = randn(p+1)
     @test R.apply_X(X, θ) == X*θ
-    @test R.apply_X(X, θ1) ≈ X_*θ1
+    @test R.apply_X(X, θ1) ≈ X1*θ1
     # multiclass
     c = 3
     θa  = randn(p)
@@ -35,12 +35,12 @@ end
     θc1 = randn(p+1)
     θ1  = vcat(θa1, θb1, θc1)
     @test R.apply_X(X, θ, c) ≈  X * hcat(θa, θb, θc)
-    @test R.apply_X(X, θ1, c) ≈ X_ * hcat(θa1, θb1, θc1)
+    @test R.apply_X(X, θ1, c) ≈ X1 * hcat(θa1, θb1, θc1)
 
     θ1 = randn(p+1)
     Xθ = zeros(n)
     R.apply_X!(Xθ, X, θ1)
-    @test Xθ ≈ X_ * θ1
+    @test Xθ ≈ X1 * θ1
 
     z = randn(n)
     Xtz = zeros(p)
@@ -49,11 +49,11 @@ end
 
     Xtz2 = zeros(p+1)
     R.apply_Xt!(Xtz2, X, z)
-    @test Xtz2 ≈ X_'z
+    @test Xtz2 ≈ X1'z
 
     v = view(Xtz2, 1:p)
     R.apply_Xt!(v, X, z)
-    @test Xtz2 ≈ X_'z
+    @test Xtz2 ≈ X1'z
 end
 
 @testset "Sigmoid" begin
@@ -79,8 +79,8 @@ end
 @testset "Hat matrix" begin
     λ = 3
     X = randn(5, 3)
-    X_ = R.augment_X(X, true)
-    @test R.form_XtX(X, true, λ) ≈ X_'X_ + λ*I
+    X1 = R.augment_X(X, true)
+    @test R.form_XtX(X, true, λ) ≈ X1'X1 + λ*I
 end
 
 @testset "Soft-thresh" begin

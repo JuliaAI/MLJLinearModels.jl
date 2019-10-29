@@ -1,5 +1,6 @@
 using MLJLinearModels, Test, LinearAlgebra, Random
-DO_COMPARISONS = true; include("testutils.jl")
+import MLJBase
+DO_COMPARISONS = false; include("testutils.jl")
 
 m("UTILS"); include("utils.jl")
 
@@ -21,4 +22,9 @@ m("FIT", false); begin
     mm("logistic & multinomial"); include("fit/logistic-multinomial.jl")
     mm("robust");                 include("fit/robust.jl")
     mm("quantile & LAD");         include("fit/quantile.jl")
+end
+
+m("MLJ", false); begin
+    mm("metadata");    include("interface/meta.jl")
+    mm("fit-predict"); include("interface/fitpredict.jl")
 end

@@ -1,5 +1,5 @@
 n, p = 500, 5
-((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p; seed=525)
+((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p; seed=525)
 
 # adding some outliers (both positive and negative)
 Random.seed!(543)
@@ -11,7 +11,7 @@ y1a = outlify(y1, 0.1)
     rr = QuantileRegression(δ, lambda=λ, penalize_intercept=true)
     J = objective(rr, X, y1a)
     o = RobustLoss(Quantile(δ)) + λ * L2Penalty()
-    @test J(θ1) ≈ o(y1a, X_*θ1, θ1)
+    @test J(θ1) ≈ o(y1a, X1*θ1, θ1)
     ls = LinearRegression()
     θ_ls    = fit(ls, X, y1a)
     θ_lbfgs = fit(rr, X, y1a, solver=LBFGS())
@@ -46,8 +46,8 @@ y1a = outlify(y1, 0.1)
         θ_ls     = fit(LinearRegression(), X, y1a)
         θ_lbfgs  = fit(rr, X, y1a, solver=LBFGS())
         θ_iwls   = fit(rr, X, y1a, solver=IWLSCG())
-        θ_qr_br  = rcopy(QUANTREG.rq_fit_br(X_, y1a))[:coefficients]
-        θ_qr_fnb = rcopy(QUANTREG.rq_fit_fnb(X_, y1a))[:coefficients]
+        θ_qr_br  = rcopy(QUANTREG.rq_fit_br(X1, y1a))[:coefficients]
+        θ_qr_fnb = rcopy(QUANTREG.rq_fit_fnb(X1, y1a))[:coefficients]
         # NOTE: we take θ_qr_br as reference point
         @test isapprox(J(θ_ls), 610.41023,  rtol=1e-5)
         @test J(θ_qr_br) ≈      486.36730 # <- ref value
@@ -64,7 +64,7 @@ end
 ###########################
 
 n, p = 500, 100
-((X, y, θ), (X_, y1, θ1)) = generate_continuous(n, p;  seed=51112, sparse=0.1)
+((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p;  seed=51112, sparse=0.1)
 # pepper with outliers
 y1a  = outlify(y1, 0.1)
 
@@ -73,7 +73,7 @@ y1a  = outlify(y1, 0.1)
     γ = 10.0
     rr = LADRegression(λ, γ; penalize_intercept=true)
     J  = objective(rr, X, y1a)
-    θ_ls    = X_ \ y1a
+    θ_ls    = X1 \ y1a
     θ_fista = fit(rr, X, y1a, solver=FISTA())
     θ_ista  = fit(rr, X, y1a, solver=ISTA())
     @test isapprox(J(θ_ls),    943.33942, rtol=1e-5)
@@ -87,10 +87,10 @@ y1a  = outlify(y1, 0.1)
         # NOTE: QuantReg doesn't apply the penalty on the intercept
         rr = LADRegression(5.0; penalty=:l1)
         J  = objective(rr, X, y1a)
-        θ_ls       = X_ \ y1a
+        θ_ls       = X1 \ y1a
         θ_fista    = fit(rr, X, y1a, solver=FISTA())
         θ_ista     = fit(rr, X, y1a, solver=ISTA())
-        θ_qr_lasso = rcopy(QUANTREG.rq_fit_lasso(X_, y1a))[:coefficients]
+        θ_qr_lasso = rcopy(QUANTREG.rq_fit_lasso(X1, y1a))[:coefficients]
         # NOTE: we take θ_qr_br as reference point
         @test isapprox(J(θ_ls),       799.18992, rtol=1e-5)
         @test isapprox(J(θ_qr_lasso), 373.15568, rtol=1e-5) # <- ref value
