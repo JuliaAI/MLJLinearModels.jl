@@ -106,7 +106,7 @@ end
     g1 = similar(θ1)
     H1 = zeros(p+1, p+1)
     f1 = fgh!(f1, g1, H1, θ1)
-    @test f1 == J(θ1)
+    @test f1 ≈ J(θ1)
     @test g1 ≈              -X1' * (y .* R.σ.(-y .* (X1 * θ1))) .+ λ .* θ1
     @test H1 ≈               X1' * (Diagonal(R.σ.(y .* (X1 * θ1))) * X1) + λ * I
 
@@ -243,7 +243,7 @@ end
     f1 = fgh1!(0.0, g1, H1, θ1_)
     r1 = X1*θ1_ .- y1
     mask = abs.(r1) .<= δ
-    @test f1 == hlr1.loss(r1) + hlr1.penalty(θ1_)
+    @test f1 ≈ hlr1.loss(r1) + hlr1.penalty(θ1_)
     @test g1 ≈              (X1' * (r1 .* mask)) .+ (X1' * (δ .* sign.(r1) .* .!mask)) .+ λ .* θ1_
     @test H1 ≈               X1' * (mask .* X1) + λ*I
 
@@ -266,7 +266,7 @@ end
     f1 = fgh1!(0.0, g1, H1, θ1_)
     r1 = X1*θ1_ .- y1
     mask = abs.(r1) .<= δ
-    @test f1 == hlr1.loss(r1) + hlr1.penalty(θ1_ .* maskint)
+    @test f1 ≈ hlr1.loss(r1) + hlr1.penalty(θ1_ .* maskint)
     @test g1 ≈              (X1' * (r1 .* mask)) .+ (X1' * (δ .* sign.(r1) .* .!mask)) .+
                                 λ .* θ1_ .* maskint
     @test H1 ≈               X1' * (mask .* X1) + λ * Diagonal(maskint)
