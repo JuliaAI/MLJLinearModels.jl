@@ -127,7 +127,7 @@ end
     g1 = similar(θ1)
     H1 = zeros(p+1, p+1)
     f1 = fgh!(f1, g1, H1, θ1)
-    @test f1 == J(θ1)
+    @test f1 ≈ J(θ1)
     @test g1 ≈              -X1' * (y .* R.σ.(-y .* (X1 * θ1))) .+ λ .* θ1 .* maskint
     @test H1 ≈               X1' * (Diagonal(R.σ.(y .* (X1 * θ1))) * X1) + λ * Diagonal(maskint)
     Hv! = R.Hv!(lr1, X, y)
