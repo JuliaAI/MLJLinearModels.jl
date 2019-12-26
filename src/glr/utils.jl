@@ -1,7 +1,7 @@
 export objective, smooth_objective
 
 # NOTE: RobustLoss are not always everywhere  smooth but "smooth-enough".
-const SMOOTH_LOSS = Union{L2Loss, LogisticLoss, MultinomialLoss, RobustLoss}
+const SmoothLoss = Union{L2Loss, LogisticLoss, MultinomialLoss, RobustLoss}
 
 """
 $SIGNATURES
@@ -34,7 +34,7 @@ $SIGNATURES
 
 Return the smooth part of the objective function of a GLR.
 """
-smooth_objective(glr::GLR{<:SMOOTH_LOSS,<:ENR}) = glr.loss + get_l2(glr.penalty)
+smooth_objective(glr::GLR{<:SmoothLoss,<:ENR}) = glr.loss + get_l2(glr.penalty)
 smooth_objective(::GLR) = @error "Case not implemented yet."
 
 """

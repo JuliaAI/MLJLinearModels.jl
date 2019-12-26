@@ -5,22 +5,25 @@ export fit
 # TODO: in the future, have cases where if the things are too big, take another default.
 # also should check if p > n in which case should do dual stuff (or other appropriate alternative)
 
+# Linear, Ridge
 _solver(::GLR{L2Loss,<:L2R}, np::NTuple{2,Int}) = Analytical()
 
+# Logistic, Multinomial
 _solver(::GLR{LogisticLoss,<:L2R}, 	  np::NTuple{2,Int}) = LBFGS()
 _solver(::GLR{MultinomialLoss,<:L2R}, np::NTuple{2,Int}) = LBFGS()
 
-function _solver(glr::GLR{<:SMOOTH_LOSS,<:ENR}, np::NTuple{2,Int})
+# Lasso, ElasticNet, Logistic, Multinomial
+function _solver(glr::GLR{<:SmoothLoss,<:ENR}, np::NTuple{2,Int})
 	(is_l1(glr.penalty) || is_elnet(glr.penalty)) && return FISTA()
-	@error "Not yet implemented"
+	@error "Not yet implemented."
 end
 
-_solver(::GLR{RobustLoss,<:L2R}, np::NTuple{2,Int}) = LBFGS()
-#_solver(::GLR{L1Loss,<:L2R}, 	 np::NTuple{2,Int}) = FADMM()
+# Robust, Quantile
+_solver(::GLR{<:RobustLoss,<:L2R}, np::NTuple{2,Int}) = LBFGS()
 
 # Fallback NOTE: should revisit bc with non-smooth, wouldn't work probably PGD/PSGD
 # depending on how much data there is
-_solver(::GLR, np::NTuple{2,Int}) = @error "Not yet implemented"
+_solver(::GLR, np::NTuple{2,Int}) = @error "Not yet implemented."
 
 
 """
