@@ -1,6 +1,6 @@
-#=  ===================
-    LOGISTIC CLASSIFIER
-    =================== =#
+#= ===================
+   LOGISTIC CLASSIFIER
+   =================== =#
 
 @with_kw_noshow mutable struct LogisticClassifier <: MLJBase.Probabilistic
     lambda::Real             = 1.0
@@ -19,9 +19,9 @@ glr(m::LogisticClassifier) = LogisticRegression(m.lambda, m.gamma; penalty=m.pen
 
 descr(::Type{LogisticClassifier}) = "Classifier corresponding to the loss function ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is the logistic loss."
 
-#=  ======================
-    MULTINOMIAL CLASSIFIER
-    ====================== =#
+#= ======================
+   MULTINOMIAL CLASSIFIER
+   ====================== =#
 
 @with_kw_noshow mutable struct MultinomialClassifier <: MLJBase.Probabilistic
     lambda::Real             = 1.0
