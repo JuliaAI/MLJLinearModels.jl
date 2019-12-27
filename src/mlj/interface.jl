@@ -2,6 +2,8 @@ export LinearRegressor, RidgeRegressor, LassoRegressor, ElasticNetRegressor,
        RobustRegressor, HuberRegressor, QuantileRegressor, LADRegressor,
        LogisticClassifier, MultinomialClassifier
 
+const SymStr = Union{Symbol,String}
+
 include("regressors.jl")
 include("classifiers.jl")
 
