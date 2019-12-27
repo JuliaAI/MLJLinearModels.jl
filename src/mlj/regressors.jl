@@ -69,13 +69,13 @@ descr(::Type{ElasticNetRegressor}) = "Regression with objective function ``|Xθ 
     rho::RobustRho           = HuberRho(0.1)
     lambda::Real             = 1.0
     gamma::Real              = 0.0
-    penalty::Symbol          = :l2
+    penalty::SymStr          = :l2
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
     solver::Option{Solver}   = nothing
 end
 
-glr(m::RobustRegressor) = RobustRegression(m.rho, m.lambda, m.gamma; penalty=m.penalty,
+glr(m::RobustRegressor) = RobustRegression(m.rho, m.lambda, m.gamma; penalty=Symbol(m.penalty),
                                            fit_intercept=m.fit_intercept,
                                            penalize_intercept=m.penalize_intercept)
 
@@ -89,13 +89,13 @@ descr(::Type{RobustRegressor}) = "Robust regression with objective ``∑ρ(Xθ -
     delta::Real              = 0.5
     lambda::Real             = 1.0
     gamma::Real              = 0.0
-    penalty::Symbol          = :l2
+    penalty::SymStr          = :l2
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
     solver::Option{Solver}   = nothing
 end
 
-glr(m::HuberRegressor) = HuberRegression(m.delta, m.lambda, m.gamma; penalty=m.penalty,
+glr(m::HuberRegressor) = HuberRegression(m.delta, m.lambda, m.gamma; penalty=Symbol(m.penalty),
                                          fit_intercept=m.fit_intercept,
                                          penalize_intercept=m.penalize_intercept)
 
@@ -109,13 +109,14 @@ descr(::Type{HuberRegressor}) = "Robust regression with objective ``∑ρ(Xθ - 
     delta::Real              = 0.5
     lambda::Real             = 1.0
     gamma::Real              = 0.0
-    penalty::Symbol          = :l2
+    penalty::SymStr          = :l2
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
     solver::Option{Solver}   = nothing
 end
 
-glr(m::QuantileRegressor) = QuantileRegression(m.delta, m.lambda, m.gamma; penalty=m.penalty,
+glr(m::QuantileRegressor) = QuantileRegression(m.delta, m.lambda, m.gamma;
+                                               penalty=Symbol(m.penalty),
                                                fit_intercept=m.fit_intercept,
                                                penalize_intercept=m.penalize_intercept)
 
@@ -128,13 +129,13 @@ descr(::Type{QuantileRegressor}) = "Robust regression with objective ``∑ρ(Xθ
 @with_kw_noshow mutable struct LADRegressor <: MLJBase.Deterministic
     lambda::Real             = 1.0
     gamma::Real              = 0.0
-    penalty::Symbol          = :l2
+    penalty::SymStr          = :l2
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
     solver::Option{Solver}   = nothing
 end
 
-glr(m::LADRegressor) = LADRegression(m.lambda, m.gamma; penalty=m.penalty,
+glr(m::LADRegressor) = LADRegression(m.lambda, m.gamma; penalty=Symbol(m.penalty),
                                      fit_intercept=m.fit_intercept,
                                      penalize_intercept=m.penalize_intercept)
 

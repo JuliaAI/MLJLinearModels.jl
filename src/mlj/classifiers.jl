@@ -5,14 +5,14 @@
 @with_kw_noshow mutable struct LogisticClassifier <: MLJBase.Probabilistic
     lambda::Real             = 1.0
     gamma::Real              = 0.0
-    penalty::Symbol          = :l2
+    penalty::SymStr          = :l2
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
     solver::Option{Solver}   = nothing
     multi_class::Bool        = false
 end
 
-glr(m::LogisticClassifier) = LogisticRegression(m.lambda, m.gamma; penalty=m.penalty,
+glr(m::LogisticClassifier) = LogisticRegression(m.lambda, m.gamma; penalty=Symbol(m.penalty),
                                                 multi_class=m.multi_class,
                                                 fit_intercept=m.fit_intercept,
                                                 penalize_intercept=m.penalize_intercept)
@@ -26,13 +26,13 @@ descr(::Type{LogisticClassifier}) = "Classifier corresponding to the loss functi
 @with_kw_noshow mutable struct MultinomialClassifier <: MLJBase.Probabilistic
     lambda::Real             = 1.0
     gamma::Real              = 0.0
-    penalty::Symbol          = :l2
+    penalty::SymStr          = :l2
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
     solver::Option{Solver}   = nothing
 end
 
-glr(m::MultinomialClassifier) = MultinomialRegression(m.lambda, m.gamma; penalty=m.penalty,
+glr(m::MultinomialClassifier) = MultinomialRegression(m.lambda, m.gamma; penalty=Symbol(m.penalty),
                                                       fit_intercept=m.fit_intercept,
                                                       penalize_intercept=m.penalize_intercept)
 
