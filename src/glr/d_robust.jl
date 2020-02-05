@@ -31,7 +31,8 @@ end
 # -> ∇²f(θ) = X'Λ(r)X + λI
 # ---------------------------------------------------------
 
-function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} where δ
+function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y
+              ) where ρ <: RobustRho1P{δ} where δ
     p  = size(X, 2)
     λ  = getscale(glr.penalty)
     ψ_ = ψ(ρ)
@@ -52,7 +53,8 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} 
             end
             # Hessian via ϕ functiono
             H === nothing || begin
-                # NOTE: Hessian allocates a ton anyway so use of scratch is a bit pointless
+                # NOTE: Hessian allocates a ton anyway so use of scratch is a
+                # bit pointless
                 ϕr = ϕ_.(r, w)
                 ΛX = ϕr .* X
                 mul!(view(H, 1:p, 1:p), X', ΛX)
@@ -87,7 +89,8 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} 
 end
 
 
-function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} where δ
+function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y
+             ) where ρ <: RobustRho1P{δ} where δ
     p  = size(X, 2)
     λ  = getscale(glr.penalty)
     ϕ_ = ϕ(ρ)
@@ -103,7 +106,7 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y) where ρ <: RobustRho1P{δ} w
             a    = 1:p
             Hvₐ  = view(Hv, a)
             vₐ   = view(v, a)
-            XtΛ1 = view(SCRATCH_P[], a)       # we can recycle as we don't need r anymore
+            XtΛ1 = view(SCRATCH_P[], a)     # we can recycle
             apply_Xt!(XtΛ1, X, w)
             vₑ   = v[end]
             # update for first p rows
@@ -164,7 +167,8 @@ function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y;
                 t .*= ωr
                 mul!(Mvₐ, X', t)
                 Mvₐ .+= λ .* vₐ .+ XtW1 .* vₑ
-                Mv[end] = dot(XtW1, vₐ) + (sum(ωr) + λ_if_penalize_intercept(glr, λ)) * vₑ
+                Mv[end] = dot(XtW1, vₐ) +
+                            (sum(ωr) + λ_if_penalize_intercept(glr, λ)) * vₑ
             end
         else
             (Mv, v) -> begin
@@ -179,8 +183,10 @@ function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y;
 end
 
 
-# this is a bit of an abuse in that in some cases the ρ is not everywhere differentiable
-function smooth_fg!(glr::GLR{RobustLoss{ρ},<:ENR}, X, y) where ρ <: RobustRho1P{δ} where δ
+# this is a bit of an abuse in that in some cases the ρ is not everywhere
+# differentiable
+function smooth_fg!(glr::GLR{RobustLoss{ρ},<:ENR}, X, y
+                    ) where ρ <: RobustRho1P{δ} where δ
     λ  = getscale_l2(glr.penalty)
     p  = size(X, 2)
     ψ_ = ψ(ρ)

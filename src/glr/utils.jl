@@ -24,7 +24,8 @@ objective(glr::GLR, X, y; c::Int=1) =
 """
 $SIGNATURES
 
-Return a function computing the smooth part of the objective at a given point `θ`.
+Return a function computing the smooth part of the objective at a given
+evaluation point `θ`.
 """
 smooth_objective(glr::GLR, X, y; c::Int=1) =
     θ -> smooth_objective(glr)(y, apply_X(X, θ, c), view_θ(glr, θ))

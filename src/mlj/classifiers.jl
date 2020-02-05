@@ -12,10 +12,12 @@
     multi_class::Bool        = false
 end
 
-glr(m::LogisticClassifier) = LogisticRegression(m.lambda, m.gamma; penalty=Symbol(m.penalty),
-                                                multi_class=m.multi_class,
-                                                fit_intercept=m.fit_intercept,
-                                                penalize_intercept=m.penalize_intercept)
+glr(m::LogisticClassifier) =
+    LogisticRegression(m.lambda, m.gamma;
+                       penalty=Symbol(m.penalty),
+                       multi_class=m.multi_class,
+                       fit_intercept=m.fit_intercept,
+                       penalize_intercept=m.penalize_intercept)
 
 descr(::Type{LogisticClassifier}) = "Classifier corresponding to the loss function ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is the logistic loss."
 
@@ -32,8 +34,12 @@ descr(::Type{LogisticClassifier}) = "Classifier corresponding to the loss functi
     solver::Option{Solver}   = nothing
 end
 
-glr(m::MultinomialClassifier) = MultinomialRegression(m.lambda, m.gamma; penalty=Symbol(m.penalty),
-                                                      fit_intercept=m.fit_intercept,
-                                                      penalize_intercept=m.penalize_intercept)
+glr(m::MultinomialClassifier) =
+    MultinomialRegression(m.lambda, m.gamma;
+                          penalty=Symbol(m.penalty),
+                          fit_intercept=m.fit_intercept,
+                          penalize_intercept=m.penalize_intercept)
 
-descr(::Type{MultinomialClassifier}) = "Classifier corresponding to the loss function ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is the multinomial loss."
+descr(::Type{MultinomialClassifier}) =
+    "Classifier corresponding to the loss function " *
+    "``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is the multinomial loss."
