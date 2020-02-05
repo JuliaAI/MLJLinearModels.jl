@@ -2,7 +2,7 @@
    LINEAR REGRESSOR (OLS)
    ====================== =#
 
-@with_kw_noshow mutable struct LinearRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct LinearRegressor <: MMI.Deterministic
     fit_intercept::Bool    = true
     solver::Option{Solver} = nothing
 end
@@ -15,7 +15,7 @@ descr(::Type{LinearRegressor}) = "Regression with objective function ``|Xθ - y|
    RIDGE REGRESSOR
    =============== =#
 
-@with_kw_noshow mutable struct RidgeRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct RidgeRegressor <: MMI.Deterministic
     lambda::Real             = 1.0
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
@@ -31,7 +31,7 @@ descr(::Type{RidgeRegressor}) = "Regression with objective function ``|Xθ - y|�
    LASSO REGRESSOR
    =============== =#
 
-@with_kw_noshow mutable struct LassoRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct LassoRegressor <: MMI.Deterministic
     lambda::Real             = 1.0
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
@@ -47,7 +47,7 @@ descr(::Type{LassoRegressor}) = "Regression with objective function ``|Xθ - y|�
    ELASTIC NET REGRESSOR
    ===================== =#
 
-@with_kw_noshow mutable struct ElasticNetRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct ElasticNetRegressor <: MMI.Deterministic
     lambda::Real             = 1.0
     gamma::Real              = 0.0
     fit_intercept::Bool      = true
@@ -65,7 +65,7 @@ descr(::Type{ElasticNetRegressor}) = "Regression with objective function ``|Xθ 
    ROBUST REGRESSOR (General)
    ========================== =#
 
-@with_kw_noshow mutable struct RobustRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct RobustRegressor <: MMI.Deterministic
     rho::RobustRho           = HuberRho(0.1)
     lambda::Real             = 1.0
     gamma::Real              = 0.0
@@ -85,7 +85,7 @@ descr(::Type{RobustRegressor}) = "Robust regression with objective ``∑ρ(Xθ -
    HUBER REGRESSOR
    =============== =#
 
-@with_kw_noshow mutable struct HuberRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct HuberRegressor <: MMI.Deterministic
     delta::Real              = 0.5
     lambda::Real             = 1.0
     gamma::Real              = 0.0
@@ -105,7 +105,7 @@ descr(::Type{HuberRegressor}) = "Robust regression with objective ``∑ρ(Xθ - 
    QUANTILE REGRESSOR
    ================== =#
 
-@with_kw_noshow mutable struct QuantileRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct QuantileRegressor <: MMI.Deterministic
     delta::Real              = 0.5
     lambda::Real             = 1.0
     gamma::Real              = 0.0
@@ -126,7 +126,7 @@ descr(::Type{QuantileRegressor}) = "Robust regression with objective ``∑ρ(Xθ
    LEAST ABSOLUTE DEVIATION REGRESSOR
    ================================== =#
 
-@with_kw_noshow mutable struct LADRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct LADRegressor <: MMI.Deterministic
     lambda::Real             = 1.0
     gamma::Real              = 0.0
     penalty::SymStr          = :l2

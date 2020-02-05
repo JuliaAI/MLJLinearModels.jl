@@ -2,7 +2,7 @@
    LOGISTIC CLASSIFIER
    =================== =#
 
-@with_kw_noshow mutable struct LogisticClassifier <: MLJBase.Probabilistic
+@with_kw_noshow mutable struct LogisticClassifier <: MMI.Probabilistic
     lambda::Real             = 1.0
     gamma::Real              = 0.0
     penalty::SymStr          = :l2
@@ -23,7 +23,7 @@ descr(::Type{LogisticClassifier}) = "Classifier corresponding to the loss functi
    MULTINOMIAL CLASSIFIER
    ====================== =#
 
-@with_kw_noshow mutable struct MultinomialClassifier <: MLJBase.Probabilistic
+@with_kw_noshow mutable struct MultinomialClassifier <: MMI.Probabilistic
     lambda::Real             = 1.0
     gamma::Real              = 0.0
     penalty::SymStr          = :l2

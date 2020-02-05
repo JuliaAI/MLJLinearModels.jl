@@ -1,6 +1,7 @@
 using MLJLinearModels, Test, LinearAlgebra, Random
-import MLJBase
-DO_COMPARISONS = false; include("testutils.jl")
+using MLJBase # not MLJModelInterface, to mimick the full interface
+
+DO_COMPARISONS = true; include("testutils.jl")
 
 m("UTILS"); include("utils.jl")
 
