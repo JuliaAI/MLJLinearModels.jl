@@ -3,14 +3,17 @@
 """
 $SIGNATURES
 
-Fit a least square regression either with no penalty (OLS) or with a L2 penalty (Ridge).
+Fit a least square regression either with no penalty (OLS) or with a L2 penalty
+(Ridge).
 
 ## Complexity
 
 Assuming `n` dominates `p`,
 
-* non-iterative (full solve):     O(np²) - dominated by the construction of the Hessian X'X.
-* iterative (conjugate gradient): O(κnp) - with κ the number of CG steps (κ ≤ p).
+* non-iterative (full solve):     O(np²) - dominated by the construction of the
+								  Hessian X'X.
+* iterative (conjugate gradient): O(κnp) - with κ the number of CG steps
+							 	  (κ ≤ p).
 """
 function _fit(glr::GLR{L2Loss,<:L2R}, solver::Analytical, X, y)
 	# full solve
@@ -34,7 +37,8 @@ function _fit(glr::GLR{L2Loss,<:L2R}, solver::Analytical, X, y)
 	p = size(X, 2) + Int(glr.fit_intercept)
 	max_cg_steps = min(solver.max_inner, p)
 	# Form the Hessian map, cost of application H*v is O(np)
-	Hm = LinearMap(Hv!(glr, X, y), p; ismutating=true, isposdef=true, issymmetric=true)
+	Hm = LinearMap(Hv!(glr, X, y), p;
+				   ismutating=true, isposdef=true, issymmetric=true)
 	b  = X'y
 	glr.fit_intercept && (b = vcat(b, sum(y)))
 	return cg(Hm, b; maxiter=max_cg_steps)

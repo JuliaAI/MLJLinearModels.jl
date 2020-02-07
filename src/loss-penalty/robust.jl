@@ -15,7 +15,7 @@ end
 (rl::RobustLoss)(r::AVR) = rl.rho(r)
 
 # ψ(r) = ρ'(r)     (first derivative)
-# ω(r) = ψ(r)/r    (weighing function) a threshold can be passed to clip weights
+# ω(r) = ψ(r)/r    (weighing function) a thresh can be passed to clip weights
 # ϕ(r) = ψ'(r)     (second derivative)
 
 """

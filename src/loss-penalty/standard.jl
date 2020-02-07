@@ -83,9 +83,9 @@ $TYPEDEF
 
 ``L(x, y) = -∑logσ(xᵢyᵢ)``
 
-where `logσ` is the log of the sigmoid function; `yᵢ ∈ {±1}`. In a logistic regression `x`
-corresponds to `Xθ` where `X` is the design matrix and `θ` the vector of parameters.
-See [`logsigmoid`](@ref).
+where `logσ` is the log of the sigmoid function; `yᵢ ∈ {±1}`. In a logistic
+regression `x` corresponds to `Xθ` where `X` is the design matrix and `θ` the
+vector of parameters. See [`logsigmoid`](@ref).
 """
 struct LogisticLoss <: AtomicLoss end
 
@@ -97,13 +97,14 @@ $TYPEDEF
 
 ``L(P, y) = ∑log Zᵢ - ∑∑ 1(yᵢ=j)Pᵢⱼ``
 
-where `P` is a matrix where each row contains class probabilities, `yᵢ ∈ {1, 2, ..., K}`
-corresponding to column indices and,
+where `P` is a matrix where each row contains class probabilities,
+`yᵢ ∈ {1, 2, ..., K}` corresponding to column indices and,
 
 ``Zᵢ = ∑ exp(Pᵢ)``
 
-In a multinomial regression, `P` corresponds to `XW` where `X` is the design matrix and `W` the
-matrix of size `p * K` where each column corresponds to the parameters corresponding to that class.
+In a multinomial regression, `P` corresponds to `XW` where `X` is the design
+matrix and `W` the matrix of size `p * K` where each column corresponds to the
+parameters corresponding to that class.
 """
 struct MultinomialLoss <: AtomicLoss end
 

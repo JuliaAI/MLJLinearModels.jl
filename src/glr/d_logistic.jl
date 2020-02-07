@@ -36,7 +36,7 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
                 ΛXt1 = view(SCRATCH_P[], 1:p)
                 copyto!(ΛXt1, sum(ΛX, dims=1))        # -- (ΛX)'1
                 @inbounds for i = 1:p
-                    H[i, end] = H[end, i] = ΛXt1[i]   # -- H[:,p+1] = H[p+1,:] = (ΛX)'1
+                    H[i, end] = H[end, i] = ΛXt1[i]   # -- H[:,p+1] = (ΛX)'1
                 end
                 H[end, end] = sum(w)                  # -- 1'Λ1'
                 add_λI!(H, λ, glr.penalize_intercept) # -- H = X'ΛX + λI
@@ -92,7 +92,8 @@ function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y)
             mul!(Hvₐ, X', Xvₐ)                       # -- (X'ΛX)vₐ
             Hvₐ .+= λ .* vₐ .+ XtΛ1 .* vₑ
             # update for the last row -- (X'1)'v + n v[end]
-            Hv[end] = dot(XtΛ1, vₐ) + (sum(w) + λ_if_penalize_intercept(glr, λ)) * vₑ
+            Hv[end] = dot(XtΛ1, vₐ) +
+                        (sum(w) + λ_if_penalize_intercept(glr, λ)) * vₑ
         end
     else
         (Hv, θ, v) -> begin
@@ -145,12 +146,12 @@ function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
     λ    = getscale(glr.penalty)
     (f, g, θ) -> begin
         P  = SCRATCH_NC[]
-        apply_X!(P, X, θ, c)                                 # O(npc) store n * c
+        apply_X!(P, X, θ, c)                         # O(npc) store n * c
         M  = SCRATCH_NC2[]
-        M .= exp.(P)                                         # O(npc) store n * c
+        M .= exp.(P)                                 # O(npc) store n * c
         g === nothing || begin
             ΛM  = SCRATCH_NC3[]
-            ΛM .= M ./ sum(M, dims=2)                        # O(nc)  store n * c
+            ΛM .= M ./ sum(M, dims=2)                # O(nc)  store n * c
             Q   = SCRATCH_NC4[]
             @inbounds for i = 1:n, j=1:c
                 Q[i, j] = ifelse(y[i] == j, 1.0, 0.0)
@@ -170,7 +171,8 @@ function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
             end
             g  .= reshape(G, (p + Int(glr.fit_intercept)) * c)
             g .+= λ .* θ
-            glr.fit_intercept && (glr.penalize_intercept || (g[end] -= λ * θ[end]))
+            glr.fit_intercept &&
+                (glr.penalize_intercept || (g[end] -= λ * θ[end]))
         end
         f === nothing || begin
             # we re-use pre-computations here, see also MultinomialLoss
@@ -199,21 +201,22 @@ function Hv!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
     c = length(unique(y))
     # NOTE:
     # * ideally P and Q should be recuperated from gradient computations (fghv!)
-    # * assumption that c is small so that storing matrices of size n * c is not too bad; if c
-    # is large and allocations should be minimized, all these computations can be done per class
-    # with views over (c-1)p+1:cp; it will allocate less but is likely slower; maybe in the future
-    # we could have a keyword indicating which one the user wants to use.
+    # * assumption that c is small so that storing matrices of size n * c is
+    # not too bad; if c is large and allocations should be minimized, all these
+    # computations can be done per class with views over (c-1)p+1:cp; it will
+    # allocate less but is likely slower; maybe in the future we could have a
+    # keyword indicating which one the user wants to use.
     (Hv, θ, v) -> begin
-        P  = apply_X(X, θ, c)    # P_ik = <x_i, θ_k>                  // dims n * c; O(npc)
-        Q  = apply_X(X, v, c)    # Q_ik = <x_i, v_k>                  // dims n * c; O(npc)
-        M  = exp.(P)             # M_ik = exp<x_i, w_k>               // dims n * c;
-        MQ = M .* Q              #                                    // dims n * c; O(nc)
+        P  = apply_X(X, θ, c)    # P_ik = <x_i, θ_k>    // dims n * c; O(npc)
+        Q  = apply_X(X, v, c)    # Q_ik = <x_i, v_k>    // dims n * c; O(npc)
+        M  = exp.(P)             # M_ik = exp<x_i, w_k> // dims n * c;
+        MQ = M .* Q              #                      // dims n * c; O(nc)
         ρ  = 1 ./ sum(M, dims=2) # ρ_i = 1/Z_i = 1/∑_k exp<x_i, w_k>
         κ  = sum(MQ, dims=2)     # κ_i  = ∑_k exp<x_i, w_k><x_i, v_k>
         γ  = κ .* ρ.^2           # γ_i  = κ_i / Z_i^2
         # computation of Hv
-        U      = (ρ .* MQ) .- (γ .* M)                              # // dims n * c; O(nc)
-        Hv_mat = X' * U                                             # // dims n * c; O(npc)
+        U      = (ρ .* MQ) .- (γ .* M)                  # // dims n * c; O(nc)
+        Hv_mat = X' * U                                 # // dims n * c; O(npc)
         if glr.fit_intercept
             Hv .= reshape(vcat(Hv_mat, sum(U, dims=1)), (p+1)*c)
         else

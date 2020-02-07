@@ -2,7 +2,7 @@
    LINEAR REGRESSOR (OLS)
    ====================== =#
 
-@with_kw_noshow mutable struct LinearRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct LinearRegressor <: MMI.Deterministic
     fit_intercept::Bool    = true
     solver::Option{Solver} = nothing
 end
@@ -15,15 +15,17 @@ descr(::Type{LinearRegressor}) = "Regression with objective function ``|Xθ - y|
    RIDGE REGRESSOR
    =============== =#
 
-@with_kw_noshow mutable struct RidgeRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct RidgeRegressor <: MMI.Deterministic
     lambda::Real             = 1.0
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
     solver::Option{Solver}   = nothing
 end
 
-glr(m::RidgeRegressor) = RidgeRegression(m.lambda, fit_intercept=m.fit_intercept,
-                                         penalize_intercept=m.penalize_intercept)
+glr(m::RidgeRegressor) =
+    RidgeRegression(m.lambda,
+                    fit_intercept=m.fit_intercept,
+                    penalize_intercept=m.penalize_intercept)
 
 descr(::Type{RidgeRegressor}) = "Regression with objective function ``|Xθ - y|₂²/2 + λ|θ|₂²/2``."
 
@@ -31,15 +33,17 @@ descr(::Type{RidgeRegressor}) = "Regression with objective function ``|Xθ - y|�
    LASSO REGRESSOR
    =============== =#
 
-@with_kw_noshow mutable struct LassoRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct LassoRegressor <: MMI.Deterministic
     lambda::Real             = 1.0
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
     solver::Option{Solver}   = nothing
 end
 
-glr(m::LassoRegressor) = LassoRegression(m.lambda, fit_intercept=m.fit_intercept,
-                                         penalize_intercept=m.penalize_intercept)
+glr(m::LassoRegressor) =
+    LassoRegression(m.lambda,
+                    fit_intercept=m.fit_intercept,
+                    penalize_intercept=m.penalize_intercept)
 
 descr(::Type{LassoRegressor}) = "Regression with objective function ``|Xθ - y|₂²/2 + λ|θ|₁``."
 
@@ -47,7 +51,7 @@ descr(::Type{LassoRegressor}) = "Regression with objective function ``|Xθ - y|�
    ELASTIC NET REGRESSOR
    ===================== =#
 
-@with_kw_noshow mutable struct ElasticNetRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct ElasticNetRegressor <: MMI.Deterministic
     lambda::Real             = 1.0
     gamma::Real              = 0.0
     fit_intercept::Bool      = true
@@ -55,9 +59,10 @@ descr(::Type{LassoRegressor}) = "Regression with objective function ``|Xθ - y|�
     solver::Option{Solver}   = nothing
 end
 
-glr(m::ElasticNetRegressor) = ElasticNetRegression(m.lambda, m.gamma,
-                                                   fit_intercept=m.fit_intercept,
-                                                   penalize_intercept=m.penalize_intercept)
+glr(m::ElasticNetRegressor) =
+    ElasticNetRegression(m.lambda, m.gamma,
+                         fit_intercept=m.fit_intercept,
+                         penalize_intercept=m.penalize_intercept)
 
 descr(::Type{ElasticNetRegressor}) = "Regression with objective function ``|Xθ - y|₂²/2 + λ|θ|₂²/2 + γ|θ|₁``."
 
@@ -65,7 +70,7 @@ descr(::Type{ElasticNetRegressor}) = "Regression with objective function ``|Xθ 
    ROBUST REGRESSOR (General)
    ========================== =#
 
-@with_kw_noshow mutable struct RobustRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct RobustRegressor <: MMI.Deterministic
     rho::RobustRho           = HuberRho(0.1)
     lambda::Real             = 1.0
     gamma::Real              = 0.0
@@ -75,9 +80,11 @@ descr(::Type{ElasticNetRegressor}) = "Regression with objective function ``|Xθ 
     solver::Option{Solver}   = nothing
 end
 
-glr(m::RobustRegressor) = RobustRegression(m.rho, m.lambda, m.gamma; penalty=Symbol(m.penalty),
-                                           fit_intercept=m.fit_intercept,
-                                           penalize_intercept=m.penalize_intercept)
+glr(m::RobustRegressor) =
+    RobustRegression(m.rho, m.lambda, m.gamma;
+                     penalty=Symbol(m.penalty),
+                     fit_intercept=m.fit_intercept,
+                     penalize_intercept=m.penalize_intercept)
 
 descr(::Type{RobustRegressor}) = "Robust regression with objective ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` for a given robust `ρ`."
 
@@ -85,7 +92,7 @@ descr(::Type{RobustRegressor}) = "Robust regression with objective ``∑ρ(Xθ -
    HUBER REGRESSOR
    =============== =#
 
-@with_kw_noshow mutable struct HuberRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct HuberRegressor <: MMI.Deterministic
     delta::Real              = 0.5
     lambda::Real             = 1.0
     gamma::Real              = 0.0
@@ -95,9 +102,11 @@ descr(::Type{RobustRegressor}) = "Robust regression with objective ``∑ρ(Xθ -
     solver::Option{Solver}   = nothing
 end
 
-glr(m::HuberRegressor) = HuberRegression(m.delta, m.lambda, m.gamma; penalty=Symbol(m.penalty),
-                                         fit_intercept=m.fit_intercept,
-                                         penalize_intercept=m.penalize_intercept)
+glr(m::HuberRegressor) =
+    HuberRegression(m.delta, m.lambda, m.gamma;
+                    penalty=Symbol(m.penalty),
+                    fit_intercept=m.fit_intercept,
+                    penalize_intercept=m.penalize_intercept)
 
 descr(::Type{HuberRegressor}) = "Robust regression with objective ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` where `ρ` is the Huber Loss."
 
@@ -105,7 +114,7 @@ descr(::Type{HuberRegressor}) = "Robust regression with objective ``∑ρ(Xθ - 
    QUANTILE REGRESSOR
    ================== =#
 
-@with_kw_noshow mutable struct QuantileRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct QuantileRegressor <: MMI.Deterministic
     delta::Real              = 0.5
     lambda::Real             = 1.0
     gamma::Real              = 0.0
@@ -115,10 +124,11 @@ descr(::Type{HuberRegressor}) = "Robust regression with objective ``∑ρ(Xθ - 
     solver::Option{Solver}   = nothing
 end
 
-glr(m::QuantileRegressor) = QuantileRegression(m.delta, m.lambda, m.gamma;
-                                               penalty=Symbol(m.penalty),
-                                               fit_intercept=m.fit_intercept,
-                                               penalize_intercept=m.penalize_intercept)
+glr(m::QuantileRegressor) =
+    QuantileRegression(m.delta, m.lambda, m.gamma;
+                       penalty=Symbol(m.penalty),
+                       fit_intercept=m.fit_intercept,
+                       penalize_intercept=m.penalize_intercept)
 
 descr(::Type{QuantileRegressor}) = "Robust regression with objective ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` where `ρ` is the Quantile Loss."
 
@@ -126,7 +136,7 @@ descr(::Type{QuantileRegressor}) = "Robust regression with objective ``∑ρ(Xθ
    LEAST ABSOLUTE DEVIATION REGRESSOR
    ================================== =#
 
-@with_kw_noshow mutable struct LADRegressor <: MLJBase.Deterministic
+@with_kw_noshow mutable struct LADRegressor <: MMI.Deterministic
     lambda::Real             = 1.0
     gamma::Real              = 0.0
     penalty::SymStr          = :l2
@@ -135,8 +145,10 @@ descr(::Type{QuantileRegressor}) = "Robust regression with objective ``∑ρ(Xθ
     solver::Option{Solver}   = nothing
 end
 
-glr(m::LADRegressor) = LADRegression(m.lambda, m.gamma; penalty=Symbol(m.penalty),
-                                     fit_intercept=m.fit_intercept,
-                                     penalize_intercept=m.penalize_intercept)
+glr(m::LADRegressor) =
+    LADRegression(m.lambda, m.gamma;
+                  penalty=Symbol(m.penalty),
+                  fit_intercept=m.fit_intercept,
+                  penalize_intercept=m.penalize_intercept)
 
 descr(::Type{LADRegressor}) = "Robust regression with objective ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` where `ρ` is the Absolute Loss."

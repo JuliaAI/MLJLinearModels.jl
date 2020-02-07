@@ -6,14 +6,14 @@ export GeneralizedLinearRegression, GLR,
         RobustRegression, HuberRegression, QuantileRegression
 
 """
-GeneralizedLinearRegression{L<:Loss, P<:Penalty}
+    GeneralizedLinearRegression{L<:Loss, P<:Penalty}
 
 Generalized Linear Regression (GLR) model with objective function:
 
 ``L(y, Xθ) + P(θ)``
 
-where `L` is a loss function, `P` a penalty, `y` is the vector of observed response, `X` is
-the feature matrix and `θ` the vector of parameters.
+where `L` is a loss function, `P` a penalty, `y` is the vector of observed
+response, `X` is the feature matrix and `θ` the vector of parameters.
 
 Special cases include:
 
@@ -74,8 +74,10 @@ $SIGNATURES
 
 Objective function: ``|Xθ - y|₂²/2 + λ|θ|₂²/2 + γ|θ|₁``.
 """
-function ElasticNetRegression(λ::Real=1.0, γ::Real=1.0; lambda::Real=λ, gamma::Real=γ,
-                              fit_intercept::Bool=true, penalize_intercept::Bool=false)
+function ElasticNetRegression(λ::Real=1.0, γ::Real=1.0;
+                              lambda::Real=λ, gamma::Real=γ,
+                              fit_intercept::Bool=true,
+                              penalize_intercept::Bool=false)
     check_pos.((lambda, gamma))
     GLR(penalty=lambda*L2Penalty()+gamma*L1Penalty(),
         fit_intercept=fit_intercept,
@@ -108,10 +110,11 @@ end
 """
 $SIGNATURES
 
-Objective function: ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is either the logistic loss in the
-binary case or the multinomial loss otherwise.
+Objective function: ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is either the
+logistic loss in the binary case or the multinomial loss otherwise.
 """
-function LogisticRegression(λ::Real=1.0, γ::Real=0.0; lambda::Real=λ, gamma::Real=γ,
+function LogisticRegression(λ::Real=1.0, γ::Real=0.0;
+                            lambda::Real=λ, gamma::Real=γ,
                             penalty::Symbol=iszero(gamma) ? :l2 : :en,
                             multi_class::Bool=false, fit_intercept::Bool=true,
                             penalize_intercept::Bool=false)
@@ -131,11 +134,13 @@ MultinomialRegression(a...; kwa...) = LogisticRegression(a...; multi_class=true,
 """
 $SIGNATURES
 
-Objective function: ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` where ρ is a given function on the residuals.
+Objective function: ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` where ρ is a given function
+on the residuals.
 """
 function RobustRegression(ρ::RobustRho=HuberRho(0.1), λ::Real=1.0, γ::Real=0.0;
                           rho::RobustRho=ρ, lambda::Real=λ, gamma::Real=γ,
-                          penalty::Symbol=iszero(gamma) ? :l2 : :en, fit_intercept::Bool=true,
+                          penalty::Symbol=iszero(gamma) ? :l2 : :en,
+                          fit_intercept::Bool=true,
                           penalize_intercept::Bool=false)
     penalty = _l1l2en(lambda, gamma, penalty, "Robust regression")
     GLR(loss=RobustLoss(rho),
@@ -151,12 +156,14 @@ Huber Regression with objective:
 
 ``∑ρ(Xθ - y) + λ|θ|₂²/2 + γ|θ|₁``
 
-Where `ρ` is the Huber function `ρ(r) = r²/2``  if `|r|≤δ` and `ρ(r)=δ(|r|-δ/2)` otherwise.
+Where `ρ` is the Huber function `ρ(r) = r²/2``  if `|r|≤δ` and
+`ρ(r)=δ(|r|-δ/2)` otherwise.
 """
 function HuberRegression(δ::Real=0.5, λ::Real=1.0, γ::Real=0.0;
                          delta::Real=δ, lambda::Real=λ, gamma::Real=γ,
                          penalty::Symbol=iszero(gamma) ? :l2 : :en,
-                         fit_intercept::Bool=true, penalize_intercept::Bool=false)
+                         fit_intercept::Bool=true,
+                         penalize_intercept::Bool=false)
     return RobustRegression(HuberRho(delta), lambda, gamma;
                             penalty=penalty, fit_intercept=fit_intercept,
                             penalize_intercept=penalize_intercept)
@@ -174,7 +181,8 @@ Where `ρ` is the check function `ρ(r) = r(δ - 1(r < 0))`.
 function QuantileRegression(δ::Real=0.5, λ::Real=1.0, γ::Real=0.0;
                             delta::Real=δ, lambda::Real=λ, gamma::Real=γ,
                             penalty::Symbol=iszero(gamma) ? :l2 : :en,
-                            fit_intercept::Bool=true, penalize_intercept::Bool=false)
+                            fit_intercept::Bool=true,
+                            penalize_intercept::Bool=false)
     return RobustRegression(QuantileRho(delta), lambda, gamma;
                             penalty=penalty, fit_intercept=fit_intercept,
                             penalize_intercept=penalize_intercept)
