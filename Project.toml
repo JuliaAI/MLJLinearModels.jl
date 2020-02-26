@@ -20,7 +20,6 @@ LinearMaps = "^2.6"
 MLJModelInterface = "^0.1"
 Optim = "^0.20"
 Parameters = "^0.12"
-Tables = "^0.2"
 julia = "^1"
 
 [extras]
