@@ -38,7 +38,7 @@ struct LBFGS <: Solver end
 @with_kw struct ProxGrad <: Solver
     accel::Bool    = false # use Nesterov style acceleration (see also FISTA)
     max_iter::Int  = 1000  # max number of overall iterations
-    tol::Float64   = 1e-4  # tolerance over relative change of θ i.e. norm(θ-θ_)/norm(θ)
+    tol::Float64   = 1e-4  # tol relative change of θ i.e. norm(θ-θ_)/norm(θ)
     max_inner::Int = 100   # β^max_inner should be > 1e-10
     beta::Float64  = 0.8   # in (0, 1); shrinkage in the backtracking step
 end
@@ -53,7 +53,7 @@ ISTA(; kwa...)  = ProxGrad(;accel = false, kwa...)
     max_inner::Int     = 200
     tol::Float64       = 1e-4
     damping::Float64   = 1.0   # should be between 0 and 1, 1 = trust iterates
-    threshold::Float64 = 1e-6  # threshold for the residuals used for instance in quantile reg
+    threshold::Float64 = 1e-6  # thresh for residuals; used eg in quantile reg
 end
 
 # ===================== admm.jl

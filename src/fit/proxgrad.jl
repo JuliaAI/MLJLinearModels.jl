@@ -22,7 +22,8 @@ function _fit(glr::GLR, solver::ProxGrad, X, y)
     _f      = smooth_objective(glr, X, y; c=c)
     _fg!    = smooth_fg!(glr, X, y)
     _prox!  = prox!(glr)
-    bt_cond = θ̂ -> _f(θ̂) > fθ̄ + dot(θ̂ .- θ̄, ∇fθ̄) + sum(abs2.(θ̂ .- θ̄))/(2η)
+    bt_cond = θ̂ ->
+                _f(θ̂) > fθ̄ + dot(θ̂ .- θ̄, ∇fθ̄) + sum(abs2.(θ̂ .- θ̄)) / (2η)
     # loop-related
     k, tol = 1, Inf
     while k ≤ solver.max_iter && tol > solver.tol
@@ -46,7 +47,8 @@ function _fit(glr::GLR, solver::ProxGrad, X, y)
             inner += 1
         end
         if inner == solver.max_inner
-            @warn "No appropriate stepsize found via backtracking; interrupting."
+            @warn "No appropriate stepsize found via backtracking; " *
+                  "interrupting."
             break
         end
         # update caches
@@ -59,6 +61,7 @@ function _fit(glr::GLR, solver::ProxGrad, X, y)
         # update niter
         k += 1
     end
-    tol ≤ solver.tol || @warn "Proximal GD did not converge in $(solver.max_iter) iterations."
+    tol ≤ solver.tol || @warn "Proximal GD did not converge in " *
+                              "$(solver.max_iter) iterations."
     return θ
 end

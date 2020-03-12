@@ -60,3 +60,12 @@ end
     mcr = MLJBase.misclassification_rate(ŷ, yc)
     @test mcr ≤ 0.2
 end
+
+# see issue https://github.com/alan-turing-institute/MLJ.jl/issues/387
+@testset "String-Symbol" begin
+    model = LogisticClassifier(penalty="l1")
+    @test model.penalty == "l1"
+    gr = MLJLinearModels.glr(model)
+    @test gr isa GLR
+    @test gr.penalty isa ScaledPenalty{L1Penalty}
+end

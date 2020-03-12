@@ -2,11 +2,14 @@ export LinearRegressor, RidgeRegressor, LassoRegressor, ElasticNetRegressor,
        RobustRegressor, HuberRegressor, QuantileRegressor, LADRegressor,
        LogisticClassifier, MultinomialClassifier
 
+const SymStr = Union{Symbol,String}
+
 include("regressors.jl")
 include("classifiers.jl")
 
-const REG_MODELS = (LinearRegressor, RidgeRegressor, LassoRegressor, ElasticNetRegressor,
-                    RobustRegressor, HuberRegressor, QuantileRegressor, LADRegressor)
+const REG_MODELS = (LinearRegressor, RidgeRegressor, LassoRegressor,
+                    ElasticNetRegressor, RobustRegressor, HuberRegressor,
+                    QuantileRegressor, LADRegressor)
 const CLF_MODELS = (LogisticClassifier, MultinomialClassifier)
 const ALL_MODELS = (REG_MODELS..., CLF_MODELS...)
 
@@ -14,8 +17,8 @@ const ALL_MODELS = (REG_MODELS..., CLF_MODELS...)
    REGRESSORS
    ========== =#
 
-function MLJBase.fit(m::Union{REG_MODELS...}, verb::Int, X, y)
-    Xmatrix = MLJBase.matrix(X)
+function MMI.fit(m::Union{REG_MODELS...}, verb::Int, X, y)
+    Xmatrix = MMI.matrix(X)
     reg     = glr(m)
     solver  = m.solver === nothing ? _solver(reg, size(Xmatrix)) : m.solver
     # get the parameters
@@ -24,9 +27,9 @@ function MLJBase.fit(m::Union{REG_MODELS...}, verb::Int, X, y)
     return θ, nothing, NamedTuple{}()
 end
 
-MLJBase.predict(m::Union{REG_MODELS...}, θ, Xnew) = apply_X(MLJBase.matrix(Xnew), θ)
+MMI.predict(m::Union{REG_MODELS...}, θ, Xnew) = apply_X(MMI.matrix(Xnew), θ)
 
-function MLJBase.fitted_params(m::Union{REG_MODELS...}, θ)
+function MMI.fitted_params(m::Union{REG_MODELS...}, θ)
     m.fit_intercept && return (coefs = θ[1:end-1], intercept = θ[end])
     return (coefs = θ, intercept = nothing)
 end
@@ -35,10 +38,10 @@ end
    CLASSIFIERS
    =========== =#
 
-function MLJBase.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
-    Xmatrix  = MLJBase.matrix(X)
-    yplain   = convert.(Int, MLJBase.int(y))
-    classes  = MLJBase.classes(y[1])
+function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
+    Xmatrix  = MMI.matrix(X)
+    yplain   = convert.(Int, MMI.int(y))
+    classes  = MMI.classes(y[1])
     nclasses = length(classes)
     if nclasses == 2
         # recode
@@ -56,21 +59,21 @@ function MLJBase.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     return (θ, c, classes), nothing, NamedTuple{}()
 end
 
-function MLJBase.predict(m::Union{CLF_MODELS...}, (θ, c, classes), Xnew)
-    Xmatrix = MLJBase.matrix(Xnew)
+function MMI.predict(m::Union{CLF_MODELS...}, (θ, c, classes), Xnew)
+    Xmatrix = MMI.matrix(Xnew)
     preds   = apply_X(Xmatrix, θ, c)
     # binary classification
     if c == 1
         preds  .= sigmoid.(preds)
         preds   = hcat(1.0 .- preds, preds) # scores for -1 and 1
-        return [MLJBase.UnivariateFinite(classes, preds[i, :]) for i in 1:size(Xmatrix,1)]
+        return [MMI.UnivariateFinite(classes, preds[i, :]) for i in 1:size(Xmatrix,1)]
     end
     # multiclass
     preds .= softmax(preds)
-    return [MLJBase.UnivariateFinite(classes, preds[i, :]) for i in 1:size(Xmatrix,1)]
+    return [MMI.UnivariateFinite(classes, preds[i, :]) for i in 1:size(Xmatrix,1)]
 end
 
-function MLJBase.fitted_params(m::Union{CLF_MODELS...}, (θ, c, classes))
+function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, c, classes))
     if c > 1
         if m.fit_intercept
             W = reshape(θ, div(length(θ), c), c)
@@ -88,7 +91,7 @@ end
    METADATA FOR ALL MODELS
    ======================= =#
 
-MLJBase.metadata_pkg.(ALL_MODELS,
+MMI.metadata_pkg.(ALL_MODELS,
     name="MLJLinearModels",
     uuid="6ee0df7b-362f-4a72-a706-9e79364fb692",
     url="https://github.com/alan-turing-institute/MLJLinearModels.jl",
@@ -98,21 +101,21 @@ MLJBase.metadata_pkg.(ALL_MODELS,
 
 descr_(M) = descr(M) *
     "\n→ based on [MLJLinearModels](https://github.com/alan-turing-institute/MLJLinearModels.jl)" *
-    "\n→ do `@load $(MLJBase.name(M)) pkg=\"MLJLinearModels\" to use the model.`" *
-    "\n→ do `?$(MLJBase.name(M))` for documentation."
-lp_(M) = "MLJLinearModels.$(MLJBase.name(M))"
+    "\n→ do `@load $(MMI.name(M)) pkg=\"MLJLinearModels\" to use the model.`" *
+    "\n→ do `?$(MMI.name(M))` for documentation."
+lp_(M) = "MLJLinearModels.$(MMI.name(M))"
 
 for M in REG_MODELS
-    MLJBase.metadata_model(M,
-        input=MLJBase.Table(MLJBase.Continuous),
-        target=AbstractVector{MLJBase.Continuous},
+    MMI.metadata_model(M,
+        input=MMI.Table(MMI.Continuous),
+        target=AbstractVector{MMI.Continuous},
         weights=false,
         descr=descr_(M), path=lp_(M))
 end
 for M in CLF_MODELS
-    MLJBase.metadata_model(M,
-        input=MLJBase.Table(MLJBase.Continuous),
-        target=AbstractVector{<:MLJBase.Finite},
+    MMI.metadata_model(M,
+        input=MMI.Table(MMI.Continuous),
+        target=AbstractVector{<:MMI.Finite},
         weights=false,
         descr=descr_(M), path=lp_(M))
 end

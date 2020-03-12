@@ -6,12 +6,12 @@ import LinearMaps: LinearMap
 import IterativeSolvers: cg
 import Optim
 
-import MLJBase
+import MLJModelInterface
 
 import Base.+, Base.-, Base.*, Base./, Base.convert
 
-const AVR = AbstractVector{<:Real}
-
+const MMI       = MLJModelInterface
+const AVR       = AbstractVector{<:Real}
 const Option{T} = Union{Nothing,T}
 
 include("scratchspace.jl")

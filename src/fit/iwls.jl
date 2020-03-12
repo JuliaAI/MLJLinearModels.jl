@@ -16,7 +16,8 @@ function _fit(glr::GLR{RobustLoss{ρ},<:L2R}, solver::IWLSCG, X, y) where {ρ}
         # update the weights and retrieve the application function
         # Mθv! corresponds to the current application of (X'WX + λI) on v
         Mθv! = _Mv!(ω, θ)
-        Mm  = LinearMap(Mθv!, p; ismutating=true, isposdef=true, issymmetric=true)
+        Mm  = LinearMap(Mθv!, p;
+                        ismutating=true, isposdef=true, issymmetric=true)
         Wy  = ω .* y
         b   = X'Wy
         if glr.fit_intercept
@@ -30,6 +31,7 @@ function _fit(glr::GLR{RobustLoss{ρ},<:L2R}, solver::IWLSCG, X, y) where {ρ}
         copyto!(θ_, θ)
         k  += 1
     end
-    tol ≤ solver.tol || @warn "IWLS did not converge in $(solver.max_iter) iterations."
+    tol ≤ solver.tol ||
+        @warn "IWLS did not converge in $(solver.max_iter) iterations."
     return θ
 end
