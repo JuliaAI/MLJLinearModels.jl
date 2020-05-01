@@ -1,9 +1,9 @@
 export GeneralizedLinearRegression, GLR,
         LinearRegression, RidgeRegression,
         LassoRegression, ElasticNetRegression,
-        LADRegression, MADRegression,
-        LogisticRegression, MultinomialRegression,
-        RobustRegression, HuberRegression, QuantileRegression
+        LADRegression, LogisticRegression,
+        MultinomialRegression, RobustRegression,
+        HuberRegression, QuantileRegression
 
 """
     GeneralizedLinearRegression{L<:Loss, P<:Penalty}
