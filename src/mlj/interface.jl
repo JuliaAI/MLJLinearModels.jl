@@ -40,6 +40,7 @@ end
 
 function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     Xmatrix  = MMI.matrix(X)
+    features = (sch = MMI.schema(X)) === nothing ? nothing : sch.names
     yplain   = convert.(Int, MMI.int(y))
     classes  = MMI.classes(y[1])
     nclasses = length(classes)
@@ -56,10 +57,10 @@ function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     # get the parameters
     θ = fit(clf, Xmatrix, yplain, solver=solver)
     # return
-    return (θ, c, classes), nothing, NamedTuple{}()
+    return (θ, features, c, classes), nothing, NamedTuple{}()
 end
 
-function MMI.predict(m::Union{CLF_MODELS...}, (θ, c, classes), Xnew)
+function MMI.predict(m::Union{CLF_MODELS...}, (θ, features, c, classes), Xnew)
     Xmatrix = MMI.matrix(Xnew)
     preds   = apply_X(Xmatrix, θ, c)
     # binary classification
@@ -73,19 +74,23 @@ function MMI.predict(m::Union{CLF_MODELS...}, (θ, c, classes), Xnew)
     return [MMI.UnivariateFinite(classes, preds[i, :]) for i in 1:size(Xmatrix,1)]
 end
 
-function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, c, classes))
+function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, features, c, classes))
     if c > 1
+        W = reshape(θ, :, c)
         if m.fit_intercept
-            W = reshape(θ, div(length(θ), c), c)
-            return (coefs = W, intercept = nothing)
+            return (coefs = coef_dict(W, features), intercept = W[end, :])
         end
-        W = reshape(θ, p+1, c)
-        return (coefs = W[1:p, :], intercept = W[end, :])
+        return (coefs = coef_dict(W[1:end-1,:], features), intercept = nothing)
     end
     # single class
-    m.fit_intercept && return (coefs = θ[1:end-1], intercept = θ[end])
-    return (coefs = θ, intercept = nothing)
+    m.fit_intercept && return (coefs = coef_dict(θ[1:end-1], features), intercept = θ[end])
+    return (coefs = coef_dict(θ, features), intercept = nothing)
 end
+
+coef_dict(W::AbstractMatrix, features) = Dict(feature => coef for (feature, coef) in zip(features, eachrow(W)))
+coef_dict(θ::AbstractVector, features) = Dict(feature => coef for (feature, coef) in zip(features, θ))
+coef_dict(W::AbstractMatrix, ::Nothing) = W
+coef_dict(W::AbstractVector, ::Nothing) = W
 
 #= =======================
    METADATA FOR ALL MODELS
