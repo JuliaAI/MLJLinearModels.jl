@@ -89,8 +89,7 @@ end
 
 coef_dict(W::AbstractMatrix, features) = Dict(feature => coef for (feature, coef) in zip(features, eachrow(W)))
 coef_dict(θ::AbstractVector, features) = Dict(feature => coef for (feature, coef) in zip(features, θ))
-coef_dict(W::AbstractMatrix, ::Nothing) = W
-coef_dict(W::AbstractVector, ::Nothing) = W
+coef_dict(coef::Union{AbstractMatrix,AbstractVector}, ::Nothing) = coef
 
 #= =======================
    METADATA FOR ALL MODELS
