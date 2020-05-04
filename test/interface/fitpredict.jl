@@ -17,7 +17,7 @@
     intercept = θ[end]
 
     fp = MLJBase.fitted_params(rr, fr)
-    @test fp.coefs ≈ coefs
+    @test last.(fp.coefs) ≈ coefs
     @test fp.intercept ≈ intercept
 end
 
@@ -33,7 +33,6 @@ end
     lr = LogisticClassifier(lambda=λ, gamma=γ)
     fr, = MLJBase.fit(lr, 1, Xt, yc)
 
-    fp = MLJBase.fitted_params(lr, fr)
     ŷ = MLJBase.predict(lr, fr, Xt)
     ŷ = MLJBase.mode.(ŷ)
 
@@ -53,7 +52,6 @@ end
     mc = MultinomialClassifier(lambda=λ, gamma=γ)
     fr, = MLJBase.fit(mc, 1, Xt, yc)
 
-    fp = MLJBase.fitted_params(mc, fr)
     ŷ = MLJBase.predict(mc, fr, Xt)
     ŷ = MLJBase.mode.(ŷ)
 
