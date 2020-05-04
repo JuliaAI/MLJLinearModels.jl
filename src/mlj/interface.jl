@@ -94,7 +94,8 @@ end
 
 coef_vec(W::AbstractMatrix, features) = [feature => coef for (feature, coef) in zip(features, eachrow(W))]
 coef_vec(θ::AbstractVector, features) = [feature => coef for (feature, coef) in zip(features, θ)]
-coef_vec(coef::Union{AbstractMatrix,AbstractVector}, ::Nothing) = coef
+coef_vec(W::AbstractMatrix, ::Nothing) = W
+coef_vec(θ::AbstractVector, ::Nothing) = θ
 
 #= =======================
    METADATA FOR ALL MODELS
