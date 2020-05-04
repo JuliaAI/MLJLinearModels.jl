@@ -75,22 +75,26 @@ function MMI.predict(m::Union{CLF_MODELS...}, (θ, features, c, classes), Xnew)
 end
 
 function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, features, c, classes))
+    function _fitted_params(coefs, features, intercept)
+        return (classes = classes, coefs = coef_vec(coefs, features), intercept = intercept)
+    end
     if c > 1
         W = reshape(θ, :, c)
         if m.fit_intercept
-            return (coefs = coef_dict(W, features), intercept = W[end, :])
+            return _fitted_params(W, features, W[end, :])
         end
-        return (coefs = coef_dict(W[1:end-1,:], features), intercept = nothing)
+        return _fitted_params(W[1:end-1, :], features, nothing)
     end
     # single class
-    m.fit_intercept && return (coefs = coef_dict(θ[1:end-1], features), intercept = θ[end])
-    return (coefs = coef_dict(θ, features), intercept = nothing)
+    m.fit_intercept && return _fitted_params(θ[1:end-1], features, θ[end])
+    return _fitted_params(θ, features, nothing)
 end
 
-coef_dict(W::AbstractMatrix, features) = Dict(feature => coef for (feature, coef) in zip(features, eachrow(W)))
-coef_dict(θ::AbstractVector, features) = Dict(feature => coef for (feature, coef) in zip(features, θ))
-coef_dict(coef::Union{AbstractMatrix,AbstractVector}, ::Nothing) = coef
 @static VERSION < v"1.1" && (Base.eachrow(A::AbstractVecOrMat) = (view(A, i, :) for i in axes(A, 1)))
+
+coef_vec(W::AbstractMatrix, features) = [feature => coef for (feature, coef) in zip(features, eachrow(W))]
+coef_vec(θ::AbstractVector, features) = [feature => coef for (feature, coef) in zip(features, θ)]
+coef_vec(coef::Union{AbstractMatrix,AbstractVector}, ::Nothing) = coef
 
 #= =======================
    METADATA FOR ALL MODELS
