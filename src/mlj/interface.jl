@@ -90,6 +90,7 @@ end
 coef_dict(W::AbstractMatrix, features) = Dict(feature => coef for (feature, coef) in zip(features, eachrow(W)))
 coef_dict(θ::AbstractVector, features) = Dict(feature => coef for (feature, coef) in zip(features, θ))
 coef_dict(coef::Union{AbstractMatrix,AbstractVector}, ::Nothing) = coef
+@static VERSION < v"1.1" && (Base.eachrow(A::AbstractVecOrMat) = (view(A, i, :) for i in axes(A, 1)))
 
 #= =======================
    METADATA FOR ALL MODELS
