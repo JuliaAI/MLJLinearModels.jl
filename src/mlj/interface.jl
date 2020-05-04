@@ -19,19 +19,20 @@ const ALL_MODELS = (REG_MODELS..., CLF_MODELS...)
 
 function MMI.fit(m::Union{REG_MODELS...}, verb::Int, X, y)
     Xmatrix = MMI.matrix(X)
+    features = (sch = MMI.schema(X)) === nothing ? nothing : sch.names
     reg     = glr(m)
     solver  = m.solver === nothing ? _solver(reg, size(Xmatrix)) : m.solver
     # get the parameters
     θ = fit(reg, Xmatrix, y; solver=solver)
     # return
-    return θ, nothing, NamedTuple{}()
+    return (θ, features), nothing, NamedTuple{}()
 end
 
-MMI.predict(m::Union{REG_MODELS...}, θ, Xnew) = apply_X(MMI.matrix(Xnew), θ)
+MMI.predict(m::Union{REG_MODELS...}, (θ, features), Xnew) = apply_X(MMI.matrix(Xnew), θ)
 
-function MMI.fitted_params(m::Union{REG_MODELS...}, θ)
-    m.fit_intercept && return (coefs = θ[1:end-1], intercept = θ[end])
-    return (coefs = θ, intercept = nothing)
+function MMI.fitted_params(m::Union{REG_MODELS...}, (θ, features))
+    m.fit_intercept && return (coefs = coef_vec(θ[1:end-1], features), intercept = θ[end])
+    return (coefs = coef_vec(θ, features), intercept = nothing)
 end
 
 #= ===========
