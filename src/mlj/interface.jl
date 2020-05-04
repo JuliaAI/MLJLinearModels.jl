@@ -91,7 +91,7 @@ function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, features, c, classes))
     return _fitted_params(θ, features, nothing)
 end
 
-@static VERSION < v"1.1" && (Base.eachrow(A::AbstractVecOrMat) = (view(A, i, :) for i in axes(A, 1)))
+@static VERSION < v"1.1" && (eachrow(A::AbstractVecOrMat) = (view(A, i, :) for i in axes(A, 1)))
 
 coef_vec(W::AbstractMatrix, features) = [feature => coef for (feature, coef) in zip(features, eachrow(W))]
 coef_vec(θ::AbstractVector, features) = [feature => coef for (feature, coef) in zip(features, θ)]
