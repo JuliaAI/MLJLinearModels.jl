@@ -1,5 +1,5 @@
 using MLJLinearModels, Test, LinearAlgebra, Random
-import MLJBase # not MLJModelInterface, to mimick the full interface
+import MLJBase # not MLJModelInterface, to mimic the full interface
 
 DO_COMPARISONS = true; include("testutils.jl")
 
