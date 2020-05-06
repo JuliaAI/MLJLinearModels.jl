@@ -126,8 +126,7 @@ end
 
 # Sigmoid and log-sigmoid
 
-const SIGMOID_64 = log(Float64(1)/eps(Float64) - Float64(1))
-const SIGMOID_32 = log(Float32(1)/eps(Float32) - Float32(1))
+SIGMOID_THRESH(T::Type{<:AbstractFloat}) = log(one(T)/eps(T) - one(T))
 
 """
 $SIGNATURES
@@ -136,18 +135,30 @@ Return the sigmoid computed in a numerically stable way:
 
 ``σ(x) = 1/(1+exp(-x))``
 """
-function sigmoid(x::Float64)
-	x > SIGMOID_64  && return one(x)
-	x < -SIGMOID_64 && return zero(x)
-	return one(x) / (one(x) + exp(-x))
-end
-function sigmoid(x::Float32)
-	x > SIGMOID_32  && return one(x)
-	x < -SIGMOID_32 && return zero(x)
-	return one(x) / (one(x) + exp(-x))
+function sigmoid(x::T) where T <: AbstractFloat
+	τ = SIGMOID_THRESH(T)
+	x > τ  && return one(T)
+	x < -τ && return zero(T)
+	return one(T) / (one(T) + exp(-x))
 end
 sigmoid(x) = sigmoid(float(x))
 σ = sigmoid
+
+"""
+$SIGNATURES
+
+Return the log sigmoid computed in a numerically stable way:
+
+``logσ(x) = -log(1+exp(-x)) = log(exp(x)/(exp(x) + 1)) = x - log(1+exp(x))``
+"""
+function logsigmoid(x::T) where T <: AbstractFloat
+	τ = SIGMOID_THRESH(T)
+	x > τ  && return zero(T)
+	x < -τ && return x
+	return -log1p(exp(-x))
+end
+logsigmoid(x) = logsigmoid(float(x))
+logσ = logsigmoid
 
 """
 $SIGNATURES
@@ -163,27 +174,6 @@ function softmax(X::AbstractMatrix{<:Real})
 	exp_ = exp.(X .- max_)
 	return exp_ ./ sum(exp_, dims=2)
 end
-
-"""
-$SIGNATURES
-
-Return the log sigmoid computed in a numerically stable way:
-
-``logσ(x) = -log(1+exp(-x)) = log(exp(x)/(exp(x) + 1)) = x - log(1+exp(x))``
-"""
-function logsigmoid(x::Float64)
-	x > SIGMOID_64  && return zero(x)
-	x < -SIGMOID_64 && return x
-	return -log1p(exp(-x))
-end
-function logsigmoid(x::Float32)
-	x > SIGMOID_32  && return zero(x)
-	x < -SIGMOID_32 && return x
-	return -log1p(exp(-x))
-end
-logsigmoid(x) = logsigmoid(float(x))
-logσ = logsigmoid
-
 
 """
 $SIGNATURES
