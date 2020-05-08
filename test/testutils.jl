@@ -17,50 +17,53 @@ mm(s) = println("\n > $s < \n")
 nnz(θ) = sum(abs.(θ) .> 0)
 
 """Make portion s of vector 0."""
-sparsify!(θ, s) = (θ .*= (rand(length(θ)) .< s))
+sparsify!(θ, s, r) = (θ .*= (rand(r, length(θ)) .< s))
 
 """Add outliers to portion s of vector."""
-outlify(y, s) = (n = length(y); y .+ 20 * randn(n) .* (rand(n) .< s))
+function outlify(y, s, r=StableRNG(123511))
+    n = length(y)
+    return y .+ 20 * randn(r, n) .* (rand(r, n) .< s)
+end
 
 """Generate continuous (X, y) with and without intercept."""
-function generate_continuous(n, p; seed=0, sparse=1)
-    Random.seed!(seed)
-    X  = randn(n, p)
+function generate_continuous(n, p; seed=61234, sparse=1)
+    r = StableRNG(seed)
+    X  = randn(r, n, p)
     X1 = R.augment_X(X, true)
-    θ  = randn(p)
-    θ1 = randn(p+1)
+    θ  = randn(r, p)
+    θ1 = randn(r, p+1)
     sparse < 1 && begin
-        sparsify!(θ, sparse)
-        sparsify!(θ1, sparse)
+        sparsify!(θ, sparse, r)
+        sparsify!(θ1, sparse, r)
     end
-    y  = X*θ + 0.1 * randn(n)
-    y1 = X1*θ1 + 0.1 * randn(n)
+    y  = X*θ + 0.1 * randn(r, n)
+    y1 = X1*θ1 + 0.1 * randn(r, n)
     return ((X, y, θ), (X1, y1, θ1))
 end
 
 """Generate continuous X and binary y with and without intercept."""
-function generate_binary(n, p; seed=0, sparse=1)
-    Random.seed!(seed)
-    X  = randn(n, p)
+function generate_binary(n, p; seed=1345123, sparse=1)
+    r = StableRNG(seed)
+    X  = randn(r, n, p)
     X1 = R.augment_X(X, true)
-    θ  = randn(p)
-    θ1 = randn(p+1)
+    θ  = randn(r, p)
+    θ1 = randn(r, p+1)
     sparse < 1 && begin
-        sparsify!(θ, sparse)
-        sparsify!(θ1, sparse)
+        sparsify!(θ, sparse, r)
+        sparsify!(θ1, sparse, r)
     end
-    y  = rand(n) .< R.σ.(X*θ)
+    y  = rand(r, n) .< R.σ.(X*θ)
     y  = y .* ones(Int, n) .- .!y .* ones(Int, n)
-    y1 = rand(n) .< R.σ.(X1*θ1)
+    y1 = rand(r, n) .< R.σ.(X1*θ1)
     y1 = y1 .* ones(Int, n) .- .!y1 .* ones(Int, n)
     return ((X, y, θ), (X1, y1, θ1))
 end
 
 """Simple function to sample from a multinomial."""
-function multi_rand(Mp)
+function multi_rand(Mp, r)
     # Mp[i, :] sums to 1
     n, c = size(Mp)
-    be   = reshape(rand(length(Mp)), n, c)
+    be   = reshape(rand(r, length(Mp)), n, c)
     y    = zeros(Int, n)
     @inbounds for i in eachindex(y)
         rp = 1.0
@@ -77,15 +80,15 @@ function multi_rand(Mp)
 end
 
 """Generate continuous X and multiclass y with and without intercept."""
-function generate_multiclass(n, p, c; seed=0, sparse=1)
-    Random.seed!(seed)
-    X   = randn(n, p)
+function generate_multiclass(n, p, c; seed=53412224, sparse=1)
+    r = StableRNG(seed)
+    X   = randn(r, n, p)
     X1  = R.augment_X(X, true)
-    θ   = randn(p * c)
-    θ1  = randn((p+1) * c)
+    θ   = randn(r, p * c)
+    θ1  = randn(r, (p+1) * c)
     sparse < 1 && begin
-        sparsify!(θ, sparse)
-        sparsify!(θ1, sparse)
+        sparsify!(θ, sparse, r)
+        sparsify!(θ1, sparse, r)
     end
     y   = zeros(Int, n)
     y1  = zeros(Int, n)
@@ -97,7 +100,7 @@ function generate_multiclass(n, p, c; seed=0, sparse=1)
     M1  = exp.(P1)
     Mn1 = M1 ./ sum(M1, dims=2)
 
-    y  = multi_rand(Mn)
-    y1 = multi_rand(Mn1)
+    y  = multi_rand(Mn, r)
+    y1 = multi_rand(Mn1, r)
     return ((X, y, θ), (X1, y1, θ1))
 end

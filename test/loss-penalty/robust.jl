@@ -1,5 +1,7 @@
-x = randn(10)
-y = randn(10)
+rng = StableRNG(123)
+
+x = randn(rng, 10)
+y = randn(rng, 10)
 r = x .- y
 
 @testset "Robust Loss" begin

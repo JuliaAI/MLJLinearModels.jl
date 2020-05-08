@@ -1,5 +1,5 @@
 n, p = 50, 5
-((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p; seed=1234)
+((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p; seed=12341222)
 
 @testset "Tools" begin
     lr  = LogisticRegression(1.0, 2.0; fit_intercept=false)
