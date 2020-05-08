@@ -1,9 +1,10 @@
-Random.seed!(134)
+rng = StableRNG(123)
+
 n = 7
 p = 5
-x = randn(n)
-y = randn(n)
-θ = randn(p)
+x = randn(rng, n)
+y = randn(rng, n)
+θ = randn(rng, p)
 
 δ  = x .- y
 δ1 = norm(δ, 1)

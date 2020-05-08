@@ -10,13 +10,13 @@ export fit
 _solver(::GLR{L2Loss,<:L2R}, np::NTuple{2,Int}) = Analytical()
 
 # Logistic, Multinomial
-_solver(::GLR{LogisticLoss,<:L2R}, 	  np::NTuple{2,Int}) = LBFGS()
+_solver(::GLR{LogisticLoss,<:L2R},    np::NTuple{2,Int}) = LBFGS()
 _solver(::GLR{MultinomialLoss,<:L2R}, np::NTuple{2,Int}) = LBFGS()
 
 # Lasso, ElasticNet, Logistic, Multinomial
 function _solver(glr::GLR{<:SmoothLoss,<:ENR}, np::NTuple{2,Int})
-	(is_l1(glr.penalty) || is_elnet(glr.penalty)) && return FISTA()
-	@error "Not yet implemented."
+    (is_l1(glr.penalty) || is_elnet(glr.penalty)) && return FISTA()
+    @error "Not yet implemented."
 end
 
 # Robust, Quantile
@@ -34,19 +34,19 @@ Fit a generalised linear regression model using an appropriate solver based on
 the loss and penalty of the model. A method can, in some cases, be specified.
 """
 function fit(glr::GLR, X::AbstractMatrix{<:Real}, y::AVR;
-			 solver::Solver=_solver(glr, size(X)))
+             solver::Solver=_solver(glr, size(X)))
     check_nrows(X, y)
-	n, p = size(X)
-	p += Int(glr.fit_intercept)
-	# allocate cache for temporary computations of size n/p
-	# which are frequent but otherwise un-important so that
-	# we can reduce the overall number of allocations
-	# these are const Refs defined when the module is loaded
-	c = glr.loss isa MultinomialLoss ? maximum(y) : 0
-	allocate(n, p, c)
-	# effective call to fit routine
+    n, p = size(X)
+    p += Int(glr.fit_intercept)
+    # allocate cache for temporary computations of size n/p
+    # which are frequent but otherwise un-important so that
+    # we can reduce the overall number of allocations
+    # these are const Refs defined when the module is loaded
+    c = glr.loss isa MultinomialLoss ? maximum(y) : 0
+    allocate(n, p, c)
+    # effective call to fit routine
     θ = _fit(glr, solver, X, y)
-	# de-allocate cache
-	deallocate()
-	return θ
+    # de-allocate cache
+    deallocate()
+    return θ
 end
