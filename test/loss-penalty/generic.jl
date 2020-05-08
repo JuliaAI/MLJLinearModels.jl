@@ -13,7 +13,7 @@ y = randn(rng, n)
 θ1 = norm(θ, 1)
 θ2 = norm(θ, 2)^2 / 2
 θ3 = norm(θ, 3)^3 / 3
-y2 = (sign.(randn(n)) .+ 1) ./ 2
+y2 = (sign.(randn(rng, n)) .+ 1) ./ 2
 
 
 @testset "LPCost basics" begin
