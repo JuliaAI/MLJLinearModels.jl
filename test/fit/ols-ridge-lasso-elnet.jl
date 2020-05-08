@@ -60,7 +60,7 @@ n, p = 500, 100
     θ_fista = fit(lr1, X, y1)
     θ_ista  = fit(lr1, X, y1, solver=ISTA())
     @test isapprox(J(θ_ls),    214.35485, rtol=1e-5)
-    @test isapprox(J(θ_fista), 178.56434, rtol=1e-5) # <- ref values
+    @test isapprox(J(θ_fista), 178.56434, rtol=1e-5)
     @test isapprox(J(θ_ista),  178.56433, rtol=1e-5)
     # sparsity
     @test nnz(θ_ls)    == 101 # not sparse
@@ -74,7 +74,7 @@ n, p = 500, 100
     θ_fista = fit(lr1, X, y1)
     θ_ista  = fit(lr1, X, y1, solver=ISTA())
     @test isapprox(J(θ_ls),    214.31393, rtol=1e-5)
-    @test isapprox(J(θ_fista), 178.54691, rtol=1e-5) # <- ref values
+    @test isapprox(J(θ_fista), 178.54691, rtol=1e-5)
     @test isapprox(J(θ_ista),  178.54690, rtol=1e-5)
     # sparsity
     @test nnz(θ_ls)    == 101 # not sparse
@@ -82,10 +82,10 @@ n, p = 500, 100
     @test nnz(θ_ista)  == 6
 
     if DO_COMPARISONS
-        lr_sk = SKLEARN_LM.Lasso(alpha=λ/n)
+        lr_sk = SKLEARN_LM.Lasso(alpha=λ/n, random_state=156123)
         lr_sk.fit(X, y1)
         θ1_sk = vcat(lr_sk.coef_[:], lr_sk.intercept_)
-        @test isapprox(J(θ1_sk), 178.546907, rtol=1e-5)
+        @test isapprox(J(θ1_sk), 178.5, rtol=1e-3)
         @test nnz(θ1_sk) == 6
     end
 end
@@ -123,10 +123,10 @@ end
     @test nnz(θ_ista)  == 8
 
     if DO_COMPARISONS
-        enr_sk = SKLEARN_LM.ElasticNet(alpha=α, l1_ratio=ρ)
+        enr_sk = SKLEARN_LM.ElasticNet(alpha=α, l1_ratio=ρ, random_state=5515)
         enr_sk.fit(X, y1)
         θ_sk = vcat(enr_sk.coef_[:], enr_sk.intercept_)
-        @test isapprox(J(θ_sk), 123.89383, rtol=1e-5)
+        @test isapprox(J(θ_sk), 123.89, rtol=1e-3)
         @test nnz(θ_sk) == 8
     end
 end

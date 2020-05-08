@@ -2,7 +2,6 @@ n, p = 500, 5
 ((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p; seed=525)
 
 # adding some outliers (both positive and negative)
-Random.seed!(543)
 y1a = outlify(y1, 0.1)
 
 @testset "QuantileReg" begin
@@ -16,10 +15,10 @@ y1a = outlify(y1, 0.1)
     θ_ls    = fit(ls, X, y1a)
     θ_lbfgs = fit(rr, X, y1a, solver=LBFGS())
     θ_iwls  = fit(rr, X, y1a, solver=IWLSCG())
-    @test isapprox(J(θ1),      491.94661, rtol=1e-5)
-    @test isapprox(J(θ_ls),    614.70403, rtol=1e-5)  # note that LS is crap due to outliers
-    @test isapprox(J(θ_lbfgs), 491.65694, rtol=1e-5)
-    @test isapprox(J(θ_iwls),  491.65694, rtol=1e-5)
+    @test isapprox(J(θ1),      412.20773, rtol=1e-5)
+    @test isapprox(J(θ_ls),    508.02443, rtol=1e-5)  # LS is crap bc outliers
+    @test isapprox(J(θ_lbfgs), 411.98228, rtol=1e-5)
+    @test isapprox(J(θ_iwls),  411.99728, rtol=1e-5)
 
     # NOTE: newton and newton-cg not available because ϕ = 0 identically
     # will throw an error if called.
@@ -33,10 +32,10 @@ y1a = outlify(y1, 0.1)
     θ_ls    = fit(ls, X, y1a)
     θ_lbfgs = fit(rr, X, y1a, solver=LBFGS())
     θ_iwls  = fit(rr, X, y1a, solver=IWLSCG())
-    @test isapprox(J(θ1),      489.48936, rtol=1e-5)
-    @test isapprox(J(θ_ls),    612.16417, rtol=1e-5)  # note that LS is crap due to outliers
-    @test isapprox(J(θ_lbfgs), 489.21223, rtol=1e-5)
-    @test isapprox(J(θ_iwls),  489.22193, rtol=1e-5)
+    @test isapprox(J(θ1),      412.18594, rtol=1e-5)
+    @test isapprox(J(θ_ls),    508.00993, rtol=1e-5)  # note that LS is crap due to outliers
+    @test isapprox(J(θ_lbfgs), 411.95990, rtol=1e-5)
+    @test isapprox(J(θ_iwls),  411.97529, rtol=1e-5)
 
     if DO_COMPARISONS
         # Compare with R's QuantReg package
@@ -49,13 +48,13 @@ y1a = outlify(y1, 0.1)
         θ_qr_br  = rcopy(QUANTREG.rq_fit_br(X1, y1a))[:coefficients]
         θ_qr_fnb = rcopy(QUANTREG.rq_fit_fnb(X1, y1a))[:coefficients]
         # NOTE: we take θ_qr_br as reference point
-        @test isapprox(J(θ_ls), 610.41023,  rtol=1e-5)
-        @test J(θ_qr_br) ≈      486.36730 # <- ref value
+        @test isapprox(J(θ_ls), 505.45286,  rtol=1e-5)
+        @test J(θ_qr_br) ≈      409.570777 # <- ref value
         # Their IP algorithm essentially gives the same answer
         @test (J(θ_qr_fnb) - J(θ_qr_br)) ≤ 1e-10
         # Our algorithms are close enough
-        @test isapprox(J(θ_lbfgs), 486.36782, rtol=1e-5)
-        @test isapprox(J(θ_iwls),  486.37331, rtol=1e-5)
+        @test isapprox(J(θ_lbfgs), 409.57154, rtol=1e-5)
+        @test isapprox(J(θ_iwls),  409.58891, rtol=1e-5)
     end
 end
 
@@ -76,11 +75,11 @@ y1a  = outlify(y1, 0.1)
     θ_ls    = X1 \ y1a
     θ_fista = fit(rr, X, y1a, solver=FISTA())
     θ_ista  = fit(rr, X, y1a, solver=ISTA())
-    @test isapprox(J(θ_ls),    943.33942, rtol=1e-5)
-    @test isapprox(J(θ_fista), 390.53177, rtol=1e-5)
-    @test isapprox(J(θ_ista),  390.53177, rtol=1e-3)
-    @test nnz(θ_fista) == 55
-    @test nnz(θ_ista)  == 51 # interesting, things look a bit unstable?
+    @test isapprox(J(θ_ls),    1058.6737, rtol=1e-5)
+    @test isapprox(J(θ_fista), 454.23322, rtol=1e-5)
+    @test isapprox(J(θ_ista),  454.27774, rtol=1e-5)
+    @test nnz(θ_fista) == 43
+    @test nnz(θ_ista)  == 43
 
     if DO_COMPARISONS
         # Compare with R's QuantReg package
@@ -91,15 +90,14 @@ y1a  = outlify(y1, 0.1)
         θ_fista    = fit(rr, X, y1a, solver=FISTA())
         θ_ista     = fit(rr, X, y1a, solver=ISTA())
         θ_qr_lasso = rcopy(QUANTREG.rq_fit_lasso(X1, y1a))[:coefficients]
-        # NOTE: we take θ_qr_br as reference point
-        @test isapprox(J(θ_ls),       799.18992, rtol=1e-5)
-        @test isapprox(J(θ_qr_lasso), 373.15568, rtol=1e-5) # <- ref value
+        @test isapprox(J(θ_ls),       888.3748, rtol=1e-5)
+        @test isapprox(J(θ_qr_lasso), 425.5977, rtol=1e-5)
         # Our algorithms are close enough
-        @test isapprox(J(θ_fista),    372.58504, rtol=1e-5)
-        @test isapprox(J(θ_ista),     372.91354, rtol=1e-5)
+        @test isapprox(J(θ_fista),    425.0526, rtol=1e-5)
+        @test isapprox(J(θ_ista),     425.4113, rtol=1e-5)
         # in this case we do a fair bit better
         @test nnz(θ_qr_lasso) == 101
-        @test nnz(θ_fista)    == 89
+        @test nnz(θ_fista)    == 88
         @test nnz(θ_ista)     == 82
         # in this case fista is best
         @test J(θ_fista) < J(θ_ista) < J(θ_qr_lasso)
