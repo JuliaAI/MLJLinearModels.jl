@@ -126,7 +126,7 @@ end
 
 # Sigmoid and log-sigmoid
 
-SIGMOID_THRESH(T::Type{<:AbstractFloat}) = log(one(T)/eps(T) - one(T))
+SIGMOID_THRESH(T::Type{<:AbstractFloat}) = log(1 / eps(T) - 1)
 
 """
 $SIGNATURES
@@ -139,7 +139,7 @@ function sigmoid(x::T) where T <: AbstractFloat
 	τ = SIGMOID_THRESH(T)
 	x > τ  && return one(T)
 	x < -τ && return zero(T)
-	return one(T) / (one(T) + exp(-x))
+	return 1 / (1 + exp(-x))
 end
 sigmoid(x) = sigmoid(float(x))
 σ = sigmoid
