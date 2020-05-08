@@ -18,7 +18,7 @@ y1a = outlify(y1, 0.1)
     @test isapprox(J(θ1),      412.20773, rtol=1e-5)
     @test isapprox(J(θ_ls),    508.02443, rtol=1e-5)  # LS is crap bc outliers
     @test isapprox(J(θ_lbfgs), 411.98228, rtol=1e-5)
-    @test isapprox(J(θ_iwls),  411.99728, rtol=1e-5)
+    @test isapprox(J(θ_iwls),  411.98,    rtol=1e-4)
 
     # NOTE: newton and newton-cg not available because ϕ = 0 identically
     # will throw an error if called.
@@ -35,7 +35,7 @@ y1a = outlify(y1, 0.1)
     @test isapprox(J(θ1),      412.18594, rtol=1e-5)
     @test isapprox(J(θ_ls),    508.00993, rtol=1e-5)  # note that LS is crap due to outliers
     @test isapprox(J(θ_lbfgs), 411.95990, rtol=1e-5)
-    @test isapprox(J(θ_iwls),  411.97529, rtol=1e-5)
+    @test isapprox(J(θ_iwls),  411.98,    rtol=1e-4)
 
     if DO_COMPARISONS
         # Compare with R's QuantReg package
@@ -54,7 +54,7 @@ y1a = outlify(y1, 0.1)
         @test (J(θ_qr_fnb) - J(θ_qr_br)) ≤ 1e-10
         # Our algorithms are close enough
         @test isapprox(J(θ_lbfgs), 409.57154, rtol=1e-5)
-        @test isapprox(J(θ_iwls),  409.58891, rtol=1e-5)
+        @test isapprox(J(θ_iwls),  409.59,    rtol=1e-4)
     end
 end
 
