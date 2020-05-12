@@ -15,7 +15,10 @@
 function Hv!(glr::GLR{L2Loss,<:L2R}, X, y)
     n, p = size(X)
     λ    = getscale(glr.penalty)
+    # scratch allocation
+    SCRATCH_N = zeros(n)
     if glr.fit_intercept
+        SCRATCH_P = zeros(p)
         # H = [X 1]'[X 1] + λ I
         # rows a 1:p = [X'X + λI | X'1]
         # row  e end = [1'X      | n+λι] where ι is 1 if glr.penalize_intercept
@@ -25,11 +28,11 @@ function Hv!(glr::GLR{L2Loss,<:L2R}, X, y)
             a   = 1:p
             Hvₐ = view(Hv, a)
             vₐ  = view(v,  a)
-            Xt1 = view(SCRATCH_P[], a)
+            Xt1 = SCRATCH_P
             copyto!(Xt1, sum(X, dims=1))  # -- X'1 (note: sum will allocate)
             vₑ  = v[end]
             # update for the first p rows   -- (X'X + λI)v[1:p] + (X'1)v[end]
-            Xvₐ = SCRATCH_N[]
+            Xvₐ = SCRATCH_N
             mul!(Xvₐ, X, vₐ)
             mul!(Hvₐ, X', Xvₐ)
             Hvₐ .+= λ .* vₐ .+ Xt1 .* vₑ
@@ -38,7 +41,7 @@ function Hv!(glr::GLR{L2Loss,<:L2R}, X, y)
         end
     else
         (Hv, v) -> begin
-            Xv = SCRATCH_N[]
+            Xv = SCRATCH_N
             mul!(Xv, X, v)       # -- Xv
             mul!(Hv, X', Xv)     # -- X'Xv
             Hv .+= λ .* v        # -- X'Xv + λv
@@ -59,9 +62,11 @@ end
 
 function smooth_fg!(glr::GLR{L2Loss,<:ENR}, X, y)
     λ = getscale_l2(glr.penalty)
+    # scratch allocation
+    SCRATCH_N = zeros(size(X, 1))
     (g, θ) -> begin
         # cache contains the residuals (Xθ-y)
-        r = SCRATCH_N[]
+        r = SCRATCH_N
         get_residuals!(r, X, θ, y) # -- r = Xθ-y
         apply_Xt!(g, X, r)
         g .+= λ .* θ

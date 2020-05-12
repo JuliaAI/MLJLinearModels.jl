@@ -14,8 +14,6 @@ const MMI       = MLJModelInterface
 const AVR       = AbstractVector{<:Real}
 const Option{T} = Union{Nothing,T}
 
-include("scratchspace.jl")
-
 include("utils.jl")
 
 # > Loss / penalty definitions <

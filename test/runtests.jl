@@ -15,7 +15,6 @@ m("GLR", false); begin
     mm("constructors"); include("glr/constructors.jl")
     mm("utils");        include("glr/tools-utils.jl")
     mm("grads-hess");   include("glr/grad-hess-prox.jl")
-    R.deallocate()
 end
 
 m("FIT", false); begin
