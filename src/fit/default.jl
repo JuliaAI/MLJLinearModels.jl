@@ -36,5 +36,18 @@ the loss and penalty of the model. A method can, in some cases, be specified.
 function fit(glr::GLR, X::AbstractMatrix{<:Real}, y::AVR;
              solver::Solver=_solver(glr, size(X)))
     check_nrows(X, y)
-    return _fit(glr, solver, X, y)
+    n, p = size(X)
+    c = glr.loss isa MultinomialLoss ? maximum(y) : 0
+    return _fit(glr, solver, X, y, scratch(n, p, c, i=glr.fit_intercept))
 end
+
+function scratch(n, p, c=0; i=false)
+    p_ = p + Int(i)
+    s = (n=zeros(n), n2=zeros(n), n3=zeros(n), p=zeros(p_))
+    if !iszero(c)
+        s = (s..., nc=zeros(n,c), nc2=zeros(n,c), nc3=zeros(n,c),
+                   nc4=zeros(n,c), pc=zeros(p_,c))
+    end
+    return s
+end
+scratch(X; kw...) = scratch(size(X)...; kw...)
