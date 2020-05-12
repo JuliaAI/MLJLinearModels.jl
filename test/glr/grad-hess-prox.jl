@@ -7,7 +7,6 @@ maskint = vcat(ones(p), 0.0)
     λ = 0.5
     # without fit_intercept
     # >> Hv!
-    R.allocate(n, p)
     r = RidgeRegression(λ; fit_intercept=false)
     hv! = R.Hv!(r, X, y)
     v = randn(rng, length(θ))
@@ -16,7 +15,6 @@ maskint = vcat(ones(p), 0.0)
     @test hv ≈              X' * (X * v) .+ λ * v
     # ------------------
     # with fit_intercept
-    R.allocate(n, p+1)
     r = RidgeRegression(λ; penalize_intercept=true)
     hv! = R.Hv!(r, X, y)
     v = randn(rng, p+1)
@@ -25,7 +23,6 @@ maskint = vcat(ones(p), 0.0)
     @test hv ≈              X1' * (X1 * v) .+ λ * v
     # ------------------
     # with fit_intercept but no penalty
-    R.allocate(n, p+1)
     r = RidgeRegression(λ)
     hv! = R.Hv!(r, X, y)
     v = randn(rng, p+1)
@@ -36,7 +33,6 @@ end
 
 @testset "GH> EN/Lasso" begin
     # without fit_intercept
-    R.allocate(n, p)
     λ = 6.2
     γ = 0.7
     r = LassoRegression(λ; fit_intercept=false)
@@ -46,7 +42,6 @@ end
     @test f ≈               sum(abs2.(X*θ .- y))/2
     @test g ≈               X' * (X * θ .- y)
     # with fit_intercept
-    R.allocate(n, p+1)
     λ = 3.4
     γ = 2.7
     r = LassoRegression(λ; penalize_intercept=true)
@@ -76,7 +71,6 @@ end
 @testset "GH> LogitL2" begin
     rng = StableRNG(551551)
     # fgh! without fit_intercept
-    R.allocate(n, p)
     λ = 0.5
     lr = LogisticRegression(λ; fit_intercept=false)
     fgh! = R.fgh!(lr, X, y)
@@ -98,7 +92,6 @@ end
     @test Hv ≈               H * v
 
     # fgh! with fit_intercept
-    R.allocate(n, p+1)
     λ = 0.5
     lr1 = LogisticRegression(λ; penalize_intercept=true)
     fgh! = R.fgh!(lr1, X, y)
@@ -113,7 +106,6 @@ end
     @test H1 ≈               X1' * (Diagonal(R.σ.(y .* (X1 * θ1))) * X1) + λ * I
 
     # Hv! with fit_intercept
-    R.allocate(n, p+1)
     Hv! = R.Hv!(lr1, X, y)
     v   = randn(rng, p+1)
     Hv  = similar(v)
@@ -148,7 +140,6 @@ end
           1.09285 -0.37161 ]
     y = [1, 2, 3, 1, 3]
     # comparison sklearn // no intercept
-    R.allocate(5, 2, 3)
     θ = [-0.04843, 0.99519, -0.67237, 1.08812, 0.13362, 0.77136]
     g_sk = [-0.12941349639677957, 1.033822503077806, 0.6025709048825946, -0.3233237353163467,
             -0.47315740848581506, -0.7104987677614594]
@@ -169,7 +160,6 @@ end
     @test Hv ≈ Hv_sk
 
     # -- with intercept
-    R.allocate(5, 3, 3)
     θ1 = [0.17905, 1.91598, 1.30329, -1.03438, -1.26994, -0.38288, -0.96238, -0.47912, 0.70813]
     g_sk1 = [0.26979349788581053, 1.5036100824512861, 0.7042460191768531, 0.7282930655963799,
             -0.6529621156985143, -0.2504598040370489, -0.9980865634821908, -0.8506479667527724,
@@ -196,7 +186,6 @@ end
     δ, λ  = 0.5, 3.4
 
     # without intercept
-    R.allocate(n, p)
     hlr  = HuberRegression(δ, λ; fit_intercept=false)
     fgh! = R.fgh!(hlr, X, y)
     θ_   = randn(rng, p) # otherwise the residuals are too small and everything is in the l1-ball
@@ -219,7 +208,6 @@ end
     @test Hv ≈               H * v
 
     # with intercept
-    R.allocate(n, p+1)
     hlr1  = HuberRegression(δ, λ; penalize_intercept=true)
     fgh1! = R.fgh!(hlr1, X, y1)
     θ1_   = randn(rng, p+1)
@@ -235,7 +223,6 @@ end
     @test Hv ≈ H * v
 
     # with intercept
-    R.allocate(n, p+1)
     hlr1  = HuberRegression(δ, λ; penalize_intercept=true)
     fgh1! = R.fgh!(hlr1, X, y1)
     θ1_   = randn(rng, p+1)
@@ -258,7 +245,6 @@ end
     @test Hv1 ≈              H1 * v1
 
     # with intercept and no penalty on intercept
-    R.allocate(n, p+1)
     hlr1  = HuberRegression(δ, λ)
     fgh1! = R.fgh!(hlr1, X, y1)
     θ1_   = randn(rng, p+1)

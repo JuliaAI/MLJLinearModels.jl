@@ -36,17 +36,5 @@ the loss and penalty of the model. A method can, in some cases, be specified.
 function fit(glr::GLR, X::AbstractMatrix{<:Real}, y::AVR;
              solver::Solver=_solver(glr, size(X)))
     check_nrows(X, y)
-    n, p = size(X)
-    p += Int(glr.fit_intercept)
-    # allocate cache for temporary computations of size n/p
-    # which are frequent but otherwise un-important so that
-    # we can reduce the overall number of allocations
-    # these are const Refs defined when the module is loaded
-    c = glr.loss isa MultinomialLoss ? maximum(y) : 0
-    allocate(n, p, c)
-    # effective call to fit routine
-    θ = _fit(glr, solver, X, y)
-    # de-allocate cache
-    deallocate()
-    return θ
+    return _fit(glr, solver, X, y)
 end
