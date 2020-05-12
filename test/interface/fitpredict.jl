@@ -1,8 +1,8 @@
 @testset "ridge-reg" begin
-    Random.seed!(6161)
+    rng = StableRNG(622161)
     n, p = 100, 5
-    X = randn(n, p)
-    y = randn(n)
+    X = randn(rng, n, p)
+    y = randn(rng, n)
     X1 = R.augment_X(X, true)
 
     λ = 0.3
@@ -17,7 +17,7 @@
     intercept = θ[end]
 
     fp = MLJBase.fitted_params(rr, fr)
-    @test fp.coefs ≈ coefs
+    @test last.(fp.coefs) ≈ coefs
     @test fp.intercept ≈ intercept
 end
 
@@ -33,7 +33,6 @@ end
     lr = LogisticClassifier(lambda=λ, gamma=γ)
     fr, = MLJBase.fit(lr, 1, Xt, yc)
 
-    fp = MLJBase.fitted_params(lr, fr)
     ŷ = MLJBase.predict(lr, fr, Xt)
     ŷ = MLJBase.mode.(ŷ)
 
@@ -53,12 +52,11 @@ end
     mc = MultinomialClassifier(lambda=λ, gamma=γ)
     fr, = MLJBase.fit(mc, 1, Xt, yc)
 
-    fp = MLJBase.fitted_params(mc, fr)
     ŷ = MLJBase.predict(mc, fr, Xt)
     ŷ = MLJBase.mode.(ŷ)
 
     mcr = MLJBase.misclassification_rate(ŷ, yc)
-    @test mcr ≤ 0.2
+    @test mcr ≤ 0.3
 end
 
 # see issue https://github.com/alan-turing-institute/MLJ.jl/issues/387

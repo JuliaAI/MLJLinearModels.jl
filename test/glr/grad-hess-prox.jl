@@ -1,15 +1,16 @@
 n, p = 50, 5
-((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p; seed=1234)
+((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p; seed=1212224)
 maskint = vcat(ones(p), 0.0)
 
 @testset "GH> Ridge" begin
+    rng = StableRNG(551551)
     λ = 0.5
     # without fit_intercept
     # >> Hv!
     R.allocate(n, p)
     r = RidgeRegression(λ; fit_intercept=false)
     hv! = R.Hv!(r, X, y)
-    v = randn(length(θ))
+    v = randn(rng, length(θ))
     hv = similar(v)
     hv!(hv, v)
     @test hv ≈              X' * (X * v) .+ λ * v
@@ -18,7 +19,7 @@ maskint = vcat(ones(p), 0.0)
     R.allocate(n, p+1)
     r = RidgeRegression(λ; penalize_intercept=true)
     hv! = R.Hv!(r, X, y)
-    v = randn(p+1)
+    v = randn(rng, p+1)
     hv = similar(v)
     hv!(hv, v)
     @test hv ≈              X1' * (X1 * v) .+ λ * v
@@ -27,7 +28,7 @@ maskint = vcat(ones(p), 0.0)
     R.allocate(n, p+1)
     r = RidgeRegression(λ)
     hv! = R.Hv!(r, X, y)
-    v = randn(p+1)
+    v = randn(rng, p+1)
     hv = similar(v)
     hv!(hv, v)
     @test hv ≈              X1' * (X1 * v) .+ λ * v .* vcat(ones(p), 0.0)
@@ -73,12 +74,13 @@ end
 end
 
 @testset "GH> LogitL2" begin
+    rng = StableRNG(551551)
     # fgh! without fit_intercept
     R.allocate(n, p)
     λ = 0.5
     lr = LogisticRegression(λ; fit_intercept=false)
     fgh! = R.fgh!(lr, X, y)
-    θ = randn(p)
+    θ = randn(rng, p)
     J = objective(lr, X, y)
     f = 0.0
     g = similar(θ)
@@ -90,7 +92,7 @@ end
 
     # Hv! without  fit_intercept
     Hv! = R.Hv!(lr, X, y)
-    v   = randn(p)
+    v   = randn(rng, p)
     Hv  = similar(v)
     Hv!(Hv, θ, v)
     @test Hv ≈               H * v
@@ -100,7 +102,7 @@ end
     λ = 0.5
     lr1 = LogisticRegression(λ; penalize_intercept=true)
     fgh! = R.fgh!(lr1, X, y)
-    θ1 = randn(p+1)
+    θ1 = randn(rng, p+1)
     J  = objective(lr1, X, y)
     f1 = 0.0
     g1 = similar(θ1)
@@ -113,7 +115,7 @@ end
     # Hv! with fit_intercept
     R.allocate(n, p+1)
     Hv! = R.Hv!(lr1, X, y)
-    v   = randn(p+1)
+    v   = randn(rng, p+1)
     Hv  = similar(v)
     Hv!(Hv, θ1, v)
     @test Hv ≈               H1 * v
@@ -121,7 +123,7 @@ end
     # fgh! with fit intercept and no penalty on intercept
     lr1 = LogisticRegression(λ)
     fgh! = R.fgh!(lr1, X, y)
-    θ1 = randn(p+1)
+    θ1 = randn(rng, p+1)
     J  = objective(lr1, X, y)
     f1 = 0.0
     g1 = similar(θ1)
@@ -131,7 +133,7 @@ end
     @test g1 ≈              -X1' * (y .* R.σ.(-y .* (X1 * θ1))) .+ λ .* θ1 .* maskint
     @test H1 ≈               X1' * (Diagonal(R.σ.(y .* (X1 * θ1))) * X1) + λ * Diagonal(maskint)
     Hv! = R.Hv!(lr1, X, y)
-    v   = randn(p+1)
+    v   = randn(rng, p+1)
     Hv  = similar(v)
     Hv!(Hv, θ1, v)
     @test Hv ≈               H1 * v
@@ -190,13 +192,14 @@ end
 end
 
 @testset "GH> Huber" begin
+    rng = StableRNG(12341412)
     δ, λ  = 0.5, 3.4
 
     # without intercept
     R.allocate(n, p)
     hlr  = HuberRegression(δ, λ; fit_intercept=false)
     fgh! = R.fgh!(hlr, X, y)
-    θ_   = randn(p) # otherwise the residuals are too small and everything is in the l1-ball
+    θ_   = randn(rng, p) # otherwise the residuals are too small and everything is in the l1-ball
 
     g = similar(θ)
     H = zeros(p, p)
@@ -210,7 +213,7 @@ end
 
     Hv! = R.Hv!(hlr, X, y)
     Hv = similar(θ_)
-    v = randn(p)
+    v = randn(rng, p)
     Hv!(Hv, θ_, v)
 
     @test Hv ≈               H * v
@@ -219,14 +222,14 @@ end
     R.allocate(n, p+1)
     hlr1  = HuberRegression(δ, λ; penalize_intercept=true)
     fgh1! = R.fgh!(hlr1, X, y1)
-    θ1_   = randn(p+1)
+    θ1_   = randn(rng, p+1)
 
     g1 = similar(θ1)
     H1 = zeros(p+1, p+1)
 
     Hv! = R.Hv!(hlr, X, y)
     Hv = similar(θ_)
-    v = randn(p)
+    v = randn(rng, p)
     Hv!(Hv, θ_, v)
 
     @test Hv ≈ H * v
@@ -235,7 +238,7 @@ end
     R.allocate(n, p+1)
     hlr1  = HuberRegression(δ, λ; penalize_intercept=true)
     fgh1! = R.fgh!(hlr1, X, y1)
-    θ1_   = randn(p+1)
+    θ1_   = randn(rng, p+1)
 
     g1 = similar(θ1)
     H1 = zeros(p+1, p+1)
@@ -249,7 +252,7 @@ end
 
     Hv1! = R.Hv!(hlr1, X, y1)
     Hv1 = similar(θ1_)
-    v1 = randn(p+1)
+    v1 = randn(rng, p+1)
     Hv1!(Hv1, θ1_, v1)
 
     @test Hv1 ≈              H1 * v1
@@ -258,7 +261,7 @@ end
     R.allocate(n, p+1)
     hlr1  = HuberRegression(δ, λ)
     fgh1! = R.fgh!(hlr1, X, y1)
-    θ1_   = randn(p+1)
+    θ1_   = randn(rng, p+1)
 
     g1 = similar(θ1)
     H1 = zeros(p+1, p+1)
@@ -273,7 +276,7 @@ end
 
     Hv1! = R.Hv!(hlr1, X, y1)
     Hv1 = similar(θ1_)
-    v1 = randn(p+1)
+    v1 = randn(rng, p+1)
     Hv1!(Hv1, θ1_, v1)
 
     @test Hv1 ≈              H1 * v1

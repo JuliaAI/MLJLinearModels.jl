@@ -15,32 +15,32 @@ n, p = 500, 5
     hr = HuberRegression(δ, λ; fit_intercept=false)
     J = objective(hr, X, y)
     o = RobustLoss(Huber(δ)) + λ * L2Penalty()
-    @test J(θ) == o(y, X*θ, θ)
+    @test J(θ) ≈ o(y, X*θ, θ)
     θ_newton   = fit(hr, X, y, solver=Newton())
     θ_newtoncg = fit(hr, X, y, solver=NewtonCG())
     θ_lbfgs    = fit(hr, X, y, solver=LBFGS())
     θ_iwls     = fit(hr, X, y, solver=IWLSCG())
-    @test (J(θ)          - 10.60971) ≤ 1e-5
-    @test (J(θ_newton)   -  7.70113) ≤ 1e-5
-    @test (J(θ_newtoncg) -  7.70113) ≤ 1e-5
-    @test (J(θ_lbfgs)    -  7.70113) ≤ 1e-5
-    @test (J(θ_iwls)     -  7.70113) ≤ 1e-5
+    @test isapprox(J(θ),          5.456121, rtol=1e-5)
+    @test isapprox(J(θ_newton),   4.87426,  rtol=1e-5)
+    @test isapprox(J(θ_newtoncg), 4.87426,  rtol=1e-5)
+    @test isapprox(J(θ_lbfgs),    4.87426,  rtol=1e-5)
+    @test isapprox(J(θ_iwls),     4.87426,  rtol=1e-5)
 
     δ = 0.01
     λ = 3.0
     hr = HuberRegression(δ, λ; penalize_intercept=true)
     J = objective(hr, X, y1)
     o = RobustLoss(Huber(δ)) + λ * L2Penalty()
-    @test J(θ1) == o(y1, X1*θ1, θ1)
+    @test J(θ1) ≈ o(y1, X1*θ1, θ1)
     θ_newton   = fit(hr, X, y1, solver=Newton())
     θ_newtoncg = fit(hr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(hr, X, y1, solver=LBFGS())
     θ_iwls     = fit(hr, X, y1, solver=IWLSCG())
-    @test (J(θ1)         - 16.36661) ≤ 1e-5
-    @test (J(θ_newton)   - 10.51384) ≤ 1e-5
-    @test (J(θ_newtoncg) - 10.51384) ≤ 1e-5
-    @test (J(θ_lbfgs)    - 10.51384) ≤ 1e-5
-    @test (J(θ_iwls)     - 10.51384) ≤ 1e-5
+    @test isapprox(J(θ1),         7.601925, rtol=1e-5)
+    @test isapprox(J(θ_newton),   6.259785, rtol=1e-5)
+    @test isapprox(J(θ_newtoncg), 6.259785, rtol=1e-5)
+    @test isapprox(J(θ_lbfgs),    6.259785, rtol=1e-5)
+    @test isapprox(J(θ_iwls),     6.259785, rtol=1e-5)
 
     # don't penalize intercept
     δ = 0.01
@@ -51,11 +51,11 @@ n, p = 500, 5
     θ_newtoncg = fit(hr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(hr, X, y1, solver=LBFGS())
     θ_iwls     = fit(hr, X, y1, solver=IWLSCG())
-    @test (J(θ1)         - 8.994865) ≤ 1e-5
-    @test (J(θ_newton)   - 6.810135) ≤ 1e-5
-    @test (J(θ_newtoncg) - 6.810135) ≤ 1e-5
-    @test (J(θ_lbfgs)    - 6.810135) ≤ 1e-5
-    @test (J(θ_iwls)     - 6.810135) ≤ 1e-5
+    @test isapprox(J(θ1),         7.536531, rtol=1e-5)
+    @test isapprox(J(θ_newton),   6.200183, rtol=1e-5)
+    @test isapprox(J(θ_newtoncg), 6.200183, rtol=1e-5)
+    @test isapprox(J(θ_lbfgs),    6.200183, rtol=1e-5)
+    @test isapprox(J(θ_iwls),     6.200183, rtol=1e-5)
 end
 
 # NOTE: small difference obtained with NCG and IWLS, might just be
@@ -66,16 +66,16 @@ end
     rr = RobustRegression(rho=Andrews(δ), lambda=λ; penalize_intercept=true)
     J = objective(rr, X, y1)
     o = RobustLoss(AndrewsRho(δ)) + λ * L2Penalty()
-    @test J(θ1) == o(y1, X1*θ1, θ1)
+    @test J(θ1) ≈ o(y1, X1*θ1, θ1)
     θ_newton   = fit(rr, X, y1, solver=Newton())
     θ_newtoncg = fit(rr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(rr, X, y1, solver=LBFGS())
     θ_iwls     = fit(rr, X, y1, solver=IWLSCG())
-    @test (J(θ1)         - 16.11921) ≤ 1e-5
-    @test (J(θ_newton)   -  0.49078) ≤ 1e-5
-    @test (J(θ_newtoncg) -  0.49078) ≤ 1e-3
-    @test (J(θ_lbfgs)    -  0.49078) ≤ 1e-5
-    @test (J(θ_iwls)     -  0.49078) ≤ 1e-3
+    @test isapprox(J(θ1),         7.359476, rtol=1e-5)
+    @test isapprox(J(θ_newton),   0.486388, rtol=1e-5)
+    @test isapprox(J(θ_newtoncg), 0.486388, rtol=1e-5)
+    @test isapprox(J(θ_lbfgs),    0.486388, rtol=1e-5)
+    @test isapprox(J(θ_iwls),     0.486388, rtol=1e-5)
 end
 
 @testset "BisquareReg" begin
@@ -84,16 +84,16 @@ end
     rr = RobustRegression(rho=Bisquare(δ), lambda=λ; penalize_intercept=true)
     J = objective(rr, X, y1)
     o = RobustLoss(BisquareRho(δ)) + λ * L2Penalty()
-    @test J(θ1) == o(y1, X1*θ1, θ1)
+    @test J(θ1) ≈ o(y1, X1*θ1, θ1)
     θ_newton   = fit(rr, X, y1, solver=Newton())
     θ_newtoncg = fit(rr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(rr, X, y1, solver=LBFGS())
     θ_iwls     = fit(rr, X, y1, solver=IWLSCG())
-    @test (J(θ1)         - 16.54073) ≤ 1e-5
-    @test (J(θ_newton)   -  0.82180) ≤ 1e-5
-    @test (J(θ_newtoncg) -  0.82180) ≤ 1e-5
-    @test (J(θ_lbfgs)    -  0.82180) ≤ 1e-5
-    @test (J(θ_iwls)     -  0.82180) ≤ 1e-5
+    @test isapprox(J(θ1),         7.773512, rtol=1e-5)
+    @test isapprox(J(θ_newton),   0.818677, rtol=1e-5)
+    @test isapprox(J(θ_newtoncg), 0.818677, rtol=1e-4)
+    @test isapprox(J(θ_lbfgs),    0.818677, rtol=1e-4)
+    @test isapprox(J(θ_iwls),     0.818677, rtol=1e-4)
 end
 
 @testset "LogisticRReg" begin
@@ -107,11 +107,11 @@ end
     θ_newtoncg = fit(rr, X, y1, solver=NewtonCG())
     θ_lbfgs = fit(rr, X, y1, solver=LBFGS())
     θ_iwls  = fit(rr, X, y1, solver=IWLSCG())
-    @test (J(θ1)         - 7.69833) ≤ 1e-5
-    @test (J(θ_newton)   - 7.66289) ≤ 1e-5
-    @test (J(θ_newtoncg) - 7.66289) ≤ 1e-5
-    @test (J(θ_lbfgs)    - 7.66289) ≤ 1e-5
-    @test (J(θ_iwls)     - 7.66289) ≤ 1e-5
+    @test isapprox(J(θ1),         5.00079, rtol=1e-5)
+    @test isapprox(J(θ_newton),   4.98146, rtol=1e-5)
+    @test isapprox(J(θ_newtoncg), 4.98146, rtol=1e-5)
+    @test isapprox(J(θ_lbfgs),    4.98146, rtol=1e-5)
+    @test isapprox(J(θ_iwls),     4.98146, rtol=1e-5)
 end
 
 @testset "FairReg" begin
@@ -125,11 +125,11 @@ end
     θ_newtoncg = fit(rr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(rr, X, y1, solver=LBFGS())
     θ_iwls     = fit(rr, X, y1, solver=IWLSCG())
-    @test (J(θ1)         - 17.26553) ≤ 1e-5
-    @test (J(θ_newton)   - 16.96553) ≤ 1e-5
-    @test (J(θ_newtoncg) - 16.96553) ≤ 1e-5
-    @test (J(θ_lbfgs)    - 16.96553) ≤ 1e-5
-    @test (J(θ_iwls)     - 16.96553) ≤ 1e-5
+    @test isapprox(J(θ1),         8.586636, rtol=1e-5)
+    @test isapprox(J(θ_newton),   8.484584, rtol=1e-5)
+    @test isapprox(J(θ_newtoncg), 8.484584, rtol=1e-5)
+    @test isapprox(J(θ_lbfgs),    8.484584, rtol=1e-5)
+    @test isapprox(J(θ_iwls),     8.484584, rtol=1e-5)
 end
 
 # NOTE: small difference obtained with NCG and IWLS, might just be
@@ -140,16 +140,16 @@ end
     rr = RobustRegression(rho=Talwar(δ), lambda=λ, penalize_intercept=true)
     J = objective(rr, X, y1)
     o = RobustLoss(Talwar(δ)) + λ * L2Penalty()
-    @test J(θ1) == o(y1, X1*θ1, θ1)
+    @test J(θ1) ≈ o(y1, X1*θ1, θ1)
     θ_newton   = fit(rr, X, y1, solver=Newton())
     θ_newtoncg = fit(rr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(rr, X, y1, solver=LBFGS())
     θ_iwls     = fit(rr, X, y1, solver=IWLSCG())
-    @test (J(θ1)         - 17.25562) ≤ 1e-5
-    @test (J(θ_newton)   -  2.44343) ≤ 1e-5
-    @test (J(θ_newtoncg) -  2.44343) ≤ 2e-3
-    @test (J(θ_lbfgs)    -  2.44343) ≤ 1e-5
-    @test (J(θ_iwls)     -  2.44343) ≤ 2e-3
+    @test isapprox(J(θ1),          8.564334, rtol=1e-5)
+    @test isapprox(J(θ_newton),    2.43470,  rtol=1e-5)
+    @test isapprox(J(θ_newtoncg),  2.43803,  rtol=1e-5)
+    @test isapprox(J(θ_lbfgs),     2.43202,  rtol=1e-5)
+    @test isapprox(J(θ_iwls),      2.43803,  rtol=1e-5)
 end
 
 ###########################
@@ -172,10 +172,10 @@ y1a  = outlify(y1, 0.1)
     θ_ls    = X1 \ y1a
     θ_fista = fit(rr, X, y1a, solver=FISTA())
     θ_ista  = fit(rr, X, y1a, solver=ISTA())
-    @test isapprox(J(θ_ls),    391.66463, rtol=1e-5)
-    @test isapprox(J(θ_fista),  99.10028, rtol=1e-5) # <- ref value
-    @test isapprox(J(θ_ista),   99.10028, rtol=1e-5) # ista stops a bit early?
+    @test isapprox(J(θ_ls),    453.12684, rtol=1e-5)
+    @test isapprox(J(θ_fista), 124.20330, rtol=1e-5) # <- ref value
+    @test isapprox(J(θ_ista),  124.20330, rtol=1e-5) # ista stops a bit early?
     @test nnz(θ_ls)    == 101
-    @test nnz(θ_fista) == 6
-    @test nnz(θ_ista)  == 6
+    @test nnz(θ_fista) == 4
+    @test nnz(θ_ista)  == 4
 end
