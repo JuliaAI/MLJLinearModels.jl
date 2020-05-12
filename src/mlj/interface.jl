@@ -19,7 +19,8 @@ const ALL_MODELS = (REG_MODELS..., CLF_MODELS...)
 
 function MMI.fit(m::Union{REG_MODELS...}, verb::Int, X, y)
     Xmatrix = MMI.matrix(X)
-    features = (sch = MMI.schema(X)) === nothing ? nothing : sch.names
+    sch = MMI.schema(X)
+    features = (sch === nothing) ? nothing : sch.names
     reg     = glr(m)
     solver  = m.solver === nothing ? _solver(reg, size(Xmatrix)) : m.solver
     # get the parameters
@@ -41,7 +42,8 @@ end
 
 function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     Xmatrix  = MMI.matrix(X)
-    features = (sch = MMI.schema(X)) === nothing ? nothing : sch.names
+    sch = MMI.schema(X)
+    features = (sch === nothing) ? nothing : sch.names
     yplain   = convert.(Int, MMI.int(y))
     classes  = MMI.classes(y[1])
     nclasses = length(classes)

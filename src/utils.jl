@@ -51,7 +51,7 @@ $SIGNATURES
 
 In-place application of X*θ.
 """
-function apply_X!(Xθ, X, θ, c=1, SCRATCH_PC=nothing)
+function apply_X!(Xθ, X, θ, c=1, scratch=nothing)
     p = size(X, 2)
     if c == 1
         if length(θ) == p
@@ -62,7 +62,7 @@ function apply_X!(Xθ, X, θ, c=1, SCRATCH_PC=nothing)
         end
     else
         noβ = length(θ) == p * c
-        W   = SCRATCH_PC
+        W   = scratch.pc
         copyto!(W, reshape(θ, p + Int(!noβ), c))
         if noβ
             mul!(Xθ, X, W)

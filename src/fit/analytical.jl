@@ -15,7 +15,7 @@ Assuming `n` dominates `p`,
 * iterative (conjugate gradient): O(κnp) - with κ the number of CG steps
                                   (κ ≤ p).
 """
-function _fit(glr::GLR{L2Loss,<:L2R}, solver::Analytical, X, y)
+function _fit(glr::GLR{L2Loss,<:L2R}, solver::Analytical, X, y, scratch)
     # full solve
     if !solver.iterative
         λ  = getscale(glr.penalty)
@@ -37,7 +37,7 @@ function _fit(glr::GLR{L2Loss,<:L2R}, solver::Analytical, X, y)
     p = size(X, 2) + Int(glr.fit_intercept)
     max_cg_steps = min(solver.max_inner, p)
     # Form the Hessian map, cost of application H*v is O(np)
-    Hm = LinearMap(Hv!(glr, X, y), p;
+    Hm = LinearMap(Hv!(glr, X, y, scratch), p;
                    ismutating=true, isposdef=true, issymmetric=true)
     b  = X'y
     glr.fit_intercept && (b = vcat(b, sum(y)))

@@ -6,17 +6,19 @@ maskint = vcat(ones(p), 0.0)
     rng = StableRNG(551551)
     λ = 0.5
     # without fit_intercept
+    s = R.scratch(X; i=false)
     # >> Hv!
     r = RidgeRegression(λ; fit_intercept=false)
-    hv! = R.Hv!(r, X, y)
+    hv! = R.Hv!(r, X, y, s)
     v = randn(rng, length(θ))
     hv = similar(v)
     hv!(hv, v)
     @test hv ≈              X' * (X * v) .+ λ * v
     # ------------------
     # with fit_intercept
+    s = R.scratch(X; i=true)
     r = RidgeRegression(λ; penalize_intercept=true)
-    hv! = R.Hv!(r, X, y)
+    hv! = R.Hv!(r, X, y, s)
     v = randn(rng, p+1)
     hv = similar(v)
     hv!(hv, v)
@@ -24,7 +26,7 @@ maskint = vcat(ones(p), 0.0)
     # ------------------
     # with fit_intercept but no penalty
     r = RidgeRegression(λ)
-    hv! = R.Hv!(r, X, y)
+    hv! = R.Hv!(r, X, y, s)
     v = randn(rng, p+1)
     hv = similar(v)
     hv!(hv, v)
@@ -33,19 +35,21 @@ end
 
 @testset "GH> EN/Lasso" begin
     # without fit_intercept
+    s = R.scratch(X; i=false)
     λ = 6.2
     γ = 0.7
     r = LassoRegression(λ; fit_intercept=false)
-    fg! = R.smooth_fg!(r, X, y)
+    fg! = R.smooth_fg!(r, X, y, s)
     g = similar(θ)
     f = fg!(g, θ)
     @test f ≈               sum(abs2.(X*θ .- y))/2
     @test g ≈               X' * (X * θ .- y)
     # with fit_intercept
+    s = R.scratch(X; i=true)
     λ = 3.4
     γ = 2.7
     r = LassoRegression(λ; penalize_intercept=true)
-    fg! = R.smooth_fg!(r, X, y1)
+    fg! = R.smooth_fg!(r, X, y1, s)
     g = similar(θ1)
     f = fg!(g, θ1)
     @test f ≈               sum(abs2.(X1*θ1 .- y1))/2
@@ -53,7 +57,7 @@ end
 
     # elasticnet (with intercept)
     r = ElasticNetRegression(λ, γ; penalize_intercept=true)
-    fg! = R.smooth_fg!(r, X, y1)
+    fg! = R.smooth_fg!(r, X, y1, s)
     g = similar(θ1)
     f = fg!(g, θ1)
     @test f ≈               sum(abs2.(X1*θ1 .- y1))/2 + λ .* norm(θ1)^2/2
@@ -61,7 +65,7 @@ end
 
     # elasticnet with intercept but no penalty of intercept
     r = ElasticNetRegression(λ, γ)
-    fg! = R.smooth_fg!(r, X, y1)
+    fg! = R.smooth_fg!(r, X, y1, s)
     g = similar(θ1)
     f = fg!(g, θ1)
     @test f ≈               sum(abs2.(X1*θ1 .- y1))/2 + λ .* norm(θ1 .* maskint)^2/2
@@ -71,9 +75,10 @@ end
 @testset "GH> LogitL2" begin
     rng = StableRNG(551551)
     # fgh! without fit_intercept
+    s = R.scratch(X; i=false)
     λ = 0.5
     lr = LogisticRegression(λ; fit_intercept=false)
-    fgh! = R.fgh!(lr, X, y)
+    fgh! = R.fgh!(lr, X, y, s)
     θ = randn(rng, p)
     J = objective(lr, X, y)
     f = 0.0
@@ -85,16 +90,18 @@ end
     @test H ≈                X' * (Diagonal(R.σ.(y .* (X * θ))) * X) + λ * I
 
     # Hv! without  fit_intercept
-    Hv! = R.Hv!(lr, X, y)
+    s = R.scratch(X; i=false)
+    Hv! = R.Hv!(lr, X, y, s)
     v   = randn(rng, p)
     Hv  = similar(v)
     Hv!(Hv, θ, v)
     @test Hv ≈               H * v
 
     # fgh! with fit_intercept
+    s = R.scratch(X; i=true)
     λ = 0.5
     lr1 = LogisticRegression(λ; penalize_intercept=true)
-    fgh! = R.fgh!(lr1, X, y)
+    fgh! = R.fgh!(lr1, X, y, s)
     θ1 = randn(rng, p+1)
     J  = objective(lr1, X, y)
     f1 = 0.0
@@ -106,7 +113,7 @@ end
     @test H1 ≈               X1' * (Diagonal(R.σ.(y .* (X1 * θ1))) * X1) + λ * I
 
     # Hv! with fit_intercept
-    Hv! = R.Hv!(lr1, X, y)
+    Hv! = R.Hv!(lr1, X, y, s)
     v   = randn(rng, p+1)
     Hv  = similar(v)
     Hv!(Hv, θ1, v)
@@ -114,7 +121,7 @@ end
 
     # fgh! with fit intercept and no penalty on intercept
     lr1 = LogisticRegression(λ)
-    fgh! = R.fgh!(lr1, X, y)
+    fgh! = R.fgh!(lr1, X, y, s)
     θ1 = randn(rng, p+1)
     J  = objective(lr1, X, y)
     f1 = 0.0
@@ -124,7 +131,7 @@ end
     @test f1 ≈ J(θ1)
     @test g1 ≈              -X1' * (y .* R.σ.(-y .* (X1 * θ1))) .+ λ .* θ1 .* maskint
     @test H1 ≈               X1' * (Diagonal(R.σ.(y .* (X1 * θ1))) * X1) + λ * Diagonal(maskint)
-    Hv! = R.Hv!(lr1, X, y)
+    Hv! = R.Hv!(lr1, X, y, s)
     v   = randn(rng, p+1)
     Hv  = similar(v)
     Hv!(Hv, θ1, v)
@@ -138,6 +145,8 @@ end
          -0.09012  0.68069;
          -0.34437 -0.98773;
           1.09285 -0.37161 ]
+    n, p = size(X)
+    c = 3
     y = [1, 2, 3, 1, 3]
     # comparison sklearn // no intercept
     θ = [-0.04843, 0.99519, -0.67237, 1.08812, 0.13362, 0.77136]
@@ -146,15 +155,16 @@ end
     v = [-0.28802, -0.90018, 1.48613, 1.77976, -1.06333, 1.36275]
     Hv_sk = [0.18500344954627015, -0.9109175305006267, 0.8560420396655112, 0.4034408910070668,
             -1.0410454892117813, 0.5074766394935599]
+    s = R.scratch(n, p, c; i=false)
     mnr = MultinomialRegression(0.0; fit_intercept=false)
-    fg! = R.fg!(mnr, X, y)
+    fg! = R.fg!(mnr, X, y, s)
     f = fg!(0.0, nothing, θ)
     mnl = MultinomialLoss()
     @test f ≈ mnl(y, X*reshape(θ, 2, 3))
     g = similar(θ)
     fg!(nothing, g, θ)
     @test g ≈ g_sk
-    hv! = R.Hv!(mnr, X, y)
+    hv! = R.Hv!(mnr, X, y, s)
     Hv = similar(θ)
     hv!(Hv, θ, v)
     @test Hv ≈ Hv_sk
@@ -168,14 +178,15 @@ end
     Hv1_sk = [-0.20815994906492608, -0.03987039776759468, 0.38689109859835424, 0.3516398288195569,
                0.0703034889451111, -0.3054162498173413, -0.14347987975463106, -0.03043309117751647,
                -0.08147484878101276]
+    s = R.scratch(n, p, c; i=true)
     mnr1 = MultinomialRegression(0.0; penalize_intercept=true)
-    fg! = R.fg!(mnr1, X, y)
+    fg! = R.fg!(mnr1, X, y, s)
     f = fg!(0.0, nothing, θ1)
     @test  f ≈ mnl(y, R.apply_X(X, θ1, 3))
     g = similar(θ1)
     fg!(nothing, g, θ1)
     @test g ≈ g_sk1
-    hv! = R.Hv!(mnr1, X, y)
+    hv! = R.Hv!(mnr1, X, y, s)
     Hv1 = similar(θ1)
     hv!(Hv1, θ1, v1)
     @test Hv1 ≈ Hv1_sk
@@ -186,8 +197,9 @@ end
     δ, λ  = 0.5, 3.4
 
     # without intercept
+    s = R.scratch(X; i=false)
     hlr  = HuberRegression(δ, λ; fit_intercept=false)
-    fgh! = R.fgh!(hlr, X, y)
+    fgh! = R.fgh!(hlr, X, y, s)
     θ_   = randn(rng, p) # otherwise the residuals are too small and everything is in the l1-ball
 
     g = similar(θ)
@@ -200,7 +212,7 @@ end
     @test g ≈               (X' * (r .* mask)) .+ (X' * (δ .* sign.(r) .* .!mask)) .+ λ .* θ_
     @test H ≈                X' * (mask .* X) + λ*I
 
-    Hv! = R.Hv!(hlr, X, y)
+    Hv! = R.Hv!(hlr, X, y, s)
     Hv = similar(θ_)
     v = randn(rng, p)
     Hv!(Hv, θ_, v)
@@ -208,14 +220,15 @@ end
     @test Hv ≈               H * v
 
     # with intercept
+    s = R.scratch(X; i=true)
     hlr1  = HuberRegression(δ, λ; penalize_intercept=true)
-    fgh1! = R.fgh!(hlr1, X, y1)
+    fgh1! = R.fgh!(hlr1, X, y1, s)
     θ1_   = randn(rng, p+1)
 
     g1 = similar(θ1)
     H1 = zeros(p+1, p+1)
 
-    Hv! = R.Hv!(hlr, X, y)
+    Hv! = R.Hv!(hlr, X, y, s)
     Hv = similar(θ_)
     v = randn(rng, p)
     Hv!(Hv, θ_, v)
@@ -224,7 +237,7 @@ end
 
     # with intercept
     hlr1  = HuberRegression(δ, λ; penalize_intercept=true)
-    fgh1! = R.fgh!(hlr1, X, y1)
+    fgh1! = R.fgh!(hlr1, X, y1, s)
     θ1_   = randn(rng, p+1)
 
     g1 = similar(θ1)
@@ -237,7 +250,7 @@ end
     @test g1 ≈              (X1' * (r1 .* mask)) .+ (X1' * (δ .* sign.(r1) .* .!mask)) .+ λ .* θ1_
     @test H1 ≈               X1' * (mask .* X1) + λ*I
 
-    Hv1! = R.Hv!(hlr1, X, y1)
+    Hv1! = R.Hv!(hlr1, X, y1, s)
     Hv1 = similar(θ1_)
     v1 = randn(rng, p+1)
     Hv1!(Hv1, θ1_, v1)
@@ -246,7 +259,7 @@ end
 
     # with intercept and no penalty on intercept
     hlr1  = HuberRegression(δ, λ)
-    fgh1! = R.fgh!(hlr1, X, y1)
+    fgh1! = R.fgh!(hlr1, X, y1, s)
     θ1_   = randn(rng, p+1)
 
     g1 = similar(θ1)
@@ -260,7 +273,7 @@ end
                                 λ .* θ1_ .* maskint
     @test H1 ≈               X1' * (mask .* X1) + λ * Diagonal(maskint)
 
-    Hv1! = R.Hv!(hlr1, X, y1)
+    Hv1! = R.Hv!(hlr1, X, y1, s)
     Hv1 = similar(θ1_)
     v1 = randn(rng, p+1)
     Hv1!(Hv1, θ1_, v1)

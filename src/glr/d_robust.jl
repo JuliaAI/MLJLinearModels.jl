@@ -11,25 +11,21 @@
 # -> ∇²f(θ) = X'Λ(r)X + λI
 # ---------------------------------------------------------
 
-function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y
+function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch
               ) where ρ <: RobustRho1P{δ} where δ
     n, p = size(X)
     λ    = getscale(glr.penalty)
     ψ_   = ψ(ρ)
     ϕ_   = ϕ(ρ)
-    # scratch allocation
-    SCRATCH_N  = zeros(n)
-    SCRATCH_N2 = zeros(n)
-    SCRATCH_N3 = zeros(n)
     if glr.fit_intercept
         (f, g, H, θ) -> begin
-            r  = SCRATCH_N
+            r  = scratch.n
             get_residuals!(r, X, θ, y)
-            w  = SCRATCH_N2
+            w  = scratch.n2
             w .= convert.(Float64, abs.(r) .<= δ)
             # gradient via ψ function
             g === nothing || begin
-                ψr  = SCRATCH_N3
+                ψr  = scratch.n3
                 ψr .= ψ_.(r, w)
                 apply_Xt!(g, X, ψr)
                 g .+= λ .* θ
@@ -54,13 +50,13 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y
         end
     else
         (f, g, H, θ) -> begin
-            r = SCRATCH_N
+            r = scratch.n
             get_residuals!(r, X, θ, y)
-            w = SCRATCH_N2
+            w = scratch.n2
             w .= convert.(Float64, abs.(r) .<= δ)
             # gradient via ψ function
             g === nothing || begin
-                ψr  = SCRATCH_N3
+                ψr  = scratch.n3
                 ψr .= ψ_.(r, w)
                 apply_Xt!(g, X, ψr)
                 g .+= λ .* θ
@@ -73,33 +69,28 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y
 end
 
 
-function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y
+function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch
              ) where ρ <: RobustRho1P{δ} where δ
     n, p = size(X)
     λ    = getscale(glr.penalty)
     ϕ_   = ϕ(ρ)
-    # scratch allocation
-    SCRATCH_N  = zeros(n)
-    SCRATCH_N2 = zeros(n)
-    SCRATCH_N3 = zeros(n)
     # see d_logistic.jl for more comments on this (similar procedure)
     if glr.fit_intercept
-        SCRATCH_P = zeros(p)
         (Hv, θ, v) -> begin
-            r  = SCRATCH_N
+            r  = scratch.n
             get_residuals!(r, X, θ, y)
-            w  = SCRATCH_N2
+            w  = scratch.n2
             w .= convert.(Float64, abs.(r) .<= δ)
             w .= ϕ_.(r, w)
             # views on first p rows (intercept row treated after)
             a    = 1:p
             Hvₐ  = view(Hv, a)
             vₐ   = view(v, a)
-            XtΛ1 = view(SCRATCH_P, a)     # we can recycle
+            XtΛ1 = view(scratch.p, a)     # we can recycle
             apply_Xt!(XtΛ1, X, w)
             vₑ   = v[end]
             # update for first p rows
-            t    = SCRATCH_N3
+            t    = scratch.n3
             apply_X!(t, X, vₐ)
             t  .*= w
             apply_Xt!(Hvₐ, X, t)
@@ -109,12 +100,12 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y
         end
     else
         (Hv, θ, v) -> begin
-            r  = SCRATCH_N
+            r  = scratch.n
             get_residuals!(r, X, θ, y)
-            w  = SCRATCH_N2
+            w  = scratch.n2
             w .= convert.(Float64, abs.(r) .<= δ)
             w .= ϕ_.(r, w)
-            t  = SCRATCH_N3
+            t  = scratch.n3
             apply_X!(t, X, v)
             t .*= w
             apply_Xt!(Hv, X, t)
@@ -125,37 +116,33 @@ end
 
 
 # For IWLS
-function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y;
+function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch;
              threshold=1e-6) where ρ <: RobustRho1P{δ} where δ
     n, p = size(X)
     λ    = getscale(glr.penalty)
     ω_   = ω(ρ, threshold)
-    # scratch allocation
-    SCRATCH_N  = zeros(n)
-    SCRATCH_N2 = zeros(n)
     # For one θ, we get one system of equation to solve
     # which we solve via an iterative method so, one θ
     # gives one way of applying the relevant matrix (X'ΛX+λI)
     (ωr, θ) -> begin
-        r   = SCRATCH_N
+        r   = scratch.n
         get_residuals!(r, X, θ, y)
-        w   = SCRATCH_N2
+        w   = scratch.n2
         w  .= convert.(Float64, abs.(r) .<= δ)
         # ω = ψ(r)/r ; weighing factor for IWLS
         ωr .= ω_.(r, w)
         # function defining the application of (X'ΛX + λI)
         if glr.fit_intercept
-            SCRATCH_P = zeros(p)
             (Mv, v) -> begin
                 a    = 1:p
                 vₐ   = view(v, a)
                 Mvₐ  = view(Mv, a)
-                XtW1 = SCRATCH_P
+                XtW1 = view(scratch.p, a)
                 @inbounds for j in a
                     XtW1[j] = dot(ωr, view(X, :, j))
                 end
                 vₑ = v[end]
-                t  = SCRATCH_N
+                t  = scratch.n
                 apply_X!(t, X, vₐ)
                 t .*= ωr
                 mul!(Mvₐ, X', t)
@@ -165,7 +152,7 @@ function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y;
             end
         else
             (Mv, v) -> begin
-                t  = SCRATCH_N
+                t  = scratch.n
                 apply_X!(t, X, v)
                 t .*= ωr
                 mul!(Mv, X', t)
@@ -178,21 +165,17 @@ end
 
 # this is a bit of an abuse in that in some cases the ρ is not everywhere
 # differentiable
-function smooth_fg!(glr::GLR{RobustLoss{ρ},<:ENR}, X, y
+function smooth_fg!(glr::GLR{RobustLoss{ρ},<:ENR}, X, y, scratch
                     ) where ρ <: RobustRho1P{δ} where δ
     λ    = getscale_l2(glr.penalty)
     n, p = size(X)
     ψ_   = ψ(ρ)
-    # scratch allocation
-    SCRATCH_N  = zeros(n)
-    SCRATCH_N2 = zeros(n)
-    SCRATCH_N3 = zeros(n)
     (g, θ) -> begin
-        r   = SCRATCH_N
+        r   = scratch.n
         get_residuals!(r, X, θ, y)
-        w   = SCRATCH_N2
+        w   = scratch.n2
         w  .= convert.(Float64, abs.(r) .<= δ)
-        ψr  = SCRATCH_N3
+        ψr  = scratch.n3
         ψr .= ψ_.(r, w)
         apply_Xt!(g, X, ψr)
         g .+= λ .* θ
