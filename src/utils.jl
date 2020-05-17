@@ -4,7 +4,7 @@ $SIGNATURES
 Return nothing if the number of rows of `X` and `y` match and throws a
 `DimensionMismatch` error otherwise.
 """
-function check_nrows(X::Matrix, y::VecOrMat)::Nothing
+function check_nrows(X::AbstractMatrix, y::AbstractVecOrMat)::Nothing
     size(X, 1) == size(y, 1) && return nothing
     throw(DimensionMismatch("`X` and `y` must have the same number of rows."))
 end
@@ -21,7 +21,7 @@ $SIGNATURES
 
 Given a matrix `X`, append a column of ones if `fit_intercept` is true.
 """
-function augment_X(X::Matrix{<:Real}, fit_intercept::Bool)
+function augment_X(X::AbstractMatrix{<:Real}, fit_intercept::Bool)
     fit_intercept || return X
     return hcat(X, ones(eltype(X), size(X, 1)))
 end

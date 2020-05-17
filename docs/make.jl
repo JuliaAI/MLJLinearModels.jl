@@ -9,7 +9,10 @@ makedocs(
     authors = "Thibaut Lienart, and contributors.",
     pages = [
         "Home" => "index.md",
-        "MLJ"  => "mlj.md"
+        "Quick start"  => "quickstart.md",
+        "Models" => "models.md",
+        "Solvers" => "solvers.md",
+        "API" => "api.md"
     ]
 )
 

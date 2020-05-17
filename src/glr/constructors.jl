@@ -126,6 +126,12 @@ function LogisticRegression(λ::Real=1.0, γ::Real=0.0;
         penalize_intercept=penalize_intercept)
 end
 
+"""
+$SIGNATURES
+
+Objective function: ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is the
+multinomial loss.
+"""
 MultinomialRegression(a...; kwa...) = LogisticRegression(a...; multi_class=true, kwa...)
 
 
