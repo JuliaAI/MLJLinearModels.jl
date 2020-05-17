@@ -73,7 +73,7 @@ end
     X, y = MLJBase.make_blobs(centers=3)
     model = LogisticClassifier()
     mach = MLJBase.machine(model, X, y)
-    fit!(mach)
+    MLJBase.fit!(mach)
     fp = MLJBase.fitted_params(mach)
     @test unique(fp.classes) == [1,2,3]
 end
