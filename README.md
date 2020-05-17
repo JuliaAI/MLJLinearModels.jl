@@ -4,7 +4,7 @@
 | :------------ | :------- | :------------ |
 | [![Build Status](https://travis-ci.org/alan-turing-institute/MLJLinearModels.jl.svg?branch=master)](https://travis-ci.org/alan-turing-institute/MLJLinearModels.jl) | [![codecov.io](http://codecov.io/github/alan-turing-institute/MLJLinearModels.jl/coverage.svg?branch=master)](http://codecov.io/github/alan-turing-institute/MLJLinearModels.jl?branch=master) | TODO |
 
-This is a convenience package gathering functionalities to solve a number of generalised linear regression/classification problems which, inherently, correspond to an optimisation problem of the form
+This is a package gathering functionalities to solve a number of generalised linear regression/classification problems which, inherently, correspond to an optimisation problem of the form
 
 ```
 L(y, Xθ) + P(θ)
@@ -20,8 +20,9 @@ The core aims of this package are:
 - focus on performance including in "big data" settings exploiting packages such as [`Optim.jl`](https://github.com/JuliaNLSolvers/Optim.jl), [`IterativeSolvers.jl`](https://github.com/JuliaMath/IterativeSolvers.jl),
 - use a "machine learning" perspective, i.e.: focus essentially on prediction, hyper-parameters should be obtained via a data-driven procedure such as cross-validation.
 
-All models allow to fit an intercept and allow the penalty to be applied or not on the intercept (not applied by default).
-All models attempt to be efficient in terms of memory allocation to avoid unnecessary copies of the data.
+# NOTES
+
+This section is only useful if you're interested in implementation details or would like to help extend the library. For usage instruction please head to the docs.
 
 ## Implemented
 

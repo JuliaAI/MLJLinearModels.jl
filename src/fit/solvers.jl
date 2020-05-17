@@ -2,8 +2,8 @@ export Analytical, CG,
         Newton, NewtonCG,
         LBFGS,
         ProxGrad, FISTA, ISTA,
-        IWLSCG,
-        ADMM, FADMM # NOTE: these do not work currently
+        IWLSCG
+        # ADMM, FADMM # NOTE: these do not work currently
 
 # =====
 # TODO
