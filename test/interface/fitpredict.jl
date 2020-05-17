@@ -67,3 +67,13 @@ end
     @test gr isa GLR
     @test gr.penalty isa ScaledPenalty{L1Penalty}
 end
+
+# see issue #71
+@testset "Logistic-m" begin
+    X, y = MLJBase.make_blobs(centers=3)
+    model = LogisticClassifier()
+    mach = MLJBase.machine(model, X, y)
+    fit!(mach)
+    fp = MLJBase.fitted_params(mach)
+    @test unique(fp.classes) == [1,2,3]
+end
