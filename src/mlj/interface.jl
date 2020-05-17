@@ -19,19 +19,21 @@ const ALL_MODELS = (REG_MODELS..., CLF_MODELS...)
 
 function MMI.fit(m::Union{REG_MODELS...}, verb::Int, X, y)
     Xmatrix = MMI.matrix(X)
+    sch = MMI.schema(X)
+    features = (sch === nothing) ? nothing : sch.names
     reg     = glr(m)
     solver  = m.solver === nothing ? _solver(reg, size(Xmatrix)) : m.solver
     # get the parameters
     θ = fit(reg, Xmatrix, y; solver=solver)
     # return
-    return θ, nothing, NamedTuple{}()
+    return (θ, features), nothing, NamedTuple{}()
 end
 
-MMI.predict(m::Union{REG_MODELS...}, θ, Xnew) = apply_X(MMI.matrix(Xnew), θ)
+MMI.predict(m::Union{REG_MODELS...}, (θ, features), Xnew) = apply_X(MMI.matrix(Xnew), θ)
 
-function MMI.fitted_params(m::Union{REG_MODELS...}, θ)
-    m.fit_intercept && return (coefs = θ[1:end-1], intercept = θ[end])
-    return (coefs = θ, intercept = nothing)
+function MMI.fitted_params(m::Union{REG_MODELS...}, (θ, features))
+    m.fit_intercept && return (coefs = coef_vec(θ[1:end-1], features), intercept = θ[end])
+    return (coefs = coef_vec(θ, features), intercept = nothing)
 end
 
 #= ===========
@@ -40,6 +42,8 @@ end
 
 function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     Xmatrix  = MMI.matrix(X)
+    sch = MMI.schema(X)
+    features = (sch === nothing) ? nothing : sch.names
     yplain   = convert.(Int, MMI.int(y))
     classes  = MMI.classes(y[1])
     nclasses = length(classes)
@@ -56,10 +60,10 @@ function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     # get the parameters
     θ = fit(clf, Xmatrix, yplain, solver=solver)
     # return
-    return (θ, c, classes), nothing, NamedTuple{}()
+    return (θ, features, c, classes), nothing, NamedTuple{}()
 end
 
-function MMI.predict(m::Union{CLF_MODELS...}, (θ, c, classes), Xnew)
+function MMI.predict(m::Union{CLF_MODELS...}, (θ, features, c, classes), Xnew)
     Xmatrix = MMI.matrix(Xnew)
     preds   = apply_X(Xmatrix, θ, c)
     # binary classification
@@ -73,19 +77,28 @@ function MMI.predict(m::Union{CLF_MODELS...}, (θ, c, classes), Xnew)
     return [MMI.UnivariateFinite(classes, preds[i, :]) for i in 1:size(Xmatrix,1)]
 end
 
-function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, c, classes))
+function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, features, c, classes))
+    function _fitted_params(coefs, features, intercept)
+        return (classes = classes, coefs = coef_vec(coefs, features), intercept = intercept)
+    end
     if c > 1
+        W = reshape(θ, :, c)
         if m.fit_intercept
-            W = reshape(θ, div(length(θ), c), c)
-            return (coefs = W, intercept = nothing)
+            return _fitted_params(W, features, W[end, :])
         end
-        W = reshape(θ, p+1, c)
-        return (coefs = W[1:p, :], intercept = W[end, :])
+        return _fitted_params(W[1:end-1, :], features, nothing)
     end
     # single class
-    m.fit_intercept && return (coefs = θ[1:end-1], intercept = θ[end])
-    return (coefs = θ, intercept = nothing)
+    m.fit_intercept && return _fitted_params(θ[1:end-1], features, θ[end])
+    return _fitted_params(θ, features, nothing)
 end
+
+@static VERSION < v"1.1" && (eachrow(A::AbstractVecOrMat) = (view(A, i, :) for i in axes(A, 1)))
+
+coef_vec(W::AbstractMatrix, features) = [feature => coef for (feature, coef) in zip(features, eachrow(W))]
+coef_vec(θ::AbstractVector, features) = [feature => coef for (feature, coef) in zip(features, θ)]
+coef_vec(W::AbstractMatrix, ::Nothing) = W
+coef_vec(θ::AbstractVector, ::Nothing) = θ
 
 #= =======================
    METADATA FOR ALL MODELS

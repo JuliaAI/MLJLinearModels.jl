@@ -12,7 +12,7 @@
 # * Hv! used in iterative solution
 # ---------------------------------------------------------
 
-function Hv!(glr::GLR{L2Loss,<:L2R}, X, y)
+function Hv!(glr::GLR{L2Loss,<:L2R}, X, y, scratch)
     n, p = size(X)
     λ    = getscale(glr.penalty)
     if glr.fit_intercept
@@ -22,14 +22,17 @@ function Hv!(glr::GLR{L2Loss,<:L2R}, X, y)
         ι = float(glr.penalize_intercept)
         (Hv, v) -> begin
             # view on the first p rows
-            a   = 1:p
-            Hvₐ = view(Hv, a)
-            vₐ  = view(v,  a)
-            Xt1 = view(SCRATCH_P[], a)
-            copyto!(Xt1, sum(X, dims=1))  # -- X'1 (note: sum will allocate)
+            a     = 1:p
+            Hvₐ   = view(Hv, a)
+            vₐ    = view(v,  a)
+            Xt1   = view(scratch.p, a)
+            Xt1 .*= 0
+            @inbounds for i in a, j in 1:n
+                Xt1[i] += X[j, i]           # -- X'1
+            end
             vₑ  = v[end]
             # update for the first p rows   -- (X'X + λI)v[1:p] + (X'1)v[end]
-            Xvₐ = SCRATCH_N[]
+            Xvₐ = scratch.n
             mul!(Xvₐ, X, vₐ)
             mul!(Hvₐ, X', Xvₐ)
             Hvₐ .+= λ .* vₐ .+ Xt1 .* vₑ
@@ -38,7 +41,7 @@ function Hv!(glr::GLR{L2Loss,<:L2R}, X, y)
         end
     else
         (Hv, v) -> begin
-            Xv = SCRATCH_N[]
+            Xv = scratch.n
             mul!(Xv, X, v)       # -- Xv
             mul!(Hv, X', Xv)     # -- X'Xv
             Hv .+= λ .* v        # -- X'Xv + λv
@@ -57,11 +60,11 @@ end
 # -> prox_r = soft-thresh
 # ---------------------------------------------------------
 
-function smooth_fg!(glr::GLR{L2Loss,<:ENR}, X, y)
+function smooth_fg!(glr::GLR{L2Loss,<:ENR}, X, y, scratch)
     λ = getscale_l2(glr.penalty)
     (g, θ) -> begin
         # cache contains the residuals (Xθ-y)
-        r = SCRATCH_N[]
+        r = scratch.n
         get_residuals!(r, X, θ, y) # -- r = Xθ-y
         apply_Xt!(g, X, r)
         g .+= λ .* θ

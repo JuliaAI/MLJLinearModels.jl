@@ -9,19 +9,19 @@
 # * -σ(-x) ==(σ(x)-1)
 # ---------------------------------------------------------
 
-function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
-    J = objective(glr) # GLR objective (loss+penalty)
-    p = size(X, 2)
-    λ = getscale(glr.penalty)
+function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
+    J    = objective(glr) # GLR objective (loss+penalty)
+    n, p = size(X)
+    λ    = getscale(glr.penalty)
     if glr.fit_intercept
         (f, g, H, θ) -> begin
-            Xθ = SCRATCH_N[]
+            Xθ = scratch.n
             apply_X!(Xθ, X, θ)                       # -- Xθ = apply_X(X, θ)
             # precompute σ(yXθ) use -σ(-x) = (σ(x)-1)
-            w  = SCRATCH_N2[]
+            w  = scratch.n2
             w .= σ.(Xθ .* y)                         # -- w  = σ.(Xθ .* y)
             g === nothing || begin
-                t  = SCRATCH_N3[]
+                t  = scratch.n3
                 t .= y .* (w .- 1.0)                 # -- t = y .* (w .- 1.0)
                 apply_Xt!(g, X, t)                   # -- g = X't
                 g .+= λ .* θ
@@ -31,11 +31,15 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
                 # NOTE: we could try to be clever to reduce the allocations for
                 # ΛX but computing the full hessian allocates a lot anyway so
                 # probably not really worth it
+                a  = 1:p
                 ΛX = w .* X                           # !! big allocs
-                mul!(view(H, 1:p, 1:p), X', ΛX)       # -- H[1:p,1:p] = X'ΛX
-                ΛXt1 = view(SCRATCH_P[], 1:p)
-                copyto!(ΛXt1, sum(ΛX, dims=1))        # -- (ΛX)'1
-                @inbounds for i = 1:p
+                mul!(view(H, a, a), X', ΛX)       # -- H[1:p,1:p] = X'ΛX
+                ΛXt1   = view(scratch.p, a)
+                ΛXt1 .*= 0
+                @inbounds for i in a, j in 1:n
+                    ΛXt1[i] += ΛX[j, i]             # -- (ΛX)'1
+                end
+                @inbounds for i in a
                     H[i, end] = H[end, i] = ΛXt1[i]   # -- H[:,p+1] = (ΛX)'1
                 end
                 H[end, end] = sum(w)                  # -- 1'Λ1'
@@ -47,12 +51,12 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
         # see comments above, same computations just no additional things for
         # fit_intercept
         (f, g, H, θ) -> begin
-            Xθ = SCRATCH_N[]
+            Xθ = scratch.n
             apply_X!(Xθ, X, θ)
-            w  = SCRATCH_N2[]
+            w  = scratch.n2
             w .= σ.(y .* Xθ)
             g === nothing || begin
-                t  = SCRATCH_N3[]
+                t  = scratch.n3
                 t .= y .* (w .- 1.0)
                 apply_Xt!(g, X, t)
                 g .+= λ .* θ
@@ -66,27 +70,27 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y)
     end
 end
 
-function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y)
-    p = size(X, 2)
-    λ = getscale(glr.penalty)
+function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
+    n, p = size(X)
+    λ    = getscale(glr.penalty)
     if glr.fit_intercept
         # H = [X 1]'Λ[X 1] + λ I
         # rows a 1:p = [X'ΛX + λI | X'Λ1]
         # row  e end = [1'ΛX      | sum(a)+λ]
         (Hv, θ, v) -> begin
-            Xθ = SCRATCH_N[]
+            Xθ = scratch.n
             apply_X!(Xθ, X, θ)                       # -- Xθ = apply_X(X, θ)
-            w  = SCRATCH_N2[]
+            w  = scratch.n2
             w .= σ.(Xθ .* y)                         # -- w  = σ.(Xθ .* y)
             # view on the first p rows
             a    = 1:p
             Hvₐ  = view(Hv, a)
             vₐ   = view(v,  a)
-            XtΛ1 = view(SCRATCH_P[], 1:p)
+            XtΛ1 = view(scratch.p, 1:p)
             mul!(XtΛ1, X', w)                        # -- X'Λ1; O(np)
             vₑ   = v[end]
             # update for the first p rows -- (X'X + λI)v[1:p] + (X'1)v[end]
-            Xvₐ  = SCRATCH_N[]
+            Xvₐ  = scratch.n
             mul!(Xvₐ, X, vₐ)
             Xvₐ .*=  w                               # --  ΛXvₐ
             mul!(Hvₐ, X', Xvₐ)                       # -- (X'ΛX)vₐ
@@ -97,13 +101,13 @@ function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y)
         end
     else
         (Hv, θ, v) -> begin
-            Xθ = SCRATCH_N[]
+            Xθ = scratch.n
             apply_X!(Xθ, X, θ)
-            w  = SCRATCH_N2[]
+            w  = scratch.n2
             w .= σ.(Xθ .* y)                # -- σ(yXθ)
-            Xv = SCRATCH_N3[]
+            Xv = scratch.n
             mul!(Xv, X, v)
-            Xv .*= SCRATCH_N2[]                # -- ΛXv
+            Xv .*= scratch.n2               # -- ΛXv
             mul!(Hv, X', Xv)                # -- X'ΛXv
             Hv .+= λ .* v
         end
@@ -121,9 +125,9 @@ end
 # -> prox_r = soft-thresh
 # ---------------------------------------------------------
 
-function smooth_fg!(glr::GLR{LogisticLoss,<:ENR}, X, y)
+function smooth_fg!(glr::GLR{LogisticLoss,<:ENR}, X, y, scratch)
     smooth = get_smooth(glr)
-    (g, θ) -> fgh!(smooth, X, y)(0.0, g, nothing, θ)
+    (g, θ) -> fgh!(smooth, X, y, scratch)(0.0, g, nothing, θ)
 end
 
 # ---------------------------------- #
@@ -140,19 +144,19 @@ end
 # * yᵢ ∈ {1, 2, ..., c}
 # ---------------------------------------------------------
 
-function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
+function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y, scratch)
     n, p = size(X)
     c    = length(unique(y))
     λ    = getscale(glr.penalty)
     (f, g, θ) -> begin
-        P  = SCRATCH_NC[]
-        apply_X!(P, X, θ, c)                         # O(npc) store n * c
-        M  = SCRATCH_NC2[]
+        P  = scratch.nc
+        apply_X!(P, X, θ, c, scratch)                # O(npc) store n * c
+        M  = scratch.nc2
         M .= exp.(P)                                 # O(npc) store n * c
         g === nothing || begin
-            ΛM  = SCRATCH_NC3[]
+            ΛM  = scratch.nc3
             ΛM .= M ./ sum(M, dims=2)                # O(nc)  store n * c
-            Q   = SCRATCH_NC4[]
+            Q   = scratch.nc4
             @inbounds for i = 1:n, j=1:c
                 Q[i, j] = ifelse(y[i] == j, 1.0, 0.0)
             end
@@ -160,7 +164,7 @@ function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
             ∑Q  = sum(Q, dims=1)
             R   = ΛM
             R .-= Q
-            G   = SCRATCH_PC[]
+            G   = scratch.pc
             if glr.fit_intercept
                 mul!(view(G, 1:p, :), X', R)
                 @inbounds for k in 1:c
@@ -179,11 +183,11 @@ function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
             # ms = maximum(P, dims=2)
             # ss = sum(M ./ exp.(ms), dims=2)
             ms   = maximum(P, dims=2)
-            ems  = SCRATCH_N[]
+            ems  = scratch.n
             @inbounds for i in 1:n
                 ems[i] = exp(ms[i])
             end
-            ΛM  = SCRATCH_NC2[] # note that _NC is already linked to P
+            ΛM  = scratch.nc2  # note that _NC is already linked to P
             ΛM .= M ./ ems
             ss  = sum(ΛM, dims=2)
             t   = 0.0
@@ -195,7 +199,7 @@ function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
     end
 end
 
-function Hv!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
+function Hv!(glr::GLR{MultinomialLoss,<:L2R}, X, y, scratch)
     p = size(X, 2)
     λ = getscale(glr.penalty)
     c = length(unique(y))
@@ -207,13 +211,13 @@ function Hv!(glr::GLR{MultinomialLoss,<:L2R}, X, y)
     # allocate less but is likely slower; maybe in the future we could have a
     # keyword indicating which one the user wants to use.
     (Hv, θ, v) -> begin
-        P  = apply_X(X, θ, c)    # P_ik = <x_i, θ_k>    // dims n * c; O(npc)
-        Q  = apply_X(X, v, c)    # Q_ik = <x_i, v_k>    // dims n * c; O(npc)
-        M  = exp.(P)             # M_ik = exp<x_i, w_k> // dims n * c;
-        MQ = M .* Q              #                      // dims n * c; O(nc)
-        ρ  = 1 ./ sum(M, dims=2) # ρ_i = 1/Z_i = 1/∑_k exp<x_i, w_k>
-        κ  = sum(MQ, dims=2)     # κ_i  = ∑_k exp<x_i, w_k><x_i, v_k>
-        γ  = κ .* ρ.^2           # γ_i  = κ_i / Z_i^2
+        P  = apply_X(X, θ, c)     # P_ik = <x_i, θ_k> // dims n * c; O(npc)
+        Q  = apply_X(X, v, c)     # Q_ik = <x_i, v_k>    // dims n * c; O(npc)
+        M  = exp.(P)              # M_ik = exp<x_i, w_k> // dims n * c;
+        MQ = M .* Q               #                      // dims n * c; O(nc)
+        ρ  = 1 ./ sum(M, dims=2)  # ρ_i = 1/Z_i = 1/∑_k exp<x_i, w_k>
+        κ  = sum(MQ, dims=2)      # κ_i  = ∑_k exp<x_i, w_k><x_i, v_k>
+        γ  = κ .* ρ.^2            # γ_i  = κ_i / Z_i^2
         # computation of Hv
         U      = (ρ .* MQ) .- (γ .* M)                  # // dims n * c; O(nc)
         Hv_mat = X' * U                                 # // dims n * c; O(npc)
@@ -238,7 +242,7 @@ end
 # -> prox_r = soft-thresh
 # ---------------------------------------------------------
 
-function smooth_fg!(glr::GLR{MultinomialLoss,<:ENR}, X, y)
+function smooth_fg!(glr::GLR{MultinomialLoss,<:ENR}, X, y, scratch)
     smooth = get_smooth(glr)
-    (g, θ) -> fg!(smooth, X, y)(0.0, g, θ)
+    (g, θ) -> fg!(smooth, X, y, scratch)(0.0, g, θ)
 end

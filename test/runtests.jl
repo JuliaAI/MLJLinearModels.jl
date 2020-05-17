@@ -1,7 +1,7 @@
-using MLJLinearModels, Test, LinearAlgebra, Random
-import MLJBase # not MLJModelInterface, to mimick the full interface
+using MLJLinearModels, Test, LinearAlgebra, Random, StableRNGs
+import MLJBase # not MLJModelInterface, to mimic the full interface
 
-DO_COMPARISONS = true; include("testutils.jl")
+DO_COMPARISONS = false; include("testutils.jl")
 
 m("UTILS"); include("utils.jl")
 
@@ -15,7 +15,6 @@ m("GLR", false); begin
     mm("constructors"); include("glr/constructors.jl")
     mm("utils");        include("glr/tools-utils.jl")
     mm("grads-hess");   include("glr/grad-hess-prox.jl")
-    R.deallocate()
 end
 
 m("FIT", false); begin

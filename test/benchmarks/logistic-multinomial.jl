@@ -22,3 +22,5 @@ lbfgs = LBFGS()
 
 # <old>       1.421 s (2866 allocations: 142.33 MiB)
 # with cache  1.357 s (1912 allocations:  30.15 MiB)
+# May 12, 2020:: 1.762 s (10696 allocations: 112.38 MiB)
+#             :: 1.563 s (10193 allocations: 29.68 MiB)
