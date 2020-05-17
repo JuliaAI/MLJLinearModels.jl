@@ -2,6 +2,19 @@
    LINEAR REGRESSOR (OLS)
    ====================== =#
 
+"""
+$SIGNATURES
+
+Standard linear regression model.
+
+## Parameters
+
+* `fit_intercept` (Bool): whether to fit the intercept or not.
+* `solver`: type of solver to use (if `nothing` the default is used). The
+            solver is Cholesky by default but can be Conjugate-Gradient as
+            well. See `?Analytical` for more information.
+
+"""
 @with_kw_noshow mutable struct LinearRegressor <: MMI.Deterministic
     fit_intercept::Bool    = true
     solver::Option{Solver} = nothing
