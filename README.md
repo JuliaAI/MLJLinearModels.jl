@@ -20,6 +20,8 @@ The core aims of this package are:
 - focus on performance including in "big data" settings exploiting packages such as [`Optim.jl`](https://github.com/JuliaNLSolvers/Optim.jl), [`IterativeSolvers.jl`](https://github.com/JuliaMath/IterativeSolvers.jl),
 - use a "machine learning" perspective, i.e.: focus essentially on prediction, hyper-parameters should be obtained via a data-driven procedure such as cross-validation.
 
+Head to the [quickstart section of the docs](https://alan-turing-institute.github.io/MLJLinearModels.jl/dev/quickstart/) to see how to use this package.
+
 # NOTES
 
 This section is only useful if you're interested in implementation details or would like to help extend the library. For usage instruction please head to the docs.
