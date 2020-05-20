@@ -1,7 +1,7 @@
 using MLJLinearModels, Test, LinearAlgebra, Random, StableRNGs
 import MLJBase # not MLJModelInterface, to mimic the full interface
 
-DO_COMPARISONS = true; include("testutils.jl")
+DO_COMPARISONS = false; include("testutils.jl")
 
 m("UTILS"); include("utils.jl")
 
