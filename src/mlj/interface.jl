@@ -45,7 +45,8 @@ function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     sch = MMI.schema(X)
     features = (sch === nothing) ? nothing : sch.names
     yplain   = convert.(Int, MMI.int(y))
-    classes  = MMI.classes(y[1])[unique(yplain)]
+    decoder  = MMI.decoder(y[1])
+    classes  = decoder(sort(unique(yplain)))
     nclasses = length(classes)
     if nclasses == 2
         # recode

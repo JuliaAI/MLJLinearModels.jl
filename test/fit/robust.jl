@@ -96,7 +96,7 @@ end
     @test isapprox(J(θ_iwls),     0.818677, rtol=1e-4)
 end
 
-@testset "LogisticRReg" begin
+@testset "LogisticReg" begin
     δ = 1.5
     λ = 1.0
     rr = RobustRegression(rho=Logistic(delta=δ), lambda=λ, penalize_intercept=true)
