@@ -55,11 +55,11 @@ function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     else
         c = nclasses
     end
-    clf = glr(m)
     # allow logclf to become multiclf
     if m isa LogisticClassifier
         m.multi_class = c > 1
     end
+    clf = glr(m)
 
     solver = m.solver === nothing ? _solver(clf, size(Xmatrix)) : m.solver
     # get the parameters
@@ -69,7 +69,7 @@ function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
 end
 
 function MMI.predict(m::Union{CLF_MODELS...}, (θ, features, c, classes), Xnew)
-    Xmatrix = MMI.matrix(Xnew)
+    Xmatrix = MMI.matrix(Xnew)   
     preds   = apply_X(Xmatrix, θ, c)
     # binary classification
     if c == 1
