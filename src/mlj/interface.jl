@@ -45,7 +45,7 @@ function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     sch = MMI.schema(X)
     features = (sch === nothing) ? nothing : sch.names
     yplain   = convert.(Int, MMI.int(y))
-    classes  = MMI.classes(y[1])
+    classes  = MMI.classes(y[1])[unique(yplain)]
     nclasses = length(classes)
     if nclasses == 2
         # recode
@@ -69,7 +69,7 @@ function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
 end
 
 function MMI.predict(m::Union{CLF_MODELS...}, (θ, features, c, classes), Xnew)
-    Xmatrix = MMI.matrix(Xnew)   
+    Xmatrix = MMI.matrix(Xnew)
     preds   = apply_X(Xmatrix, θ, c)
     # binary classification
     if c == 1
