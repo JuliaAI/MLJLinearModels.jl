@@ -32,6 +32,10 @@ end
 
 const GLR = GeneralizedLinearRegression
 
+getc(g::GLR) = getc(g.loss)
+getc(g::GLR, y) = getc(g.loss, y)
+
+## Specific constructors
 
 """
 $SIGNATURES
@@ -116,10 +120,17 @@ logistic loss in the binary case or the multinomial loss otherwise.
 function LogisticRegression(λ::Real=1.0, γ::Real=0.0;
                             lambda::Real=λ, gamma::Real=γ,
                             penalty::Symbol=iszero(gamma) ? :l2 : :en,
-                            multi_class::Bool=false, fit_intercept::Bool=true,
-                            penalize_intercept::Bool=false)
+                            fit_intercept::Bool=true,
+                            penalize_intercept::Bool=false,
+                            multi_class::Bool=false,
+                            nclasses::Integer=0)
     penalty = _l1l2en(lambda, gamma, penalty, "Logistic regression")
-    loss = multi_class ? MultinomialLoss() : LogisticLoss()
+    loss = LogisticLoss()
+    if nclasses > 2     # number of classes is explicitly specified
+        loss = MultinomialLoss(nclasses)
+    elseif multi_class  # number of classes will be inferred from data
+        loss = MultinomialLoss()
+    end
     GLR(loss=loss,
         penalty=penalty,
         fit_intercept=fit_intercept,
@@ -132,7 +143,8 @@ $SIGNATURES
 Objective function: ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is the
 multinomial loss.
 """
-MultinomialRegression(a...; kwa...) = LogisticRegression(a...; multi_class=true, kwa...)
+MultinomialRegression(a...; kwa...) =
+    LogisticRegression(a...; multi_class=true, kwa...)
 
 
 # ========

@@ -17,7 +17,7 @@ $SIGNATURES
 Return a function computing the objective at a given point `θ`.
 Note that the [`apply_X`](@ref) takes care of a potential intercept.
 """
-objective(glr::GLR, X, y; c::Int=1) =
+objective(glr::GLR, X, y; c::Int=0) =
     θ -> objective(glr)(y, apply_X(X, θ, c), view_θ(glr, θ))
 
 
@@ -27,7 +27,7 @@ $SIGNATURES
 Return a function computing the smooth part of the objective at a given
 evaluation point `θ`.
 """
-smooth_objective(glr::GLR, X, y; c::Int=1) =
+smooth_objective(glr::GLR, X, y; c::Int=0) =
     θ -> smooth_objective(glr)(y, apply_X(X, θ, c), view_θ(glr, θ))
 
 """

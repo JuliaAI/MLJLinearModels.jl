@@ -14,7 +14,7 @@ Hessian at each step with κ the number of Newton steps.
 """
 function _fit(glr::GLR{<:Union{LogisticLoss,RobustLoss},<:L2R},
               solver::Newton, X, y, scratch)
-    p     = size(X, 2) + Int(glr.fit_intercept)
+    _,p,_ = npc(scratch)
     θ₀    = zeros(p)
     _fgh! = fgh!(glr, X, y, scratch)
     opt   = Optim.only_fgh!(_fgh!)
@@ -36,13 +36,13 @@ average number of CG steps per Newton step (which is at most p).
 """
 function _fit(glr::GLR{<:Union{LogisticLoss,RobustLoss},<:L2R},
               solver::NewtonCG, X, y, scratch)
-    p    = size(X, 2) + Int(glr.fit_intercept)
-    θ₀   = zeros(p)
-    _f   = objective(glr, X, y)
-    _fg! = (g, θ) -> fgh!(glr, X, y, scratch)(0.0, g, nothing, θ) # Optim.jl/738
-    _Hv! = Hv!(glr, X, y, scratch)
-    opt  = Optim.TwiceDifferentiableHV(_f, _fg!, _Hv!, θ₀)
-    res  = Optim.optimize(opt, θ₀, Optim.KrylovTrustRegion())
+    _,p,_ = npc(scratch)
+    θ₀    = zeros(p)
+    _f    = objective(glr, X, y)
+    _fg!  = (g, θ) -> fgh!(glr, X, y, scratch)(0.0, g, nothing, θ) # Optim#738
+    _Hv!  = Hv!(glr, X, y, scratch)
+    opt   = Optim.TwiceDifferentiableHV(_f, _fg!, _Hv!, θ₀)
+    res   = Optim.optimize(opt, θ₀, Optim.KrylovTrustRegion())
     return Optim.minimizer(res)
 end
 
@@ -58,11 +58,11 @@ gradient at each step with κ the number of LBFGS steps.
 """
 function _fit(glr::GLR{<:Union{LogisticLoss,RobustLoss},<:L2R},
               solver::LBFGS, X, y, scratch)
-    p    = size(X, 2) + Int(glr.fit_intercept)
-    θ₀   = zeros(p)
-    _fg! = (f, g, θ) -> fgh!(glr, X, y, scratch)(f, g, nothing, θ)
-    opt  = Optim.only_fg!(_fg!)
-    res  = Optim.optimize(opt, θ₀, Optim.LBFGS())
+    _,p,_ = npc(scratch)
+    θ₀    = zeros(p)
+    _fg!  = (f, g, θ) -> fgh!(glr, X, y, scratch)(f, g, nothing, θ)
+    opt   = Optim.only_fg!(_fg!)
+    res   = Optim.optimize(opt, θ₀, Optim.LBFGS())
     return Optim.minimizer(res)
 end
 
@@ -82,15 +82,15 @@ computations are dominated by the application of the Hessian at each step with
 κ₁ the number of Newton steps and κ₂ the average number of CG steps per Newton
 step.
 """
-function _fit(glr::GLR{MultinomialLoss,<:L2R}, solver::NewtonCG, X, y, scratch)
-    p    = size(X, 2) + Int(glr.fit_intercept)
-    c    = maximum(y)
-    θ₀   = zeros(p * c)
-    _f   = objective(glr, X, y; c=c)
-    _fg! = (g, θ) -> fg!(glr, X, y, scratch)(0.0, g, θ) # XXX: Optim.jl/738
-    _Hv! = Hv!(glr, X, y, scratch)
-    opt  = Optim.TwiceDifferentiableHV(_f, _fg!, _Hv!, θ₀)
-    res  = Optim.optimize(opt, θ₀, Optim.KrylovTrustRegion())
+function _fit(glr::GLR{<:MultinomialLoss,<:L2R}, solver::NewtonCG,
+              X, y, scratch)
+    _,p,c = npc(scratch)
+    θ₀    = zeros(p * c)
+    _f    = objective(glr, X, y; c=c)
+    _fg!  = (g, θ) -> fg!(glr, X, y, scratch)(0.0, g, θ) # XXX: Optim.jl/738
+    _Hv!  = Hv!(glr, X, y, scratch)
+    opt   = Optim.TwiceDifferentiableHV(_f, _fg!, _Hv!, θ₀)
+    res   = Optim.optimize(opt, θ₀, Optim.KrylovTrustRegion())
     return Optim.minimizer(res)
 end
 
@@ -105,12 +105,12 @@ Assuming `n` dominates `p`, O(κnpc), with `c` the number of classes, dominated
 by the computation of the gradient at each step with κ the number of LBFGS
 steps.
 """
-function _fit(glr::GLR{MultinomialLoss,<:L2R}, solver::LBFGS, X, y, scratch)
-    p    = size(X, 2) + Int(glr.fit_intercept)
-    c    = maximum(y)
-    θ₀   = zeros(p * c)
-    _fg! = fg!(glr, X, y, scratch)
-    opt  = Optim.only_fg!(_fg!)
-    res  = Optim.optimize(opt, θ₀, Optim.LBFGS())
+function _fit(glr::GLR{<:MultinomialLoss,<:L2R}, solver::LBFGS,
+              X, y, scratch)
+    _,p,c = npc(scratch)
+    θ₀    = zeros(p * c)
+    _fg!  = fg!(glr, X, y, scratch)
+    opt   = Optim.only_fg!(_fg!)
+    res   = Optim.optimize(opt, θ₀, Optim.LBFGS())
     return Optim.minimizer(res)
 end

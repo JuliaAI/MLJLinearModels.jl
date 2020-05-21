@@ -1,8 +1,7 @@
 function _fit(glr::GLR{RobustLoss{ρ},<:L2R}, solver::IWLSCG, X, y, scratch
               ) where {ρ}
     λ    = getscale(glr.penalty)
-    n    = size(X, 1)
-    p    = size(X, 2) + Int(glr.fit_intercept)
+    n,p,_ = npc(scratch)
     _Mv! = Mv!(glr, X, y, scratch; threshold=solver.threshold)
     κ    = solver.damping # between 0 and 1, 1 = fully take the new iteration
     # cache

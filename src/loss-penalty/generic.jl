@@ -32,6 +32,15 @@ getscale(n::NoLoss)     = 0.0
 getscale(l::AtomicLoss) = 1.0
 getscale(l::ScaledLoss) = l.scale
 
+# Convenient extension for classification
+abstract type MultiClassLoss{c} <: AtomicLoss where c end
+
+getc(m) = 0
+getc(m, y) = 0
+getc(m::MultiClassLoss{c}) where c = c
+getc(m::MultiClassLoss{0}, y) = maximum(y)
+getc(m::MultiClassLoss{c}, y) where c = c
+
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Penalty: θ -> P(θ)
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

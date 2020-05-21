@@ -140,4 +140,23 @@ end
     P = X * reshape(θ, 2, 3)
     @test mnl(P, y) ≈ 4.994135263476211
     @test mnl(y, P) == mnl(P, y)
+
+    # --
+    @test MultinomialLoss() isa MultinomialLoss{0}
+    @test MultinomialLoss(3) isa MultinomialLoss{3}
+    @test_throws DomainError MultinomialLoss(1)
+    @test typeof(MultinomialLoss(3)) <: R.MultiClassLoss{3}
+
+    m0 = MultinomialLoss()
+    m3 = MultinomialLoss(3)
+
+    @test R.getc(m0) == 0
+    @test R.getc(m3) == 3
+    @test R.getc(m0, [1,2,3]) == 3
+    @test R.getc(m3, [1,2]) == 3
+
+    # -- confounders
+    l0 = LogisticLoss()
+    @test R.getc(l0) == 0
+    @test R.getc(l0, [1,2]) == 0
 end

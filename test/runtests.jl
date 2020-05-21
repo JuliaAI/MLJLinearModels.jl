@@ -1,4 +1,4 @@
-using MLJLinearModels, Test, LinearAlgebra, Random, StableRNGs
+using MLJLinearModels, Test, LinearAlgebra, Random, StableRNGs, DataFrames
 import MLJBase # not MLJModelInterface, to mimic the full interface
 
 DO_COMPARISONS = false; include("testutils.jl")
@@ -27,4 +27,5 @@ end
 m("MLJ", false); begin
     mm("metadata");    include("interface/meta.jl")
     mm("fit-predict"); include("interface/fitpredict.jl")
+    mm("extras");      include("interface/extras.jl")
 end

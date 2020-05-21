@@ -11,7 +11,7 @@ _solver(::GLR{L2Loss,<:L2R}, np::NTuple{2,Int}) = Analytical()
 
 # Logistic, Multinomial
 _solver(::GLR{LogisticLoss,<:L2R},    np::NTuple{2,Int}) = LBFGS()
-_solver(::GLR{MultinomialLoss,<:L2R}, np::NTuple{2,Int}) = LBFGS()
+_solver(::GLR{<:MultinomialLoss,<:L2R}, np::NTuple{2,Int}) = LBFGS()
 
 # Lasso, ElasticNet, Logistic, Multinomial
 function _solver(glr::GLR{<:SmoothLoss,<:ENR}, np::NTuple{2,Int})
@@ -37,13 +37,13 @@ function fit(glr::GLR, X::AbstractMatrix{<:Real}, y::AVR;
              solver::Solver=_solver(glr, size(X)))
     check_nrows(X, y)
     n, p = size(X)
-    c = glr.loss isa MultinomialLoss ? maximum(y) : 0
+    c = getc(glr, y)
     return _fit(glr, solver, X, y, scratch(n, p, c, i=glr.fit_intercept))
 end
 
 function scratch(n, p, c=0; i=false)
     p_ = p + Int(i)
-    s = (n=zeros(n), n2=zeros(n), n3=zeros(n), p=zeros(p_))
+    s = (n=zeros(n), n2=zeros(n), n3=zeros(n), p=zeros(p_), dims=(n,p_,c))
     if !iszero(c)
         s = (s..., nc=zeros(n,c), nc2=zeros(n,c), nc3=zeros(n,c),
                    nc4=zeros(n,c), pc=zeros(p_,c))
@@ -51,3 +51,5 @@ function scratch(n, p, c=0; i=false)
     return s
 end
 scratch(X; kw...) = scratch(size(X)...; kw...)
+
+npc(s) = s.dims

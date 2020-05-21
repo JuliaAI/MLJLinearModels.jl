@@ -36,6 +36,7 @@ the strength of the L2 (resp. L1) regularisation components.
     penalize_intercept::Bool = false
     solver::Option{Solver}   = nothing
     multi_class::Bool        = false
+    nclasses::Int            = 2
 end
 
 glr(m::LogisticClassifier) =
@@ -43,7 +44,8 @@ glr(m::LogisticClassifier) =
                        penalty=Symbol(m.penalty),
                        multi_class=m.multi_class,
                        fit_intercept=m.fit_intercept,
-                       penalize_intercept=m.penalize_intercept)
+                       penalize_intercept=m.penalize_intercept,
+                       nclasses=m.nclasses)
 
 descr(::Type{LogisticClassifier}) = "Classifier corresponding to the loss function ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is the logistic loss."
 
@@ -64,13 +66,15 @@ to `true` by default. The other parameters are the same.
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
     solver::Option{Solver}   = nothing
+    nclasses::Int            = 2       # leave to 2, cf LogisticRegression
 end
 
 glr(m::MultinomialClassifier) =
     MultinomialRegression(m.lambda, m.gamma;
                           penalty=Symbol(m.penalty),
                           fit_intercept=m.fit_intercept,
-                          penalize_intercept=m.penalize_intercept)
+                          penalize_intercept=m.penalize_intercept,
+                          nclasses=m.nclasses)
 
 descr(::Type{MultinomialClassifier}) =
     "Classifier corresponding to the loss function " *
