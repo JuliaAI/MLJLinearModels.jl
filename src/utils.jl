@@ -29,12 +29,12 @@ end
 """
 $SIGNATURES
 
-Return `X*θ` if `c=1` (default) or `X*P` where `P=reshape(θ, size(X, 2), p)` in the multi-class
-case.
+Return `X*θ` if `c==0` (default) or `X*P` where `P=reshape(θ, size(X, 2), p)`
+in the multi-class case.
 """
-function apply_X(X, θ, c=1)
+function apply_X(X, θ, c=0)
     p = size(X, 2)
-    if c == 1
+    if c == 0
         length(θ) == p || return X * θ[1:p] .+ θ[end]
         return X * θ
     else

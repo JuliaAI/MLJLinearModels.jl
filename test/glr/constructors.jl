@@ -83,3 +83,16 @@
     @test qreg.loss.rho isa QuantileRho{δ}
     @test qreg.penalty.scale == λ
 end
+
+@testset "Multinomial" begin
+    r = LogisticRegression()
+    @test R.getc(r) == 0
+    r = LogisticRegression(nclasses=3)
+    @test R.getc(r) == 3
+    r = MultinomialRegression()
+    @test R.getc(r) == 0
+    @test R.getc(r, [1,2]) == 2
+    r = MultinomialRegression(nclasses=5)
+    @test R.getc(r) == 5
+    @test R.getc(r, [1,2]) == 5
+end

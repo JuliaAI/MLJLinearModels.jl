@@ -103,10 +103,17 @@ where `P` is a matrix where each row contains class probabilities,
 ``Zᵢ = ∑ exp(Pᵢ)``
 
 In a multinomial regression, `P` corresponds to `XW` where `X` is the design
-matrix and `W` the matrix of size `p * K` where each column corresponds to the
+matrix and `W` the matrix of size `p × K` where each column corresponds to the
 parameters corresponding to that class.
 """
-struct MultinomialLoss <: AtomicLoss end
+struct MultinomialLoss{c} <: MultiClassLoss{c} end
+
+MultinomialLoss() = MultinomialLoss{0}()  # inferred from data
+function MultinomialLoss(c)
+    c < 2 && throw(DomainError("The number of classes for a MultinomialLoss " *
+                               "must be greater or equal to 2."))
+    return MultinomialLoss{c}()
+end
 
 (::MultinomialLoss)(P::Matrix{<:Real}, y::Vector{Int}) = begin
     L = 0.0

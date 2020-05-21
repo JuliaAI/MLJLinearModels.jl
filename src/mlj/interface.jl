@@ -45,64 +45,67 @@ function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     sch = MMI.schema(X)
     features = (sch === nothing) ? nothing : sch.names
     yplain   = convert.(Int, MMI.int(y))
-    decoder  = MMI.decoder(y[1])
-    classes  = decoder(sort(unique(yplain)))
+    classes  = MMI.classes(y[1])
     nclasses = length(classes)
-    if nclasses == 2
-        # recode
+    if nclasses < 2
+        throw(DomainError("The target `y` needs to have two or more levels."))
+    elseif nclasses == 2
+        # recode to ± 1
         yplain[yplain .== 1] .= -1
         yplain[yplain .== 2] .= 1
-        c = 1
-    else
-        c = nclasses
+        # force the binary case
+        m.multi_class = false
+        m.nclasses    = 0
+    else # > 2
+        m.nclasses = nclasses
     end
-    # allow logclf to become multiclf
-    if m isa LogisticClassifier
-        m.multi_class = c > 1
-    end
+    # NOTE: here the number of classes is either 0 or > 2
     clf = glr(m)
-
     solver = m.solver === nothing ? _solver(clf, size(Xmatrix)) : m.solver
     # get the parameters
     θ = fit(clf, Xmatrix, yplain, solver=solver)
     # return
-    return (θ, features, c, classes), nothing, NamedTuple{}()
+    return (θ, features, classes), nothing, NamedTuple{}()
 end
 
-function MMI.predict(m::Union{CLF_MODELS...}, (θ, features, c, classes), Xnew)
+function MMI.predict(m::Union{CLF_MODELS...}, (θ, features, classes), Xnew)
     Xmatrix = MMI.matrix(Xnew)
-    preds   = apply_X(Xmatrix, θ, c)
-    # binary classification
-    if c == 1
+    c = m.nclasses
+    preds = apply_X(Xmatrix, θ, c)
+    if c > 2 # multiclass
+        preds .= softmax(preds)
+    else # binary (necessarily c==0)
         preds  .= sigmoid.(preds)
         preds   = hcat(1.0 .- preds, preds) # scores for -1 and 1
         return [MMI.UnivariateFinite(classes, preds[i, :]) for i in 1:size(Xmatrix,1)]
     end
-    # multiclass
-    preds .= softmax(preds)
     return [MMI.UnivariateFinite(classes, preds[i, :]) for i in 1:size(Xmatrix,1)]
 end
 
-function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, features, c, classes))
-    function _fitted_params(coefs, features, intercept)
-        return (classes = classes, coefs = coef_vec(coefs, features), intercept = intercept)
-    end
-    if c > 1
+function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, features, classes))
+    c = m.nclasses
+    # helper function to assemble the results
+    _fitted_params(coefs, features, intercept) =
+        (classes=classes, coefs=coef_vec(coefs, features), intercept=intercept)
+    # multiclass or binary?
+    if c > 2
         W = reshape(θ, :, c)
         if m.fit_intercept
             return _fitted_params(W, features, W[end, :])
         end
         return _fitted_params(W[1:end-1, :], features, nothing)
     end
-    # single class
+    # single class (necessarily c==0)
     m.fit_intercept && return _fitted_params(θ[1:end-1], features, θ[end])
     return _fitted_params(θ, features, nothing)
 end
 
 @static VERSION < v"1.1" && (eachrow(A::AbstractVecOrMat) = (view(A, i, :) for i in axes(A, 1)))
 
-coef_vec(W::AbstractMatrix, features) = [feature => coef for (feature, coef) in zip(features, eachrow(W))]
-coef_vec(θ::AbstractVector, features) = [feature => coef for (feature, coef) in zip(features, θ)]
+coef_vec(W::AbstractMatrix, features) =
+    [feature => coef for (feature, coef) in zip(features, eachrow(W))]
+coef_vec(θ::AbstractVector, features) =
+    [feature => coef for (feature, coef) in zip(features, θ)]
 coef_vec(W::AbstractMatrix, ::Nothing) = W
 coef_vec(θ::AbstractVector, ::Nothing) = θ
 

@@ -34,7 +34,7 @@ function _fit(glr::GLR{L2Loss,<:L2R}, solver::Analytical, X, y, scratch)
     # it is done implicitly in the application of the Hessian to
     # avoid copying X
     # The number of CG steps to convergence is at most `p`
-    p = size(X, 2) + Int(glr.fit_intercept)
+    _,p,_ = npc(scratch)
     max_cg_steps = min(solver.max_inner, p)
     # Form the Hessian map, cost of application H*v is O(np)
     Hm = LinearMap(Hv!(glr, X, y, scratch), p;

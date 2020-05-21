@@ -144,9 +144,9 @@ end
 # * yᵢ ∈ {1, 2, ..., c}
 # ---------------------------------------------------------
 
-function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y, scratch)
+function fg!(glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch)
     n, p = size(X)
-    c    = length(unique(y))
+    c    = getc(glr, y)
     λ    = getscale(glr.penalty)
     (f, g, θ) -> begin
         P  = scratch.nc
@@ -199,10 +199,10 @@ function fg!(glr::GLR{MultinomialLoss,<:L2R}, X, y, scratch)
     end
 end
 
-function Hv!(glr::GLR{MultinomialLoss,<:L2R}, X, y, scratch)
+function Hv!(glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch)
     p = size(X, 2)
     λ = getscale(glr.penalty)
-    c = length(unique(y))
+    c = getc(glr, y)
     # NOTE:
     # * ideally P and Q should be recuperated from gradient computations (fghv!)
     # * assumption that c is small so that storing matrices of size n * c is
@@ -242,7 +242,7 @@ end
 # -> prox_r = soft-thresh
 # ---------------------------------------------------------
 
-function smooth_fg!(glr::GLR{MultinomialLoss,<:ENR}, X, y, scratch)
+function smooth_fg!(glr::GLR{<:MultinomialLoss,<:ENR}, X, y, scratch)
     smooth = get_smooth(glr)
     (g, θ) -> fg!(smooth, X, y, scratch)(0.0, g, θ)
 end

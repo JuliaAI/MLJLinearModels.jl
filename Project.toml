@@ -1,9 +1,10 @@
 name = "MLJLinearModels"
 uuid = "6ee0df7b-362f-4a72-a706-9e79364fb692"
 authors = ["Thibaut Lienart <tlienart@me.com>"]
-version = "0.3.6"
+version = "0.4.0"
 
 [deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 IterativeSolvers = "42fd0dbc-a981-5370-80f2-aaf504508153"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
