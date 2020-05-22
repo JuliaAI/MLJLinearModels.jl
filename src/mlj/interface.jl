@@ -76,10 +76,9 @@ function MMI.predict(m::Union{CLF_MODELS...}, (θ, features, classes), Xnew)
         preds .= softmax(preds)
     else # binary (necessarily c==0)
         preds  .= sigmoid.(preds)
-        preds   = hcat(1.0 .- preds, preds) # scores for -1 and 1
-        return [MMI.UnivariateFinite(classes, preds[i, :]) for i in 1:size(Xmatrix,1)]
+        return MMI.UnivariateFiniteVector(preds, classes)
     end
-    return [MMI.UnivariateFinite(classes, preds[i, :]) for i in 1:size(Xmatrix,1)]
+    return MMI.UnivariateFiniteVector(preds, classes)
 end
 
 function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, features, classes))

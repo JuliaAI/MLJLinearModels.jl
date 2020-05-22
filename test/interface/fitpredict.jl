@@ -33,8 +33,7 @@ end
     lr = LogisticClassifier(lambda=λ, gamma=γ)
     fr, = MLJBase.fit(lr, 1, Xt, yc)
 
-    ŷ = MLJBase.predict(lr, fr, Xt)
-    ŷ = MLJBase.mode.(ŷ)
+    ŷ = MLJBase.predict_mode(lr, fr, Xt)
 
     mcr = MLJBase.misclassification_rate(ŷ, yc)
     @test mcr ≤ 0.2
@@ -52,8 +51,7 @@ end
     mc = MultinomialClassifier(lambda=λ, gamma=γ)
     fr, = MLJBase.fit(mc, 1, Xt, yc)
 
-    ŷ = MLJBase.predict(mc, fr, Xt)
-    ŷ = MLJBase.mode.(ŷ)
+    ŷ = MLJBase.predict_mode(mc, fr, Xt)
 
     mcr = MLJBase.misclassification_rate(ŷ, yc)
     @test mcr ≤ 0.3
