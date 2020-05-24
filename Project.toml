@@ -4,7 +4,6 @@ authors = ["Thibaut Lienart <tlienart@me.com>"]
 version = "0.4.0"
 
 [deps]
-DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 IterativeSolvers = "42fd0dbc-a981-5370-80f2-aaf504508153"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -23,6 +22,7 @@ Parameters = "^0.12"
 julia = "^1"
 
 [extras]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 MLJBase = "a7f614a8-145f-11e9-1d2a-a57a1082229d"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
@@ -33,4 +33,4 @@ StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["DelimitedFiles", "PyCall", "Test", "Random", "RDatasets", "RCall", "MLJBase", "StableRNGs"]
+test = ["DelimitedFiles", "PyCall", "Test", "Random", "RDatasets", "RCall", "MLJBase", "StableRNGs", "DataFrames"]
