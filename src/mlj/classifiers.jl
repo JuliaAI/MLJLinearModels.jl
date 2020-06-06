@@ -25,8 +25,6 @@ the strength of the L2 (resp. L1) regularisation components.
 * `fit_intercept` (Bool): whether to fit an intercept (Default: `true`)
 * `penalize_intercept` (Bool): whether to penalize intercept (Default: `false`)
 * `solver` (Solver): type of solver to use, default if `nothing`.
-* `multi_class` (Bool): whether it's a binary or multi class classification
-                        problem. This is usually set automatically.
 """
 @with_kw_noshow mutable struct LogisticClassifier <: MMI.Probabilistic
     lambda::Real             = 1.0
@@ -35,17 +33,15 @@ the strength of the L2 (resp. L1) regularisation components.
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
     solver::Option{Solver}   = nothing
-    multi_class::Bool        = false
-    nclasses::Int            = 2
 end
 
-glr(m::LogisticClassifier) =
+glr(m::LogisticClassifier, nclasses::Integer) =
     LogisticRegression(m.lambda, m.gamma;
                        penalty=Symbol(m.penalty),
-                       multi_class=m.multi_class,
+                       multi_class=(nclasses > 2),
                        fit_intercept=m.fit_intercept,
                        penalize_intercept=m.penalize_intercept,
-                       nclasses=m.nclasses)
+                       nclasses=nclasses)
 
 descr(::Type{LogisticClassifier}) = "Classifier corresponding to the loss function ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is the logistic loss."
 
@@ -66,15 +62,14 @@ to `true` by default. The other parameters are the same.
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
     solver::Option{Solver}   = nothing
-    nclasses::Int            = 2       # leave to 2, cf LogisticRegression
 end
 
-glr(m::MultinomialClassifier) =
+glr(m::MultinomialClassifier, nclasses::Integer) =
     MultinomialRegression(m.lambda, m.gamma;
                           penalty=Symbol(m.penalty),
                           fit_intercept=m.fit_intercept,
                           penalize_intercept=m.penalize_intercept,
-                          nclasses=m.nclasses)
+                          nclasses=nclasses)
 
 descr(::Type{MultinomialClassifier}) =
     "Classifier corresponding to the loss function " *

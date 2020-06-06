@@ -63,7 +63,7 @@ end
 @testset "String-Symbol" begin
     model = LogisticClassifier(penalty="l1")
     @test model.penalty == "l1"
-    gr = MLJLinearModels.glr(model)
+    gr = MLJLinearModels.glr(model, 2)
     @test gr isa GLR
     @test gr.penalty isa ScaledPenalty{L1Penalty}
 end

@@ -54,36 +54,31 @@ function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
         yplain[yplain .== 1] .= -1
         yplain[yplain .== 2] .= 1
         # force the binary case
-        m.multi_class = false
-        m.nclasses    = 0
-    else # > 2
-        m.nclasses = nclasses
+        nclasses    = 0
     end
     # NOTE: here the number of classes is either 0 or > 2
-    clf = glr(m)
+    clf = glr(m, nclasses)
     solver = m.solver === nothing ? _solver(clf, size(Xmatrix)) : m.solver
     # get the parameters
     θ = fit(clf, Xmatrix, yplain, solver=solver)
     # return
-    return (θ, features, classes), nothing, NamedTuple{}()
+    return (θ, features, classes, nclasses), nothing, NamedTuple{}()
 end
 
-function MMI.predict(m::Union{CLF_MODELS...}, (θ, features, classes), Xnew)
+function MMI.predict(m::Union{CLF_MODELS...}, (θ, features, classes, c), Xnew)
     Xmatrix = MMI.matrix(Xnew)
-    c = m.nclasses
     preds = apply_X(Xmatrix, θ, c)
     if c > 2 # multiclass
         preds .= softmax(preds)
     else # binary (necessarily c==0)
         preds  .= sigmoid.(preds)
         preds   = hcat(1.0 .- preds, preds) # scores for -1 and 1
-        return [MMI.UnivariateFinite(classes, preds[i, :]) for i in 1:size(Xmatrix,1)]
+        return MMI.UnivariateFinite(classes, preds)
     end
-    return [MMI.UnivariateFinite(classes, preds[i, :]) for i in 1:size(Xmatrix,1)]
+    return MMI.UnivariateFinite(classes, preds)
 end
 
-function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, features, classes))
-    c = m.nclasses
+function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, features, classes, c))
     # helper function to assemble the results
     _fitted_params(coefs, features, intercept) =
         (classes=classes, coefs=coef_vec(coefs, features), intercept=intercept)
