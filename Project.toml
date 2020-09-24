@@ -17,7 +17,7 @@ DocStringExtensions = "^0.8"
 IterativeSolvers = "^0.8"
 LinearMaps = "^2.6"
 MLJModelInterface = "^0.3"
-Optim = "^0.20,^0.21"
+Optim = "0.20,0.21,1,1.1"
 Parameters = "^0.12"
 julia = "^1"
 
