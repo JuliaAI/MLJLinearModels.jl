@@ -2,7 +2,7 @@
 
 | [Linux] | Coverage | Documentation |
 | :------------ | :------- | :------------ |
-| [![Build Status](https://github.org/alan-turing-institute/MLJLinearModels.jl/workflows/CI/badge.svg)](https://github.org/alan-turing-institute/MLJLinearModels.jl/actions) | [![codecov.io](http://codecov.io/github/alan-turing-institute/MLJLinearModels.jl/coverage.svg?branch=master)](http://codecov.io/github/alan-turing-institute/MLJLinearModels.jl?branch=master) | [![stable-doc](https://img.shields.io/badge/docs-stable-blue.svg)](https://alan-turing-institute.github.io/MLJLinearModels.jl/stable/) [![dev-doc](https://img.shields.io/badge/docs-dev-blue.svg)](https://alan-turing-institute.github.io/MLJLinearModels.jl/dev/) |
+| [![Build Status](https://github.com/alan-turing-institute/MLJLinearModels.jl/workflows/CI/badge.svg)](https://github.com/alan-turing-institute/MLJLinearModels.jl/actions) | [![codecov.io](http://codecov.io/github/alan-turing-institute/MLJLinearModels.jl/coverage.svg?branch=master)](http://codecov.io/github/alan-turing-institute/MLJLinearModels.jl?branch=master) | [![stable-doc](https://img.shields.io/badge/docs-stable-blue.svg)](https://alan-turing-institute.github.io/MLJLinearModels.jl/stable/) [![dev-doc](https://img.shields.io/badge/docs-dev-blue.svg)](https://alan-turing-institute.github.io/MLJLinearModels.jl/dev/) |
 
 This is a package gathering functionalities to solve a number of generalised linear regression/classification problems which, inherently, correspond to an optimisation problem of the form
 
