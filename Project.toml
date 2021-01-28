@@ -1,7 +1,7 @@
 name = "MLJLinearModels"
 uuid = "6ee0df7b-362f-4a72-a706-9e79364fb692"
 authors = ["Thibaut Lienart <tlienart@me.com>"]
-version = "0.5.1"
+version = "0.5.2"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
@@ -16,8 +16,8 @@ Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 DocStringExtensions = "^0.8"
 IterativeSolvers = "^0.8"
 LinearMaps = "^2.6"
-MLJModelInterface = "^0.3"
-Optim = "0.20,0.21,1,1.1"
+MLJModelInterface = "^0.3,^0.4"
+Optim = "0.20,0.21,1"
 Parameters = "^0.12"
 julia = "^1"
 

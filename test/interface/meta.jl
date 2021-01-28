@@ -1,29 +1,32 @@
+import MLJBase: package_name, package_url, package_license,
+    is_wrapper, is_pure_julia, input_scitype, target_scitype,
+    supports_weights, docstring, load_path
+
 @testset "meta-pkg" begin
+    @show methods(package_name)
     rr = RidgeRegressor()
-    d = MLJBase.info_dict(rr)
-    @test d[:package_name] == "MLJLinearModels"
-    @test d[:package_url] == "https://github.com/alan-turing-institute/MLJLinearModels.jl"
-    @test d[:package_license] == "MIT"
-    @test d[:is_pure_julia] == true
-    @test d[:is_wrapper] == false
+    @test package_name(rr) == "MLJLinearModels"
+    @test package_url(rr) ==
+        "https://github.com/alan-turing-institute/MLJLinearModels.jl"
+    @test package_license(rr) == "MIT"
+    @test is_pure_julia(rr) == true
+    @test is_wrapper(rr) == false
 end
 
 @testset "meta-reg" begin
     lr = LinearRegressor()
-    d = MLJBase.info_dict(lr)
-    @test d[:input_scitype] == MLJBase.Table(MLJBase.Continuous)
-    @test d[:target_scitype] == AbstractVector{MLJBase.Continuous}
-    @test d[:supports_weights] == false
-    @test !isempty(d[:docstring])
-    @test d[:load_path] == "MLJLinearModels.LinearRegressor"
+    @test input_scitype(lr) == MLJBase.Table(MLJBase.Continuous)
+    @test target_scitype(lr) == AbstractVector{MLJBase.Continuous}
+    @test supports_weights(lr) == false
+    @test !isempty(docstring(lr))
+    @test load_path(lr) == "MLJLinearModels.LinearRegressor"
 end
 
 @testset "meta-clf" begin
     lr = LogisticClassifier()
-    d = MLJBase.info_dict(lr)
-    @test d[:input_scitype] == MLJBase.Table(MLJBase.Continuous)
-    @test d[:target_scitype] == AbstractVector{<:MLJBase.Finite}
-    @test d[:supports_weights] == false
-    @test !isempty(d[:docstring])
-    @test d[:load_path] == "MLJLinearModels.LogisticClassifier"
+    @test input_scitype(lr) == MLJBase.Table(MLJBase.Continuous)
+    @test target_scitype(lr) == AbstractVector{<:MLJBase.Finite}
+    @test supports_weights(lr) == false
+    @test !isempty(docstring(lr))
+    @test load_path(lr) == "MLJLinearModels.LogisticClassifier"
 end
