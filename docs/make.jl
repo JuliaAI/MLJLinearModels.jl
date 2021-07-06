@@ -17,5 +17,5 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/alan-turing-institute/MLJLinearModels.jl"
+    repo = "github.com/JuliaAI/MLJLinearModels.jl"
 )
