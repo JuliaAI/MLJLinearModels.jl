@@ -88,7 +88,7 @@ function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, features, classes, c))
         if m.fit_intercept
             return _fitted_params(W, features, W[end, :])
         end
-        return _fitted_params(W[1:end-1, :], features, nothing)
+        return _fitted_params(W, features, nothing)
     end
     # single class (necessarily c==0)
     m.fit_intercept && return _fitted_params(θ[1:end-1], features, θ[end])

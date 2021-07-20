@@ -49,8 +49,13 @@ end
     Xt = MLJBase.table(X)
     yc = MLJBase.categorical(y1)
 
-    mc = MultinomialClassifier(lambda=λ, gamma=γ)
+    mc = MultinomialClassifier(lambda=λ, gamma=γ, fit_intercept=false)
     fr, = MLJBase.fit(mc, 1, Xt, yc)
+
+    mach = MLJBase.machine(mc, Xt, yc)
+    MLJBase.fit!(mach)
+    fp = MLJBase.fitted_params(mach)
+    @test length(fp.coefs) == 5
 
     ŷ = MLJBase.predict(mc, fr, Xt)
     ŷ = MLJBase.mode.(ŷ)
