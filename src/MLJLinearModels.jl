@@ -1,4 +1,4 @@
-module MLJLinearModels
+module MLJLinearModels 
 
 using Parameters, DocStringExtensions
 using LinearAlgebra, IterativeSolvers
