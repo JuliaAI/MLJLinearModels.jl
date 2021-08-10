@@ -1,4 +1,5 @@
-using MLJLinearModels, Test, LinearAlgebra, Random, StableRNGs, DataFrames
+using MLJLinearModels, Test, LinearAlgebra
+using Random, StableRNGs, DataFrames, ForwardDiff
 import MLJBase # not MLJModelInterface, to mimic the full interface
 
 DO_COMPARISONS = false; include("testutils.jl")

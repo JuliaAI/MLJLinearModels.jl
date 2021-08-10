@@ -2,7 +2,7 @@
 
 | [Linux] | Coverage | Documentation |
 | :------------ | :------- | :------------ |
-| [![Build Status](https://github.com/alan-turing-institute/MLJLinearModels.jl/workflows/CI/badge.svg)](https://github.com/alan-turing-institute/MLJLinearModels.jl/actions) | [![codecov.io](http://codecov.io/github/alan-turing-institute/MLJLinearModels.jl/coverage.svg?branch=master)](http://codecov.io/github/alan-turing-institute/MLJLinearModels.jl?branch=master) | [![stable-doc](https://img.shields.io/badge/docs-stable-blue.svg)](https://alan-turing-institute.github.io/MLJLinearModels.jl/stable/) [![dev-doc](https://img.shields.io/badge/docs-dev-blue.svg)](https://alan-turing-institute.github.io/MLJLinearModels.jl/dev/) |
+| [![Build Status](https://github.com/JuliaAI/MLJLinearModels.jl/workflows/CI/badge.svg)](https://github.com/JuliaAI/MLJLinearModels.jl/actions) | [![codecov.io](http://codecov.io/github/JuliaAI/MLJLinearModels.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaAI/MLJLinearModels.jl?branch=master) | [![stable-doc](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaAI.github.io/MLJLinearModels.jl/stable/) [![dev-doc](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaAI.github.io/MLJLinearModels.jl/dev/) |
 
 This is a package gathering functionalities to solve a number of generalised linear regression/classification problems which, inherently, correspond to an optimisation problem of the form
 
@@ -20,7 +20,7 @@ The core aims of this package are:
 - focus on performance including in "big data" settings exploiting packages such as [`Optim.jl`](https://github.com/JuliaNLSolvers/Optim.jl), [`IterativeSolvers.jl`](https://github.com/JuliaMath/IterativeSolvers.jl),
 - use a "machine learning" perspective, i.e.: focus essentially on prediction, hyper-parameters should be obtained via a data-driven procedure such as cross-validation.
 
-Head to the [quickstart section of the docs](https://alan-turing-institute.github.io/MLJLinearModels.jl/dev/quickstart/) to see how to use this package.
+Head to the [quickstart section of the docs](https://JuliaAI.github.io/MLJLinearModels.jl/dev/quickstart/) to see how to use this package.
 
 # NOTES
 
@@ -63,7 +63,7 @@ Unless otherwise specified:
 - (_against [scikit-learn](https://scikit-learn.org/)_): Lasso, Elastic-Net, Logistic (L1/L2/EN), Multinomial (L1/L2/EN)
 - (_against [quantreg](https://cran.r-project.org/web/packages/quantreg/index.html)_): Quantile (0/L1)
 
-Systematic timing benchmarks have not been run yet but it's planned (see [this issue](https://github.com/alan-turing-institute/MLJLinearModels.jl/issues/14)).
+Systematic timing benchmarks have not been run yet but it's planned (see [this issue](https://github.com/JuliaAI/MLJLinearModels.jl/issues/14)).
 
 ### Current limitations
 
