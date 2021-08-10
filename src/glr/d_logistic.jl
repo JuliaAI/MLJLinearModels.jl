@@ -1,12 +1,14 @@
 # ------------------------------- #
 #  -- Logistic Regression (L2) -- #
 # ------------------------------- #
-# ->  f(θ)  = -∑logσ(yXθ) + λ|θ|₂²
-# -> ∇f(θ)  = -X'(yσ(-yXθ)) + λθ
-# -> ∇²f(θ) = X'(σ(yXθ))X + λI
+# ->  f(θ)  = -∑logσ(yXθ) + λ|θ|₂²/2
+# -> ∇f(θ)  =  X'(y(w-1)) + λθ
+# -> ∇²f(θ) =  X' Diag(w(1-w)) X + λI
 # NOTE:
+# * w = σ(yXθ)
 # * yᵢ ∈ {±1} so that y² = 1
-# * -σ(-x) ==(σ(x)-1)
+# * -σ(-x) == (σ(x)-1)
+# NOTE: https://github.com/JuliaAI/MLJLinearModels.jl/issues/104
 # ---------------------------------------------------------
 
 function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
@@ -17,12 +19,12 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
         (f, g, H, θ) -> begin
             Xθ = scratch.n
             apply_X!(Xθ, X, θ)                       # -- Xθ = apply_X(X, θ)
-            # precompute σ(yXθ) use -σ(-x) = (σ(x)-1)
-            w  = scratch.n2
-            w .= σ.(Xθ .* y)                         # -- w  = σ.(Xθ .* y)
+            # precompute σ(yXθ)
+            w    = scratch.n2
+            w   .= σ.(Xθ .* y)                       # -- w  = σ.(Xθ .* y)
             g === nothing || begin
                 t  = scratch.n3
-                t .= y .* (w .- 1.0)                 # -- t = y .* (w .- 1.0)
+                t .= y .* w .- y                     # -- t = y .* (w .- 1.0)
                 apply_Xt!(g, X, t)                   # -- g = X't
                 g .+= λ .* θ
                 glr.penalize_intercept || (g[end] -= λ * θ[end])
@@ -31,19 +33,21 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
                 # NOTE: we could try to be clever to reduce the allocations for
                 # ΛX but computing the full hessian allocates a lot anyway so
                 # probably not really worth it
-                a  = 1:p
-                ΛX = w .* X                           # !! big allocs
-                mul!(view(H, a, a), X', ΛX)       # -- H[1:p,1:p] = X'ΛX
+                t    = scratch.n3
+                t   .= w .- w.^2                      # σ(yXθ)(1-σ(yXθ))
+                a    = 1:p
+                ΛX   = t .* X                         # !! big allocs
+                mul!(view(H, a, a), X', ΛX)           # -- H[1:p,1:p] = X'ΛX
                 ΛXt1   = view(scratch.p, a)
                 ΛXt1 .*= 0
                 @inbounds for i in a, j in 1:n
-                    ΛXt1[i] += ΛX[j, i]             # -- (ΛX)'1
+                    ΛXt1[i] += ΛX[j, i]               # -- (ΛX)'1
                 end
                 @inbounds for i in a
                     H[i, end] = H[end, i] = ΛXt1[i]   # -- H[:,p+1] = (ΛX)'1
                 end
-                H[end, end] = sum(w)                  # -- 1'Λ1'
-                add_λI!(H, λ, glr.penalize_intercept) # -- H = X'ΛX + λI
+                H[end, end] = sum(t)                  # -- 1'Λ1'
+                add_λI!(H, λ, glr.penalize_intercept) # -- H = -X'ΛX + λI
             end
             f === nothing || return J(y, Xθ, view_θ(glr, θ))
         end
@@ -53,16 +57,18 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
         (f, g, H, θ) -> begin
             Xθ = scratch.n
             apply_X!(Xθ, X, θ)
-            w  = scratch.n2
-            w .= σ.(y .* Xθ)
+            w    = scratch.n2
+            w   .= σ.(y .* Xθ)
             g === nothing || begin
                 t  = scratch.n3
-                t .= y .* (w .- 1.0)
+                t .= y .* w .- y
                 apply_Xt!(g, X, t)
                 g .+= λ .* θ
             end
             H === nothing || begin
-                mul!(H, X', w .* X)
+                t  = scratch.n3
+                t .= w .- w.^2
+                mul!(H, X', t .* X)
                 add_λI!(H, λ)
             end
             f === nothing || return J(y, Xθ, θ)
@@ -80,8 +86,9 @@ function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
         (Hv, θ, v) -> begin
             Xθ = scratch.n
             apply_X!(Xθ, X, θ)                       # -- Xθ = apply_X(X, θ)
-            w  = scratch.n2
-            w .= σ.(Xθ .* y)                         # -- w  = σ.(Xθ .* y)
+            w   = scratch.n2
+            w  .= σ.(Xθ .* y)                        # -- w  = σ.(Xθ .* y)
+            w .-= w.^2                               # -- w  = w(1-w)
             # view on the first p rows
             a    = 1:p
             Hvₐ  = view(Hv, a)
@@ -103,9 +110,10 @@ function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
         (Hv, θ, v) -> begin
             Xθ = scratch.n
             apply_X!(Xθ, X, θ)
-            w  = scratch.n2
-            w .= σ.(Xθ .* y)                # -- σ(yXθ)
-            Xv = scratch.n
+            w   = scratch.n2
+            w  .= σ.(Xθ .* y)                # -- σ(yXθ)
+            w .-= w.^2
+            Xv  = scratch.n
             mul!(Xv, X, v)
             Xv .*= scratch.n2               # -- ΛXv
             mul!(Hv, X', Xv)                # -- X'ΛXv

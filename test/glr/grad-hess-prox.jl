@@ -72,6 +72,10 @@ end
     @test g ≈               X1' * (X1*θ1 .- y1) .+ λ .* θ1 .* vcat(ones(p), 0)
 end
 
+n, p = 50, 5
+((X, y, θ), (X1, y1, θ1)) = generate_binary(n, p; seed=1212224)
+maskint = vcat(ones(p), 0.0)
+
 @testset "GH> LogitL2" begin
     rng = StableRNG(551551)
     # fgh! without fit_intercept
@@ -85,9 +89,21 @@ end
     g = similar(θ)
     H = zeros(p, p)
     f = fgh!(f, g, H, θ)
+
+    wminus = R.σ.(-y .* (X * θ))
+    wplus  = R.σ.(y .* (X * θ))
+
     @test f == J(θ)
-    @test g ≈               -X' * (y .* R.σ.(-y .* (X * θ))) .+ λ .* θ
-    @test H ≈                X' * (Diagonal(R.σ.(y .* (X * θ))) * X) + λ * I
+    @test g ≈ -X' * (y .* wminus) .+ λ .* θ
+    @test H ≈  X' * (Diagonal(wplus .* (1 .- wplus)) * X) + λ * I
+
+    # Use ForwardDiff
+    logsigmoid(x)  = -log1p(exp(-x))
+    objective2(θ_) = -sum(logsigmoid.(y .* (X*θ_))) + λ * sum(abs2, θ_) / 2
+    fd_grad = ForwardDiff.gradient(θ_ -> objective2(θ_), θ)
+    fd_hess = ForwardDiff.hessian(θ_ -> objective2(θ_), θ)
+    @test g ≈ fd_grad
+    @test H ≈ fd_hess
 
     # Hv! without  fit_intercept
     s = R.scratch(X; i=false)
@@ -95,7 +111,7 @@ end
     v   = randn(rng, p)
     Hv  = similar(v)
     Hv!(Hv, θ, v)
-    @test Hv ≈               H * v
+    @test Hv ≈ H * v
 
     # fgh! with fit_intercept
     s = R.scratch(X; i=true)
@@ -108,16 +124,28 @@ end
     g1 = similar(θ1)
     H1 = zeros(p+1, p+1)
     f1 = fgh!(f1, g1, H1, θ1)
+
+    wminus = R.σ.(-y .* (X1 * θ1))
+    wplus  = R.σ.(y .* (X1 * θ1))
+
     @test f1 ≈ J(θ1)
-    @test g1 ≈              -X1' * (y .* R.σ.(-y .* (X1 * θ1))) .+ λ .* θ1
-    @test H1 ≈               X1' * (Diagonal(R.σ.(y .* (X1 * θ1))) * X1) + λ * I
+    @test g1 ≈ -X1' * (y .* wminus) .+ λ .* θ1
+    @test H1 ≈ X1' * (Diagonal(wplus .* (1 .- wplus)) * X1) + λ * I
+
+    # Use ForwardDiff
+    logsigmoid(x)  = -log1p(exp(-x))
+    objective2(θ_) = -sum(logsigmoid.(y .* (X1*θ_))) + λ * sum(abs2, θ_) / 2
+    fd_grad = ForwardDiff.gradient(θ_ -> objective2(θ_), θ1)
+    fd_hess = ForwardDiff.hessian(θ_ -> objective2(θ_), θ1)
+    @test g1 ≈ fd_grad
+    @test H1 ≈ fd_hess
 
     # Hv! with fit_intercept
     Hv! = R.Hv!(lr1, X, y, s)
     v   = randn(rng, p+1)
     Hv  = similar(v)
     Hv!(Hv, θ1, v)
-    @test Hv ≈               H1 * v
+    @test Hv ≈ H1 * v
 
     # fgh! with fit intercept and no penalty on intercept
     lr1 = LogisticRegression(λ)
@@ -128,9 +156,13 @@ end
     g1 = similar(θ1)
     H1 = zeros(p+1, p+1)
     f1 = fgh!(f1, g1, H1, θ1)
+
+    wminus = R.σ.(-y .* (X1 * θ1))
+    wplus  = R.σ.(y .* (X1 * θ1))
+
     @test f1 ≈ J(θ1)
-    @test g1 ≈              -X1' * (y .* R.σ.(-y .* (X1 * θ1))) .+ λ .* θ1 .* maskint
-    @test H1 ≈               X1' * (Diagonal(R.σ.(y .* (X1 * θ1))) * X1) + λ * Diagonal(maskint)
+    @test g1 ≈ -X1' * (y .* wminus) .+ λ .* θ1 .* maskint
+    @test H1 ≈  X1' * (Diagonal(wplus .* (1.0 .- wplus)) * X1) + λ * Diagonal(maskint)
     Hv! = R.Hv!(lr1, X, y, s)
     v   = randn(rng, p+1)
     Hv  = similar(v)

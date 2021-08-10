@@ -32,7 +32,7 @@ end
 
 const GLR = GeneralizedLinearRegression
 
-getc(g::GLR) = getc(g.loss)
+getc(g::GLR)    = getc(g.loss)
 getc(g::GLR, y) = getc(g.loss, y)
 
 ## Specific constructors
