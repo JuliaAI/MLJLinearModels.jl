@@ -48,7 +48,7 @@ function _fit(glr::GLR, solver::ProxGrad, X, y, scratch)
         end
         if inner == solver.max_inner
             @warn "No appropriate stepsize found via backtracking; " *
-                  "interrupting."
+                  "interrupting. The reason could be input data that is not standardized."
             break
         end
         # update caches
