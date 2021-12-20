@@ -7,7 +7,8 @@ y1a = outlify(y1, 0.1)
 @testset "QuantileReg" begin
     δ = 0.5 # effectively LAD regression
     λ = 1.0
-    rr = QuantileRegression(δ, lambda=λ, penalize_intercept=true)
+    rr = QuantileRegression(δ, lambda=λ, penalize_intercept=true,
+                               scale_penalty_with_samples = false)
     J = objective(rr, X, y1a)
     o = RobustLoss(Quantile(δ)) + λ * L2Penalty()
     @test J(θ1) ≈ o(y1a, X1*θ1, θ1)
@@ -26,7 +27,7 @@ y1a = outlify(y1, 0.1)
     @test_throws ErrorException fit(rr, X, y1, solver=NewtonCG())
 
     # don't penalize intercept
-    rr = QuantileRegression(δ, lambda=λ)
+    rr = QuantileRegression(δ, lambda=λ, scale_penalty_with_samples = false)
     J = objective(rr, X, y1a)
     ls = LinearRegression()
     θ_ls    = fit(ls, X, y1a)
@@ -70,7 +71,7 @@ y1a  = outlify(y1, 0.1)
 @testset "LAD+L1" begin
     λ = 5.0
     γ = 10.0
-    rr = LADRegression(λ, γ; penalize_intercept=true)
+    rr = LADRegression(λ, γ; penalize_intercept=true, scale_penalty_with_samples = false)
     J  = objective(rr, X, y1a)
     θ_ls    = X1 \ y1a
     θ_fista = fit(rr, X, y1a, solver=FISTA())
@@ -84,7 +85,7 @@ y1a  = outlify(y1, 0.1)
     if DO_COMPARISONS
         # Compare with R's QuantReg package
         # NOTE: QuantReg doesn't apply the penalty on the intercept
-        rr = LADRegression(5.0; penalty=:l1)
+        rr = LADRegression(5.0; penalty=:l1, scale_penalty_with_samples = false)
         J  = objective(rr, X, y1a)
         θ_ls       = X1 \ y1a
         θ_fista    = fit(rr, X, y1a, solver=FISTA())

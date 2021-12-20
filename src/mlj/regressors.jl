@@ -33,7 +33,8 @@ $SIGNATURES
 
 Ridge regression model with objective function
 
-``|Xθ - y|₂²/2 + λ|θ|₂²/2``
+``|Xθ - y|₂²/2 + n⋅λ|θ|₂²/2``
+
 
 ## Parameters
 
@@ -48,13 +49,15 @@ Ridge regression model with objective function
     lambda::Real             = 1.0
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
+    scale_penalty_with_samples::Bool = true
     solver::Option{Solver}   = nothing
 end
 
 glr(m::RidgeRegressor) =
     RidgeRegression(m.lambda,
                     fit_intercept=m.fit_intercept,
-                    penalize_intercept=m.penalize_intercept)
+                    penalize_intercept=m.penalize_intercept,
+                    scale_penalty_with_samples=m.scale_penalty_with_samples)
 
 descr(::Type{RidgeRegressor}) = "Regression with objective function ``|Xθ - y|₂²/2 + λ|θ|₂²/2``."
 
@@ -82,13 +85,15 @@ Lasso regression model with objective function
     lambda::Real             = 1.0
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
+    scale_penalty_with_samples::Bool = true
     solver::Option{Solver}   = nothing
 end
 
 glr(m::LassoRegressor) =
     LassoRegression(m.lambda,
                     fit_intercept=m.fit_intercept,
-                    penalize_intercept=m.penalize_intercept)
+                    penalize_intercept=m.penalize_intercept,
+                    scale_penalty_with_samples=m.scale_penalty_with_samples)
 
 descr(::Type{LassoRegressor}) = "Regression with objective function ``|Xθ - y|₂²/2 + λ|θ|₁``."
 
@@ -118,13 +123,15 @@ Elastic net regression model with objective function
     gamma::Real              = 0.0
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
+    scale_penalty_with_samples::Bool = true
     solver::Option{Solver}   = nothing
 end
 
 glr(m::ElasticNetRegressor) =
     ElasticNetRegression(m.lambda, m.gamma,
                          fit_intercept=m.fit_intercept,
-                         penalize_intercept=m.penalize_intercept)
+                         penalize_intercept=m.penalize_intercept,
+                         scale_penalty_with_samples=m.scale_penalty_with_samples)
 
 descr(::Type{ElasticNetRegressor}) = "Regression with objective function ``|Xθ - y|₂²/2 + λ|θ|₂²/2 + γ|θ|₁``."
 
@@ -161,6 +168,7 @@ where `ρ` is a robust loss function (e.g. the Huber function).
     penalty::SymStr          = :l2
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
+    scale_penalty_with_samples::Bool = true
     solver::Option{Solver}   = nothing
 end
 
@@ -168,7 +176,8 @@ glr(m::RobustRegressor) =
     RobustRegression(m.rho, m.lambda, m.gamma;
                      penalty=Symbol(m.penalty),
                      fit_intercept=m.fit_intercept,
-                     penalize_intercept=m.penalize_intercept)
+                     penalize_intercept=m.penalize_intercept,
+                     scale_penalty_with_samples=m.scale_penalty_with_samples)
 
 descr(::Type{RobustRegressor}) = "Robust regression with objective ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` for a given robust `ρ`."
 
@@ -191,6 +200,7 @@ is a quadratic loss).
     penalty::SymStr          = :l2
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
+    scale_penalty_with_samples::Bool = true
     solver::Option{Solver}   = nothing
 end
 
@@ -198,7 +208,8 @@ glr(m::HuberRegressor) =
     HuberRegression(m.delta, m.lambda, m.gamma;
                     penalty=Symbol(m.penalty),
                     fit_intercept=m.fit_intercept,
-                    penalize_intercept=m.penalize_intercept)
+                    penalize_intercept=m.penalize_intercept,
+                    scale_penalty_with_samples=m.scale_penalty_with_samples)
 
 descr(::Type{HuberRegressor}) = "Robust regression with objective ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` where `ρ` is the Huber Loss."
 
@@ -221,6 +232,7 @@ with default `0.5` for the median regression).
     penalty::SymStr          = :l2
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
+    scale_penalty_with_samples::Bool = true
     solver::Option{Solver}   = nothing
 end
 
@@ -228,7 +240,8 @@ glr(m::QuantileRegressor) =
     QuantileRegression(m.delta, m.lambda, m.gamma;
                        penalty=Symbol(m.penalty),
                        fit_intercept=m.fit_intercept,
-                       penalize_intercept=m.penalize_intercept)
+                       penalize_intercept=m.penalize_intercept,
+                       scale_penalty_with_samples=m.scale_penalty_with_samples)
 
 descr(::Type{QuantileRegressor}) = "Robust regression with objective ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` where `ρ` is the Quantile Loss."
 
@@ -253,6 +266,7 @@ See also `RobustRegressor`.
     penalty::SymStr          = :l2
     fit_intercept::Bool      = true
     penalize_intercept::Bool = false
+    scale_penalty_with_samples::Bool = true
     solver::Option{Solver}   = nothing
 end
 
@@ -260,6 +274,7 @@ glr(m::LADRegressor) =
     LADRegression(m.lambda, m.gamma;
                   penalty=Symbol(m.penalty),
                   fit_intercept=m.fit_intercept,
-                  penalize_intercept=m.penalize_intercept)
+                  penalize_intercept=m.penalize_intercept,
+                  scale_penalty_with_samples=m.scale_penalty_with_samples)
 
 descr(::Type{LADRegressor}) = "Robust regression with objective ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` where `ρ` is the Absolute Loss."

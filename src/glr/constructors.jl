@@ -14,6 +14,8 @@ Generalized Linear Regression (GLR) model with objective function:
 
 where `L` is a loss function, `P` a penalty, `y` is the vector of observed
 response, `X` is the feature matrix and `θ` the vector of parameters.
+If `scale_penalty_with_samples = true` (default) the penalty is automatically
+scaled with the number of samples.
 
 Special cases include:
 
@@ -28,6 +30,7 @@ Special cases include:
     penalty::P               = NoPenalty() # P(θ)
     fit_intercept::Bool      = true        # add intercept ? def=true
     penalize_intercept::Bool = false
+    scale_penalty_with_samples::Bool = true
 end
 
 const GLR = GeneralizedLinearRegression
@@ -48,44 +51,59 @@ LinearRegression(; fit_intercept::Bool=true) = GLR(fit_intercept=fit_intercept)
 """
 $SIGNATURES
 
-Objective function: ``|Xθ - y|₂²/2 + λ|θ|₂²/2``.
+Objective function: ``|Xθ - y|₂²/2 + n⋅λ|θ|₂²/2``,
+where ``n`` is the number of samples `size(X, 1)`.
+With `scale_penalty_with_samples = false` the objective function is
+``|Xθ - y|₂²/2 + λ|θ|₂²/2``.
 """
 function RidgeRegression(λ::Real=1.0; lambda::Real=λ, fit_intercept::Bool=true,
-                         penalize_intercept::Bool=false)
+                         penalize_intercept::Bool=false,
+                         scale_penalty_with_samples::Bool=true)
     check_pos(lambda)
     GLR(penalty=lambda*L2Penalty(),
         fit_intercept=fit_intercept,
-        penalize_intercept=penalize_intercept)
+        penalize_intercept=penalize_intercept,
+        scale_penalty_with_samples=scale_penalty_with_samples)
 end
 
 
 """
 $SIGNATURES
 
-Objective function: ``|Xθ - y|₂²/2 + λ|θ|₁``.
+Objective function: ``|Xθ - y|₂²/2 + n⋅λ|θ|₁``,
+where ``n`` is the number of samples `size(X, 1)`.
+With `scale_penalty_with_samples = false` the objective function is
+``|Xθ - y|₂²/2 + λ|θ|₁``
 """
 function LassoRegression(λ::Real=1.0; lambda::Real=λ, fit_intercept::Bool=true,
-                         penalize_intercept::Bool=false)
+                         penalize_intercept::Bool=false,
+                         scale_penalty_with_samples::Bool=true)
     check_pos(lambda)
     GLR(penalty=lambda*L1Penalty(),
         fit_intercept=fit_intercept,
-        penalize_intercept=penalize_intercept)
+        penalize_intercept=penalize_intercept,
+        scale_penalty_with_samples=scale_penalty_with_samples)
 end
 
 
 """
 $SIGNATURES
 
-Objective function: ``|Xθ - y|₂²/2 + λ|θ|₂²/2 + γ|θ|₁``.
+Objective function: ``|Xθ - y|₂²/2 + n⋅λ|θ|₂²/2 + n⋅γ|θ|₁``,
+where ``n`` is the number of samples `size(X, 1)`.
+With `scale_penalty_with_samples = false` the objective function is
+``|Xθ - y|₂²/2 + λ|θ|₂²/2 + γ|θ|₁``
 """
 function ElasticNetRegression(λ::Real=1.0, γ::Real=1.0;
                               lambda::Real=λ, gamma::Real=γ,
                               fit_intercept::Bool=true,
-                              penalize_intercept::Bool=false)
+                              penalize_intercept::Bool=false,
+                              scale_penalty_with_samples::Bool=true)
     check_pos.((lambda, gamma))
     GLR(penalty=lambda*L2Penalty()+gamma*L1Penalty(),
         fit_intercept=fit_intercept,
-        penalize_intercept=penalize_intercept)
+        penalize_intercept=penalize_intercept,
+        scale_penalty_with_samples=scale_penalty_with_samples)
 end
 
 
@@ -122,6 +140,7 @@ function LogisticRegression(λ::Real=1.0, γ::Real=0.0;
                             penalty::Symbol=iszero(gamma) ? :l2 : :en,
                             fit_intercept::Bool=true,
                             penalize_intercept::Bool=false,
+                            scale_penalty_with_samples::Bool=true,
                             multi_class::Bool=false,
                             nclasses::Integer=0)
     penalty = _l1l2en(lambda, gamma, penalty, "Logistic regression")
@@ -134,7 +153,8 @@ function LogisticRegression(λ::Real=1.0, γ::Real=0.0;
     GLR(loss=loss,
         penalty=penalty,
         fit_intercept=fit_intercept,
-        penalize_intercept=penalize_intercept)
+        penalize_intercept=penalize_intercept,
+        scale_penalty_with_samples=scale_penalty_with_samples)
 end
 
 """
@@ -159,12 +179,14 @@ function RobustRegression(ρ::RobustRho=HuberRho(0.1), λ::Real=1.0, γ::Real=0.
                           rho::RobustRho=ρ, lambda::Real=λ, gamma::Real=γ,
                           penalty::Symbol=iszero(gamma) ? :l2 : :en,
                           fit_intercept::Bool=true,
+                          scale_penalty_with_samples::Bool=true,
                           penalize_intercept::Bool=false)
     penalty = _l1l2en(lambda, gamma, penalty, "Robust regression")
     GLR(loss=RobustLoss(rho),
         penalty=penalty,
         fit_intercept=fit_intercept,
-        penalize_intercept=penalize_intercept)
+        penalize_intercept=penalize_intercept,
+        scale_penalty_with_samples=scale_penalty_with_samples)
 end
 
 """
@@ -181,10 +203,12 @@ function HuberRegression(δ::Real=0.5, λ::Real=1.0, γ::Real=0.0;
                          delta::Real=δ, lambda::Real=λ, gamma::Real=γ,
                          penalty::Symbol=iszero(gamma) ? :l2 : :en,
                          fit_intercept::Bool=true,
+                         scale_penalty_with_samples::Bool=true,
                          penalize_intercept::Bool=false)
     return RobustRegression(HuberRho(delta), lambda, gamma;
                             penalty=penalty, fit_intercept=fit_intercept,
-                            penalize_intercept=penalize_intercept)
+                            penalize_intercept=penalize_intercept,
+                            scale_penalty_with_samples=scale_penalty_with_samples)
 end
 
 """
@@ -200,10 +224,12 @@ function QuantileRegression(δ::Real=0.5, λ::Real=1.0, γ::Real=0.0;
                             delta::Real=δ, lambda::Real=λ, gamma::Real=γ,
                             penalty::Symbol=iszero(gamma) ? :l2 : :en,
                             fit_intercept::Bool=true,
+                            scale_penalty_with_samples::Bool=true,
                             penalize_intercept::Bool=false)
     return RobustRegression(QuantileRho(delta), lambda, gamma;
                             penalty=penalty, fit_intercept=fit_intercept,
-                            penalize_intercept=penalize_intercept)
+                            penalize_intercept=penalize_intercept,
+                            scale_penalty_with_samples=scale_penalty_with_samples)
 end
 
 """
@@ -218,8 +244,10 @@ This is a specific type of Quantile Regression with `δ=0.5` (median).
 function LADRegression(λ::Real=1.0, γ::Real=0.0;
                        lambda::Real=λ, gamma::Real=γ,
                        penalty::Symbol=iszero(gamma) ? :l2 : :en,
+                       scale_penalty_with_samples::Bool=true,
                        fit_intercept::Bool=true, penalize_intercept::Bool=false)
     return QuantileRegression(0.5, lambda, gamma;
                               penalty=penalty, fit_intercept=fit_intercept,
-                              penalize_intercept=penalize_intercept)
+                              penalize_intercept=penalize_intercept,
+                              scale_penalty_with_samples=scale_penalty_with_samples)
 end

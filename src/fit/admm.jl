@@ -9,7 +9,7 @@
 
 # function _fit(glr::GLR{L1Loss,<:L2R}, solver::ADMM, X, y)
 #     n, p = size(X)
-#     λ    = getscale(glr.penalty)
+#     λ    = getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, length(y), 1.)
 #     φ    = 1.0 / solver.rho
 #     λφ   = λ * φ
 #     # pre-computations
@@ -63,7 +63,7 @@
 #
 # function _fit(glr::GLR{L1Loss,<:L2R}, solver::FADMM, X, y)
 #     n, p = size(X)
-#     λ    = getscale(glr.penalty)
+#     λ    = getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, length(y), 1.)
 #     ρ    = solver.rho
 #     η    = solver.eta   # linked to restart frequency
 #     τ    = solver.tau   # linked to updating ρ

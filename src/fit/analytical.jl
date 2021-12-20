@@ -18,7 +18,7 @@ Assuming `n` dominates `p`,
 function _fit(glr::GLR{L2Loss,<:L2R}, solver::Analytical, X, y, scratch)
     # full solve
     if !solver.iterative
-        λ  = getscale(glr.penalty)
+        λ  = getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, length(y), 1.)
         if iszero(λ)
             # standard LS solution
             return augment_X(X, glr.fit_intercept) \ y

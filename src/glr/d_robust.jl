@@ -14,7 +14,7 @@
 function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch
               ) where ρ <: RobustRho1P{δ} where δ
     n, p = size(X)
-    λ    = getscale(glr.penalty)
+    λ    = getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.)
     ψ_   = ψ(ρ)
     ϕ_   = ϕ(ρ)
     if glr.fit_intercept
@@ -72,7 +72,7 @@ end
 function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch
              ) where ρ <: RobustRho1P{δ} where δ
     n, p = size(X)
-    λ    = getscale(glr.penalty)
+    λ    = getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.)
     ϕ_   = ϕ(ρ)
     # see d_logistic.jl for more comments on this (similar procedure)
     if glr.fit_intercept
@@ -119,7 +119,7 @@ end
 function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch;
              threshold=1e-6) where ρ <: RobustRho1P{δ} where δ
     n, p = size(X)
-    λ    = getscale(glr.penalty)
+    λ    = getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.)
     ω_   = ω(ρ, threshold)
     # For one θ, we get one system of equation to solve
     # which we solve via an iterative method so, one θ
@@ -167,8 +167,8 @@ end
 # differentiable
 function smooth_fg!(glr::GLR{RobustLoss{ρ},<:ENR}, X, y, scratch
                     ) where ρ <: RobustRho1P{δ} where δ
-    λ    = getscale_l2(glr.penalty)
     n, p = size(X)
+    λ    = getscale_l2(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.)
     ψ_   = ψ(ρ)
     (g, θ) -> begin
         r   = scratch.n
