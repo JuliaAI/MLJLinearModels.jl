@@ -14,7 +14,7 @@
 function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
     n, p = size(X)
     J    = objective(glr, n) # GLR objective (loss+penalty)
-    λ    = getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.)
+    λ    = get_penalty_scale(glr, n)
     if glr.fit_intercept
         (f, g, H, θ) -> begin
             Xθ = scratch.n
@@ -78,7 +78,7 @@ end
 
 function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
     n, p = size(X)
-    λ    = getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.)
+    λ    = get_penalty_scale(glr, n)
     if glr.fit_intercept
         # H = [X 1]'Λ[X 1] + λ I
         # rows a 1:p = [X'ΛX + λI | X'Λ1]
@@ -155,7 +155,7 @@ end
 function fg!(glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch)
     n, p = size(X)
     c    = getc(glr, y)
-    λ    = getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.)
+    λ    = get_penalty_scale(glr, n)
     (f, g, θ) -> begin
         P  = scratch.nc
         apply_X!(P, X, θ, c, scratch)                # O(npc) store n * c
@@ -209,7 +209,7 @@ end
 
 function Hv!(glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch)
     n, p = size(X)
-    λ = getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.)
+    λ = get_penalty_scale(glr, n)
     c = getc(glr, y)
     # NOTE:
     # * ideally P and Q should be recuperated from gradient computations (fghv!)

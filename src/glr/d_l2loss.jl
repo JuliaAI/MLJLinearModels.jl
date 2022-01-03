@@ -14,7 +14,7 @@
 
 function Hv!(glr::GLR{L2Loss,<:L2R}, X, y, scratch)
     n, p = size(X)
-    λ    = getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.)
+    λ    = get_penalty_scale(glr, n)
     if glr.fit_intercept
         # H = [X 1]'[X 1] + λ I
         # rows a 1:p = [X'X + λI | X'1]
@@ -61,7 +61,7 @@ end
 # ---------------------------------------------------------
 
 function smooth_fg!(glr::GLR{L2Loss,<:ENR}, X, y, scratch)
-    λ = getscale_l2(glr.penalty) * ifelse(glr.scale_penalty_with_samples, length(y), 1.)
+    λ = get_penalty_scale_l2(glr, length(y))
     (g, θ) -> begin
         # cache contains the residuals (Xθ-y)
         r = scratch.n

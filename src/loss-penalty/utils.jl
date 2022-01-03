@@ -18,3 +18,6 @@ getscale_l2(p1::Union{NoPenalty,L1R}) = 0.0
 getscale_l2(p2::L2R) = p2 |> getscale
 getscale_l2(cp::CompositePenalty) = is_elnet(cp) ? cp |> get_l2 |> getscale :
                                                    @error "Case not implemented."
+
+get_penalty_scale(glr, n) = getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, float(n), 1.0)
+get_penalty_scale_l2(glr, n) = getscale_l2(glr.penalty) * ifelse(glr.scale_penalty_with_samples, float(n), 1.0)
