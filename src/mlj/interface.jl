@@ -4,6 +4,19 @@ export LinearRegressor, RidgeRegressor, LassoRegressor, ElasticNetRegressor,
 
 const SymStr = Union{Symbol,String}
 
+function example_docstring(m; nclasses = nothing)
+"""
+## Example
+
+    using MLJ
+    X, y = $(nclasses == nothing ? "make_regression()" : "make_blobs(centers = $nclasses)")
+    mach = fit!(machine($m(), X, y))
+    predict(mach, X)
+    fitted_params(mach)
+
+"""
+end
+
 include("regressors.jl")
 include("classifiers.jl")
 

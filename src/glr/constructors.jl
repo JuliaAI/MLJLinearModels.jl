@@ -132,8 +132,11 @@ end
 """
 $SIGNATURES
 
-Objective function: ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is either the
-logistic loss in the binary case or the multinomial loss otherwise.
+Objective function: ``L(y, Xθ) + n⋅λ|θ|₂²/2 + n⋅γ|θ|₁`` where `L` is either the
+logistic loss in the binary case or the multinomial loss otherwise and
+``n`` is the number of samples `size(X, 1)`.
+With `scale_penalty_with_samples = false` the objective function is
+``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁``.
 """
 function LogisticRegression(λ::Real=1.0, γ::Real=0.0;
                             lambda::Real=λ, gamma::Real=γ,
@@ -160,8 +163,11 @@ end
 """
 $SIGNATURES
 
-Objective function: ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁`` where `L` is the
-multinomial loss.
+Objective function: ``L(y, Xθ) + n⋅λ|θ|₂²/2 + n⋅γ|θ|₁`` where `L` is the
+multinomial loss and
+``n`` is the number of samples `size(X, 1)`.
+With `scale_penalty_with_samples = false` the objective function is
+``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁``.
 """
 MultinomialRegression(a...; kwa...) =
     LogisticRegression(a...; multi_class=true, kwa...)
@@ -172,8 +178,11 @@ MultinomialRegression(a...; kwa...) =
 """
 $SIGNATURES
 
-Objective function: ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` where ρ is a given function
-on the residuals.
+Objective function: ``∑ρ(Xθ - y) + n⋅λ|θ|₂² + n⋅γ|θ|₁`` where ρ is a given function
+on the residuals and
+``n`` is the number of samples `size(X, 1)`.
+With `scale_penalty_with_samples = false` the objective function is
+``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁``.
 """
 function RobustRegression(ρ::RobustRho=HuberRho(0.1), λ::Real=1.0, γ::Real=0.0;
                           rho::RobustRho=ρ, lambda::Real=λ, gamma::Real=γ,
@@ -194,10 +203,13 @@ $SIGNATURES
 
 Huber Regression with objective:
 
-``∑ρ(Xθ - y) + λ|θ|₂²/2 + γ|θ|₁``
+``∑ρ(Xθ - y) + n⋅λ|θ|₂²/2 + n⋅γ|θ|₁``
 
 Where `ρ` is the Huber function `ρ(r) = r²/2``  if `|r|≤δ` and
-`ρ(r)=δ(|r|-δ/2)` otherwise.
+`ρ(r)=δ(|r|-δ/2)` otherwise and
+``n`` is the number of samples `size(X, 1)`.
+With `scale_penalty_with_samples = false` the objective function is
+``∑ρ(Xθ - y) + λ|θ|₂²/2 + γ|θ|₁``.
 """
 function HuberRegression(δ::Real=0.5, λ::Real=1.0, γ::Real=0.0;
                          delta::Real=δ, lambda::Real=λ, gamma::Real=γ,
@@ -216,9 +228,12 @@ $SIGNATURES
 
 Quantile Regression with objective:
 
-``∑ρ(Xθ - y) + λ|θ|₂²/2 + γ|θ|₁``
+``∑ρ(Xθ - y) + n⋅λ|θ|₂²/2 + n⋅γ|θ|₁``
 
-Where `ρ` is the check function `ρ(r) = r(δ - 1(r < 0))`.
+Where `ρ` is the check function `ρ(r) = r(δ - 1(r < 0))` and
+``n`` is the number of samples `size(X, 1)`.
+With `scale_penalty_with_samples = false` the objective function is
+``∑ρ(Xθ - y) + λ|θ|₂²/2 + γ|θ|₁``.
 """
 function QuantileRegression(δ::Real=0.5, λ::Real=1.0, γ::Real=0.0;
                             delta::Real=δ, lambda::Real=λ, gamma::Real=γ,
@@ -237,7 +252,10 @@ $SIGNATURES
 
 Least Absolute Deviation regression with objective:
 
-``|Xθ - y|₁ + λ|θ|₂²/2 + γ|θ|₁``
+``|Xθ - y|₁ + n⋅λ|θ|₂²/2 + n⋅γ|θ|₁``
+where ``n`` is the number of samples `size(X, 1)`.
+With `scale_penalty_with_samples = false` the objective function is
+``|Xθ - y|₁ + λ|θ|₂²/2 + γ|θ|₁``.
 
 This is a specific type of Quantile Regression with `δ=0.5` (median).
 """
