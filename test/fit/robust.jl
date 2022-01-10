@@ -12,7 +12,8 @@ n, p = 500, 5
     # No intercept
     δ = 0.01
     λ = 3.0
-    hr = HuberRegression(δ, λ; fit_intercept=false)
+    hr = HuberRegression(δ, λ; fit_intercept=false,
+                               scale_penalty_with_samples = false)
     J = objective(hr, X, y)
     o = RobustLoss(Huber(δ)) + λ * L2Penalty()
     @test J(θ) ≈ o(y, X*θ, θ)
@@ -28,7 +29,8 @@ n, p = 500, 5
 
     δ = 0.01
     λ = 3.0
-    hr = HuberRegression(δ, λ; penalize_intercept=true)
+    hr = HuberRegression(δ, λ; penalize_intercept=true,
+                               scale_penalty_with_samples = false)
     J = objective(hr, X, y1)
     o = RobustLoss(Huber(δ)) + λ * L2Penalty()
     @test J(θ1) ≈ o(y1, X1*θ1, θ1)
@@ -45,7 +47,7 @@ n, p = 500, 5
     # don't penalize intercept
     δ = 0.01
     λ = 3.0
-    hr = HuberRegression(δ, λ)
+    hr = HuberRegression(δ, λ, scale_penalty_with_samples = false)
     J = objective(hr, X, y1)
     θ_newton   = fit(hr, X, y1, solver=Newton())
     θ_newtoncg = fit(hr, X, y1, solver=NewtonCG())
@@ -63,7 +65,9 @@ end
 @testset "AndrewsReg" begin
     δ = 0.1
     λ = 3.0
-    rr = RobustRegression(rho=Andrews(δ), lambda=λ; penalize_intercept=true)
+    rr = RobustRegression(rho=Andrews(δ), lambda=λ;
+                          penalize_intercept=true,
+                          scale_penalty_with_samples = false)
     J = objective(rr, X, y1)
     o = RobustLoss(AndrewsRho(δ)) + λ * L2Penalty()
     @test J(θ1) ≈ o(y1, X1*θ1, θ1)
@@ -81,7 +85,9 @@ end
 @testset "BisquareReg" begin
     δ = 0.1
     λ = 3.0
-    rr = RobustRegression(rho=Bisquare(δ), lambda=λ; penalize_intercept=true)
+    rr = RobustRegression(rho=Bisquare(δ), lambda=λ;
+                          penalize_intercept=true,
+                          scale_penalty_with_samples = false)
     J = objective(rr, X, y1)
     o = RobustLoss(BisquareRho(δ)) + λ * L2Penalty()
     @test J(θ1) ≈ o(y1, X1*θ1, θ1)
@@ -99,7 +105,8 @@ end
 @testset "LogisticReg" begin
     δ = 1.5
     λ = 1.0
-    rr = RobustRegression(rho=Logistic(delta=δ), lambda=λ, penalize_intercept=true)
+    rr = RobustRegression(rho=Logistic(delta=δ), lambda=λ, penalize_intercept=true,
+                          scale_penalty_with_samples = false)
     J = objective(rr, X, y1)
     o = RobustLoss(LogisticRho(δ)) + λ * L2Penalty()
     @test J(θ1) ≈ o(y1, X1*θ1, θ1)
@@ -117,7 +124,8 @@ end
 @testset "FairReg" begin
     δ = 0.1
     λ = 3.0
-    rr = RobustRegression(rho=Fair(δ), lambda=λ, penalize_intercept=true)
+    rr = RobustRegression(rho=Fair(δ), lambda=λ, penalize_intercept=true,
+                          scale_penalty_with_samples = false)
     J = objective(rr, X, y1)
     o = RobustLoss(Fair(δ)) + λ * L2Penalty()
     @test J(θ1) ≈ o(y1, X1*θ1, θ1)
@@ -137,7 +145,8 @@ end
 @testset "TalwarReg" begin
     δ = 0.1
     λ = 3.0
-    rr = RobustRegression(rho=Talwar(δ), lambda=λ, penalize_intercept=true)
+    rr = RobustRegression(rho=Talwar(δ), lambda=λ, penalize_intercept=true,
+                          scale_penalty_with_samples = false)
     J = objective(rr, X, y1)
     o = RobustLoss(Talwar(δ)) + λ * L2Penalty()
     @test J(θ1) ≈ o(y1, X1*θ1, θ1)
@@ -167,7 +176,8 @@ y1a  = outlify(y1, 0.1)
     γ  = 10.0
 
     # this is a nice case where the robust is actually smooth
-    rr = RobustRegression(rho=Huber(δ), lambda=λ, gamma=γ, penalize_intercept=true)
+    rr = RobustRegression(rho=Huber(δ), lambda=λ, gamma=γ, penalize_intercept=true,
+                          scale_penalty_with_samples = false)
     J  = objective(rr, X, y1a)
     θ_ls    = X1 \ y1a
     θ_fista = fit(rr, X, y1a, solver=FISTA())

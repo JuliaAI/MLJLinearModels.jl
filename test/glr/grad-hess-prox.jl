@@ -8,16 +8,24 @@ maskint = vcat(ones(p), 0.0)
     # without fit_intercept
     s = R.scratch(X; i=false)
     # >> Hv!
-    r = RidgeRegression(λ; fit_intercept=false)
+    r = RidgeRegression(λ; fit_intercept=false, scale_penalty_with_samples = false)
     hv! = R.Hv!(r, X, y, s)
     v = randn(rng, length(θ))
     hv = similar(v)
     hv!(hv, v)
     @test hv ≈              X' * (X * v) .+ λ * v
     # ------------------
+    # >> Hv! scale with samples
+    r = RidgeRegression(λ; fit_intercept=false, scale_penalty_with_samples = true)
+    hv! = R.Hv!(r, X, y, s)
+    v = randn(rng, length(θ))
+    hv = similar(v)
+    hv!(hv, v)
+    @test hv ≈              X' * (X * v) .+ λ * size(X, 1) * v
+    # ------------------
     # with fit_intercept
     s = R.scratch(X; i=true)
-    r = RidgeRegression(λ; penalize_intercept=true)
+    r = RidgeRegression(λ; penalize_intercept=true, scale_penalty_with_samples = false)
     hv! = R.Hv!(r, X, y, s)
     v = randn(rng, p+1)
     hv = similar(v)
@@ -25,7 +33,7 @@ maskint = vcat(ones(p), 0.0)
     @test hv ≈              X1' * (X1 * v) .+ λ * v
     # ------------------
     # with fit_intercept but no penalty
-    r = RidgeRegression(λ)
+    r = RidgeRegression(λ, scale_penalty_with_samples = false)
     hv! = R.Hv!(r, X, y, s)
     v = randn(rng, p+1)
     hv = similar(v)
@@ -38,7 +46,7 @@ end
     s = R.scratch(X; i=false)
     λ = 6.2
     γ = 0.7
-    r = LassoRegression(λ; fit_intercept=false)
+    r = LassoRegression(λ; fit_intercept=false, scale_penalty_with_samples = false)
     fg! = R.smooth_fg!(r, X, y, s)
     g = similar(θ)
     f = fg!(g, θ)
@@ -48,7 +56,7 @@ end
     s = R.scratch(X; i=true)
     λ = 3.4
     γ = 2.7
-    r = LassoRegression(λ; penalize_intercept=true)
+    r = LassoRegression(λ; penalize_intercept=true, scale_penalty_with_samples = false)
     fg! = R.smooth_fg!(r, X, y1, s)
     g = similar(θ1)
     f = fg!(g, θ1)
@@ -56,7 +64,7 @@ end
     @test g ≈               X1' * (X1 * θ1 .- y1)
 
     # elasticnet (with intercept)
-    r = ElasticNetRegression(λ, γ; penalize_intercept=true)
+    r = ElasticNetRegression(λ, γ; penalize_intercept=true, scale_penalty_with_samples = false)
     fg! = R.smooth_fg!(r, X, y1, s)
     g = similar(θ1)
     f = fg!(g, θ1)
@@ -64,7 +72,7 @@ end
     @test g ≈               X1' * (X1*θ1 .- y1) .+ λ .* θ1
 
     # elasticnet with intercept but no penalty of intercept
-    r = ElasticNetRegression(λ, γ)
+    r = ElasticNetRegression(λ, γ; scale_penalty_with_samples = false)
     fg! = R.smooth_fg!(r, X, y1, s)
     g = similar(θ1)
     f = fg!(g, θ1)
@@ -81,7 +89,7 @@ maskint = vcat(ones(p), 0.0)
     # fgh! without fit_intercept
     s = R.scratch(X; i=false)
     λ = 0.5
-    lr = LogisticRegression(λ; fit_intercept=false)
+    lr = LogisticRegression(λ; fit_intercept=false, scale_penalty_with_samples = false)
     fgh! = R.fgh!(lr, X, y, s)
     θ = randn(rng, p)
     J = objective(lr, X, y)
@@ -116,7 +124,7 @@ maskint = vcat(ones(p), 0.0)
     # fgh! with fit_intercept
     s = R.scratch(X; i=true)
     λ = 0.5
-    lr1 = LogisticRegression(λ; penalize_intercept=true)
+    lr1 = LogisticRegression(λ; penalize_intercept=true, scale_penalty_with_samples = false)
     fgh! = R.fgh!(lr1, X, y, s)
     θ1 = randn(rng, p+1)
     J  = objective(lr1, X, y)
@@ -148,7 +156,7 @@ maskint = vcat(ones(p), 0.0)
     @test Hv ≈ H1 * v
 
     # fgh! with fit intercept and no penalty on intercept
-    lr1 = LogisticRegression(λ)
+    lr1 = LogisticRegression(λ, scale_penalty_with_samples = false)
     fgh! = R.fgh!(lr1, X, y, s)
     θ1 = randn(rng, p+1)
     J  = objective(lr1, X, y)
@@ -230,7 +238,7 @@ end
 
     # without intercept
     s = R.scratch(X; i=false)
-    hlr  = HuberRegression(δ, λ; fit_intercept=false)
+    hlr  = HuberRegression(δ, λ; fit_intercept=false, scale_penalty_with_samples = false)
     fgh! = R.fgh!(hlr, X, y, s)
     θ_   = randn(rng, p) # otherwise the residuals are too small and everything is in the l1-ball
 
@@ -253,7 +261,7 @@ end
 
     # with intercept
     s = R.scratch(X; i=true)
-    hlr1  = HuberRegression(δ, λ; penalize_intercept=true)
+    hlr1  = HuberRegression(δ, λ; penalize_intercept=true, scale_penalty_with_samples = false)
     fgh1! = R.fgh!(hlr1, X, y1, s)
     θ1_   = randn(rng, p+1)
 
@@ -268,7 +276,7 @@ end
     @test Hv ≈ H * v
 
     # with intercept
-    hlr1  = HuberRegression(δ, λ; penalize_intercept=true)
+    hlr1  = HuberRegression(δ, λ; penalize_intercept=true, scale_penalty_with_samples = false)
     fgh1! = R.fgh!(hlr1, X, y1, s)
     θ1_   = randn(rng, p+1)
 
@@ -290,7 +298,7 @@ end
     @test Hv1 ≈              H1 * v1
 
     # with intercept and no penalty on intercept
-    hlr1  = HuberRegression(δ, λ)
+    hlr1  = HuberRegression(δ, λ, scale_penalty_with_samples = false)
     fgh1! = R.fgh!(hlr1, X, y1, s)
     θ1_   = randn(rng, p+1)
 
