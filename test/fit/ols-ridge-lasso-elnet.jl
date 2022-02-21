@@ -92,6 +92,12 @@ n, p = 500, 100
         @test isapprox(J(θ1_sk), 178.5, rtol=1e-3)
         @test nnz(θ1_sk) == 6
     end
+
+    # scale_penalty_with_samples
+    lr_scaled = LassoRegression(λ/n; fit_intercept=false,
+                                     scale_penalty_with_samples = true)
+    θ_scaled = fit(lr_scaled, X, y)
+    @test θ_scaled ≈ θ_fista
 end
 
 @testset "elnet" begin
