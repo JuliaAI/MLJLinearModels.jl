@@ -116,7 +116,7 @@ function form_XtX(X, fit_intercept, lambda = 0, penalize_intercept = true)
     end
     if !iszero(lambda)
         λ = convert(eltype(XtX), lambda)
-        @inbounds for i in 1:size(XtX, 1) - 1 + penalize_intercept
+        @inbounds for i in 1:size(XtX, 1) + fit_intercept * (penalize_intercept - 1)
             XtX[i,i] += λ
         end
     end
