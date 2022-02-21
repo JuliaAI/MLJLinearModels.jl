@@ -56,6 +56,12 @@ n, p = 500, 100
     @test nnz(θ_fista) == 12 # sparse
     @test nnz(θ_ista)  == 12
 
+    # scale_penalty_with_samples
+    lr_scaled = LassoRegression(λ/n; fit_intercept=false,
+                                     scale_penalty_with_samples = true)
+    θ_scaled = fit(lr_scaled, X, y)
+    @test θ_scaled ≈ θ_fista
+
     # with intercept
     lr1 = LassoRegression(λ, penalize_intercept=true,
                              scale_penalty_with_samples = false)
