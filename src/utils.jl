@@ -101,7 +101,7 @@ $SIGNATURES
 
 Form (X'X) while being memory aware (assuming p ≪ n).
 """
-function form_XtX(X, fit_intercept, lambda=0)
+function form_XtX(X, fit_intercept, lambda = 0, penalize_intercept = true)
     if fit_intercept
         n, p = size(X)
         XtX  = zeros(p+1, p+1)
@@ -116,7 +116,7 @@ function form_XtX(X, fit_intercept, lambda=0)
     end
     if !iszero(lambda)
         λ = convert(eltype(XtX), lambda)
-        @inbounds for i in 1:size(XtX, 1)
+        @inbounds for i in 1:size(XtX, 1) + fit_intercept * (penalize_intercept - 1)
             XtX[i,i] += λ
         end
     end
