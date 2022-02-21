@@ -15,8 +15,8 @@
 # prox_{αr}(z) = sign(z)(abs(z) - αλ)₊
 # ------------------------------------
 
-function prox!(glr::GLR{<:Loss,<:Union{L1R,CompositePenalty}})
-    γ = getscale_l1(glr.penalty)
+function prox!(glr::GLR{<:Loss,<:Union{L1R,CompositePenalty}}, n)
+    γ = get_penalty_scale_l1(glr, n)
     (p, α, z) -> begin
         p .= soft_thresh.(z, α * γ)
         glr.fit_intercept && (glr.penalize_intercept || (p[end] = z[end]))
