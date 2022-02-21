@@ -22,11 +22,16 @@ end
                           scale_penalty_with_samples = false)
     rr1 = RidgeRegression(λ, penalize_intercept=true,
                              scale_penalty_with_samples = false)
+    rr2 = RidgeRegression(λ, fit_intercept = true,
+                          penalize_intercept = false,
+                          scale_penalty_with_samples = false)
 
     β_ref  = (X'X + λ*I) \ (X'y)
     β_ref1 = (X1'X1 + λ*I) \ (X1'y1)
+    β_ref2 = (X1'X1 + diagm(push!(fill(λ, p), 0))) \ (X1'y1)
     @test β_ref ≈ fit(rr, X, y)
     @test β_ref1 ≈ fit(rr1, X, y1)
+    @test β_ref2 ≈ fit(rr2, X, y1)
 
     β_cg  = fit(rr, X, y; solver=CG())
     β_cg1 = fit(rr1, X, y1; solver=CG())
