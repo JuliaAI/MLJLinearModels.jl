@@ -18,13 +18,13 @@ Assuming `n` dominates `p`,
 function _fit(glr::GLR{L2Loss,<:L2R}, solver::Analytical, X, y, scratch)
     # full solve
     if !solver.iterative
-        λ  = getscale(glr.penalty)
+        λ  = get_penalty_scale(glr, length(y))
         if iszero(λ)
             # standard LS solution
             return augment_X(X, glr.fit_intercept) \ y
         else
             # Ridge case -- form the Hat Matrix then solve
-            H = form_XtX(X, glr.fit_intercept, λ)
+            H = form_XtX(X, glr.fit_intercept, λ, glr.penalize_intercept)
             b = X'y
             glr.fit_intercept && (b = vcat(b, sum(y)))
             return cholesky!(H) \ b

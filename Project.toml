@@ -1,7 +1,7 @@
 name = "MLJLinearModels"
 uuid = "6ee0df7b-362f-4a72-a706-9e79364fb692"
 authors = ["Thibaut Lienart <tlienart@me.com>"]
-version = "0.5.6"
+version = "0.6.1"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
@@ -19,7 +19,7 @@ LinearMaps = "2.6, 3.2"
 MLJModelInterface = "0.3, 0.4, 1.0"
 Optim = "0.20, 0.21, 1"
 Parameters = "0.12"
-julia = "^1"
+julia = "1.5"
 
 [extras]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"

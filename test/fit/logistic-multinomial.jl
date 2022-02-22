@@ -4,7 +4,8 @@ n, p = 500, 5
 @testset "Logreg" begin
     # No intercept
     λ = 5.0
-    lr = LogisticRegression(λ; fit_intercept=false)
+    lr = LogisticRegression(λ; fit_intercept=false,
+                               scale_penalty_with_samples = false)
     J  = objective(lr, X, y)
     o  = LogisticLoss() + λ * L2Penalty()
     @test J(θ) == o(y, X*θ, θ)
@@ -17,7 +18,8 @@ n, p = 500, 5
     @test isapprox(J(θ_lbfgs),    184.704499, rtol=1e-5)
 
     # With intercept
-    lr1 = LogisticRegression(λ; penalize_intercept=true)
+    lr1 = LogisticRegression(λ; penalize_intercept=true,
+                                scale_penalty_with_samples = false)
     J   = objective(lr1, X, y1)
     θ_newton   = fit(lr1, X, y1, solver=Newton())
     θ_newtoncg = fit(lr1, X, y1, solver=NewtonCG())
@@ -28,7 +30,7 @@ n, p = 500, 5
     @test isapprox(J(θ_lbfgs),    230.47826, rtol=1e-5)
 
     # with intercept and not penalizing it
-    lr1 = LogisticRegression(λ)
+    lr1 = LogisticRegression(λ, scale_penalty_with_samples = false)
     J   = objective(lr1, X, y1)
     θ_newton   = fit(lr1, X, y1, solver=Newton())
     θ_newtoncg = fit(lr1, X, y1, solver=NewtonCG())
@@ -62,7 +64,8 @@ n, p, c = 500, 5, 4
 @testset "Multinomial" begin
     # No intercept
     λ = 5.0
-    mnr = MultinomialRegression(λ; fit_intercept=false)
+    mnr = MultinomialRegression(λ; fit_intercept=false,
+                                   scale_penalty_with_samples = false)
     J   = objective(mnr, X, y; c=c)
     θ_newtoncg = fit(mnr, X, y, solver=NewtonCG())
     θ_lbfgs    = fit(mnr, X, y, solver=R.LBFGS())
@@ -71,7 +74,8 @@ n, p, c = 500, 5, 4
     @test isapprox(J(θ_lbfgs),    408.90295, rtol=1e-5)
 
     #  With intercept
-    mnr = MultinomialRegression(λ; penalize_intercept=true)
+    mnr = MultinomialRegression(λ; penalize_intercept=true,
+                                   scale_penalty_with_samples = false)
     J   = objective(mnr, X, y1; c=c)
     θ_newtoncg = fit(mnr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(mnr, X, y1, solver=R.LBFGS())
@@ -79,7 +83,7 @@ n, p, c = 500, 5, 4
     @test isapprox(J(θ_newtoncg),  375.95659, rtol=1e-5)
     @test isapprox(J(θ_lbfgs),     375.95659, rtol=1e-5)
 
-    mnr = MultinomialRegression(λ)
+    mnr = MultinomialRegression(λ, scale_penalty_with_samples = false)
     J   = objective(mnr, X, y1; c=c)
     θ_newtoncg = fit(mnr, X, y1, solver=NewtonCG())
     θ_lbfgs    = fit(mnr, X, y1, solver=R.LBFGS())
@@ -112,7 +116,8 @@ n, p = 500, 100
     α = 0.03
     λ = α * (1 - ρ) * n
     γ = α * ρ * n
-    enlr = LogisticRegression(λ, γ; penalize_intercept=true)
+    enlr = LogisticRegression(λ, γ; penalize_intercept=true,
+                                    scale_penalty_with_samples = false)
     J    = objective(enlr, X, y)
     θ_fista = fit(enlr, X, y)
     θ_ista  = fit(enlr, X, y, solver=ISTA())
@@ -125,7 +130,7 @@ n, p = 500, 100
     @test nnz(θ_ista)  == 15
 
     # pure l1 regularization (unclear how sklearn does the mixing of l1/l2 for logreg)
-    enlr = LogisticRegression(γ; penalty=:l1)
+    enlr = LogisticRegression(γ; penalty=:l1, scale_penalty_with_samples = false)
     J    = objective(enlr, X, y)
     θ_fista = fit(enlr, X, y)
     @test isapprox(J(θ),       255.83313, rtol=1e-5)
@@ -149,7 +154,8 @@ n, p, c = 1000, 100, 3
 @testset "Multin/EN" begin
     λ = 10
     γ = 50
-    enmnr = MultinomialRegression(λ, γ; penalize_intercept=true)
+    enmnr = MultinomialRegression(λ, γ; penalize_intercept=true,
+                                        scale_penalty_with_samples = false)
     J     = objective(enmnr, X, y; c=c)
     θ_fista = fit(enmnr, X, y)
     θ_ista  = fit(enmnr, X, y)
@@ -160,7 +166,8 @@ n, p, c = 1000, 100, 3
     @test nnz(θ_ista)  == 14
 
     # pure l1 regularization for sklearn comp
-    enmnr = MultinomialRegression(γ; penalty=:l1)
+    enmnr = MultinomialRegression(γ; penalty=:l1,
+                                     scale_penalty_with_samples = false)
     J     = objective(enmnr, X, y; c=c)
     θ_fista = fit(enmnr, X, y)
     @test isapprox(J(θ),       1492.82898, rtol=1e-5)

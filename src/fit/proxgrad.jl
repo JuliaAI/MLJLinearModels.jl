@@ -21,7 +21,7 @@ function _fit(glr::GLR, solver::ProxGrad, X, y, scratch)
     # functions
     _f      = smooth_objective(glr, X, y; c=c)
     _fg!    = smooth_fg!(glr, X, y, scratch)
-    _prox!  = prox!(glr)
+    _prox!  = prox!(glr, size(X, 1))
     bt_cond = θ̂ ->
                 _f(θ̂) > fθ̄ + dot(θ̂ .- θ̄, ∇fθ̄) + sum(abs2.(θ̂ .- θ̄)) / (2η)
     # loop-related
@@ -48,7 +48,7 @@ function _fit(glr::GLR, solver::ProxGrad, X, y, scratch)
         end
         if inner == solver.max_inner
             @warn "No appropriate stepsize found via backtracking; " *
-                  "interrupting."
+                  "interrupting. The reason could be input data that is not standardized."
             break
         end
         # update caches

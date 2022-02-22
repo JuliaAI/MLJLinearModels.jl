@@ -18,13 +18,20 @@ end
 
 @testset "ridgereg" begin
     λ   = 1.0
-    rr  = RidgeRegression(lambda=λ, fit_intercept=false)
-    rr1 = RidgeRegression(λ, penalize_intercept=true)
+    rr  = RidgeRegression(lambda=λ, fit_intercept=false,
+                          scale_penalty_with_samples = false)
+    rr1 = RidgeRegression(λ, penalize_intercept=true,
+                             scale_penalty_with_samples = false)
+    rr2 = RidgeRegression(λ, fit_intercept = true,
+                          penalize_intercept = false,
+                          scale_penalty_with_samples = false)
 
     β_ref  = (X'X + λ*I) \ (X'y)
     β_ref1 = (X1'X1 + λ*I) \ (X1'y1)
+    β_ref2 = (X1'X1 + diagm(push!(fill(λ, p), 0))) \ (X1'y1)
     @test β_ref ≈ fit(rr, X, y)
     @test β_ref1 ≈ fit(rr1, X, y1)
+    @test β_ref2 ≈ fit(rr2, X, y1)
 
     β_cg  = fit(rr, X, y; solver=CG())
     β_cg1 = fit(rr1, X, y1; solver=CG())
@@ -39,7 +46,8 @@ n, p = 500, 100
 @testset "lasso" begin
     # no intercept
     λ  = 50
-    lr = LassoRegression(λ; fit_intercept=false)
+    lr = LassoRegression(λ; fit_intercept=false,
+                            scale_penalty_with_samples = false)
     J  = objective(lr, X, y)
     θ_ls    = X \ y
     θ_ista  = fit(lr, X, y, solver=ISTA())
@@ -53,8 +61,15 @@ n, p = 500, 100
     @test nnz(θ_fista) == 12 # sparse
     @test nnz(θ_ista)  == 12
 
+    # scale_penalty_with_samples
+    lr_scaled = LassoRegression(λ/n; fit_intercept=false,
+                                     scale_penalty_with_samples = true)
+    θ_scaled = fit(lr_scaled, X, y)
+    @test θ_scaled ≈ θ_fista
+
     # with intercept
-    lr1 = LassoRegression(λ, penalize_intercept=true)
+    lr1 = LassoRegression(λ, penalize_intercept=true,
+                             scale_penalty_with_samples = false)
     J   = objective(lr1, X, y1)
     θ_ls    = X1 \ y1
     θ_fista = fit(lr1, X, y1)
@@ -68,7 +83,7 @@ n, p = 500, 100
     @test nnz(θ_ista)  == 5
 
     # with intercept and not penalizing intercept
-    lr1 = LassoRegression(λ)
+    lr1 = LassoRegression(λ, scale_penalty_with_samples = false)
     J   = objective(lr1, X, y1)
     θ_ls    = X1 \ y1
     θ_fista = fit(lr1, X, y1)
@@ -95,7 +110,8 @@ end
     α = 0.1
     λ = α * (1 - ρ) * n
     γ = α * ρ * n
-    enr = ElasticNetRegression(λ, γ; penalize_intercept=true)
+    enr = ElasticNetRegression(λ, γ; penalize_intercept=true,
+                                     scale_penalty_with_samples = false)
     J   = objective(enr, X, y1)
     θ_ls    = X1 \ y1
     θ_fista = fit(enr, X, y1)
@@ -109,7 +125,7 @@ end
     @test nnz(θ_ista)  == 7
 
     # not penalizing intercept
-    enr = ElasticNetRegression(λ, γ)
+    enr = ElasticNetRegression(λ, γ, scale_penalty_with_samples = false)
     J   = objective(enr, X, y1)
     θ_ls    = X1 \ y1
     θ_fista = fit(enr, X, y1)

@@ -8,7 +8,8 @@
     λ = 0.3
 
     Xt = MLJBase.table(X)
-    rr = RidgeRegressor(lambda=λ, penalize_intercept=true)
+    rr = RidgeRegressor(lambda=λ, penalize_intercept=true,
+                        scale_penalty_with_samples = false)
     fr, = MLJBase.fit(rr, 1, Xt, y)
     ŷ = MLJBase.predict(rr, fr, Xt)
 
@@ -30,7 +31,7 @@ end
     Xt = MLJBase.table(X)
     yc = MLJBase.categorical(y1)
 
-    lr = LogisticClassifier(lambda=λ, gamma=γ)
+    lr = LogisticClassifier(lambda=λ, gamma=γ, scale_penalty_with_samples = false)
     fr, = MLJBase.fit(lr, 1, Xt, yc)
 
     ŷ = MLJBase.predict(lr, fr, Xt)
@@ -49,7 +50,8 @@ end
     Xt = MLJBase.table(X)
     yc = MLJBase.categorical(y1)
 
-    mc = MultinomialClassifier(lambda=λ, gamma=γ, fit_intercept=false)
+    mc = MultinomialClassifier(lambda=λ, gamma=γ, fit_intercept=false,
+                               scale_penalty_with_samples = false)
     fr, = MLJBase.fit(mc, 1, Xt, yc)
 
     mach = MLJBase.machine(mc, Xt, yc)
