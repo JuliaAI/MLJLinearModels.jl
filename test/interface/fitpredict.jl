@@ -84,3 +84,10 @@ end
     fp = MLJBase.fitted_params(mach)
     @test unique(fp.classes) == [1,2,3]
 end
+
+@testset "Fitting a classifier with verbosity=1" begin
+    mdl = LogisticClassifier()
+    X, y = MLJBase.@load_iris
+    mach = MLJBase.machine(mdl, X, y)
+    @test_logs (:info,"Training Machine{LogisticClassifier,…}.") (:info,"Solver: LBFGS()") MLJBase.fit!(mach; verbosity=1)
+end
