@@ -10,7 +10,7 @@ export fit
 _solver(::GLR{L2Loss,<:L2R}, np::NTuple{2,Int}) = Analytical()
 
 # Logistic, Multinomial
-_solver(::GLR{LogisticLoss,<:L2R},    np::NTuple{2,Int}) = LBFGS()
+_solver(::GLR{LogisticLoss,<:L2R},      np::NTuple{2,Int}) =  LBFGS()
 _solver(::GLR{<:MultinomialLoss,<:L2R}, np::NTuple{2,Int}) = LBFGS()
 
 # Lasso, ElasticNet, Logistic, Multinomial
