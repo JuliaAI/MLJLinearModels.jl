@@ -8,11 +8,11 @@ makedocs(
     sitename = "MLJLinearModels.jl",
     authors = "Thibaut Lienart, and contributors.",
     pages = [
-        "Home" => "index.md",
+        "Home"         => "index.md",
         "Quick start"  => "quickstart.md",
-        "Models" => "models.md",
-        "Solvers" => "solvers.md",
-        "API" => "api.md"
+        "Models"       => "models.md",
+        "Solvers"      => "solvers.md",
+        "API"          => "api.md"
     ]
 )
 
