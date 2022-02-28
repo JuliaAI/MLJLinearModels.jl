@@ -36,6 +36,7 @@ function MMI.fit(m::Union{REG_MODELS...}, verb::Int, X, y)
     features = (sch === nothing) ? nothing : sch.names
     reg     = glr(m)
     solver  = m.solver === nothing ? _solver(reg, size(Xmatrix)) : m.solver
+    verb > 0 && @info "Solver: $(solver)"
     # get the parameters
     θ = fit(reg, Xmatrix, y; solver=solver)
     # return
@@ -72,6 +73,7 @@ function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     # NOTE: here the number of classes is either 0 or > 2
     clf = glr(m, nclasses)
     solver = m.solver === nothing ? _solver(clf, size(Xmatrix)) : m.solver
+    verb > 0 && @info "Solver: $(solver)"
     # get the parameters
     θ = fit(clf, Xmatrix, yplain, solver=solver)
     # return
