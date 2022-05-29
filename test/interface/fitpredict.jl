@@ -89,5 +89,9 @@ end
     mdl = LogisticClassifier()
     X, y = MLJBase.@load_iris
     mach = MLJBase.machine(mdl, X, y)
-    @test_logs (:info,"Training Machine{LogisticClassifier,…}.") (:info,"Solver: LBFGS()") MLJBase.fit!(mach; verbosity=1)
+    @test_logs(
+        (:info, r"LogisticClassifier"),
+        (:info, r"Solver: LBFGS()"),
+        MLJBase.fit!(mach; verbosity=1),
+    )
 end
