@@ -24,8 +24,8 @@ $TYPEDFIELDS
 $(example_docstring("LogisticClassifier", nclasses = 2))
 """
 @with_kw_noshow mutable struct LogisticClassifier <: MMI.Probabilistic
-    "strength of the regulariser if `penalty` is `:l2` or `:l1`.
-    Strength of the L2 regulariser if `penalty` is `:en`."
+    "strength of the regulariser if `penalty` is `:l2` or `:l1` and strength of the L2
+    regulariser if `penalty` is `:en`."
     lambda::Real             = 1.0
     "strength of the L1 regulariser if `penalty` is `:en`."
     gamma::Real              = 0.0
