@@ -138,20 +138,33 @@ logistic loss in the binary case or the multinomial loss otherwise and
 With `scale_penalty_with_samples = false` the objective function is
 ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁``.
 """
-function LogisticRegression(λ::Real=1.0, γ::Real=0.0;
-                            lambda::Real=λ, gamma::Real=γ,
-                            penalty::Symbol=iszero(gamma) ? :l2 : :en,
-                            fit_intercept::Bool=true,
-                            penalize_intercept::Bool=false,
-                            scale_penalty_with_samples::Bool=true,
-                            multi_class::Bool=false,
-                            nclasses::Integer=0)
+function LogisticRegression(
+            λ::Real=1.0,
+            γ::Real=0.0;
+            # kwargs
+            lambda::Real=λ,
+            gamma::Real=γ,
+            penalty::Symbol=iszero(gamma) ? :l2 : :en,
+            fit_intercept::Bool=true,
+            penalize_intercept::Bool=false,
+            scale_penalty_with_samples::Bool=true,
+            multi_class::Bool=false,
+            nclasses::Integer=0
+        )
+
     penalty = _l1l2en(lambda, gamma, penalty, "Logistic regression")
     loss = LogisticLoss()
     if nclasses > 2     # number of classes is explicitly specified
         loss = MultinomialLoss(nclasses)
-    elseif multi_class  # number of classes will be inferred from data
-        loss = MultinomialLoss()
+    elseif multi_class
+        if nclasses == 2
+            loss = MultinomialLoss(2)
+        else
+            # infer from data, fragile see #123
+            loss = MultinomialLoss()
+        end
+    else
+        loss = LogisticLoss()
     end
     GLR(loss=loss,
         penalty=penalty,

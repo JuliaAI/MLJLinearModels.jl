@@ -17,3 +17,10 @@
     p = MLJBase.predict(mach, rows=1:2)[1]
     @test typeof(p) <: MLJBase.UnivariateFinite
 end
+
+# https://github.com/JuliaAI/MLJLinearModels.jl/issues/123
+@testset "Binary" begin
+    X = (x1=rand(10),)
+    y = MLJBase.coerce(vcat(fill("a", 10), ["b", ]), MLJBase.Multiclass)[1:10]
+    mach = MLJBase.machine(MultinomialClassifier(), X, y) |> MLJBase.fit!
+end

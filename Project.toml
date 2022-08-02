@@ -1,7 +1,7 @@
 name = "MLJLinearModels"
 uuid = "6ee0df7b-362f-4a72-a706-9e79364fb692"
 authors = ["Thibaut Lienart <tlienart@me.com>"]
-version = "0.6.3"
+version = "0.6.4"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"

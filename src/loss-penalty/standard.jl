@@ -108,7 +108,8 @@ parameters corresponding to that class.
 """
 struct MultinomialLoss{c} <: MultiClassLoss{c} end
 
-MultinomialLoss() = MultinomialLoss{0}()  # inferred from data
+# inferred from data (fragile see #123)
+MultinomialLoss() = MultinomialLoss{0}()
 function MultinomialLoss(c)
     c < 2 && throw(DomainError("The number of classes for a MultinomialLoss " *
                                "must be greater or equal to 2."))

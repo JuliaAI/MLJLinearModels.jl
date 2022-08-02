@@ -34,8 +34,8 @@ function MMI.fit(m::Union{REG_MODELS...}, verb::Int, X, y)
     Xmatrix = MMI.matrix(X)
     sch = MMI.schema(X)
     features = (sch === nothing) ? nothing : sch.names
-    reg     = glr(m)
-    solver  = m.solver === nothing ? _solver(reg, size(Xmatrix)) : m.solver
+    reg      = glr(m)
+    solver   = m.solver === nothing ? _solver(reg, size(Xmatrix)) : m.solver
     verb > 0 && @info "Solver: $(solver)"
     # get the parameters
     θ = fit(reg, Xmatrix, y; solver=solver)
@@ -63,12 +63,13 @@ function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     nclasses = length(classes)
     if nclasses < 2
         throw(DomainError("The target `y` needs to have two or more levels."))
-    elseif nclasses == 2
+    elseif nclasses == 2 && m isa LogisticClassifier
         # recode to ± 1
         yplain[yplain .== 1] .= -1
         yplain[yplain .== 2] .= 1
-        # force the binary case
-        nclasses    = 0
+        # NOTE: fallback for dimensions so that we're fully
+        # in the Logistic case and not in the Multinomial {0} case!
+        nclasses = 0
     end
     # NOTE: here the number of classes is either 0 or > 2
     clf = glr(m, nclasses)
