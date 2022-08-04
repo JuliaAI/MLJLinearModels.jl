@@ -139,7 +139,7 @@ With `scale_penalty_with_samples = false` the objective function is
 ``L(y, Xθ) + λ|θ|₂²/2 + γ|θ|₁``.
 """
 function LogisticRegression(
-            λ::Real=1.0,
+            λ::Real=eps(),
             γ::Real=0.0;
             # kwargs
             lambda::Real=λ,

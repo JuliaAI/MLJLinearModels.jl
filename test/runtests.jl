@@ -2,7 +2,7 @@ using MLJLinearModels, Test, LinearAlgebra
 using Random, StableRNGs, DataFrames, ForwardDiff
 import MLJBase # not MLJModelInterface, to mimic the full interface
 
-DO_COMPARISONS = false; include("testutils.jl")
+DO_COMPARISONS = true; include("testutils.jl")
 
 m("UTILS"); include("utils.jl")
 

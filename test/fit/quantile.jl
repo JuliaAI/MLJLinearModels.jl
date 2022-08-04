@@ -92,7 +92,7 @@ y1a  = outlify(y1, 0.1)
         θ_ista     = fit(rr, X, y1a, solver=ISTA())
         θ_qr_lasso = rcopy(QUANTREG.rq_fit_lasso(X1, y1a))[:coefficients]
         @test isapprox(J(θ_ls),       888.3748, rtol=1e-5)
-        @test isapprox(J(θ_qr_lasso), 425.5264, rtol=1e-5)
+        @test isapprox(J(θ_qr_lasso), 425.5,    rtol=1e-3)
         # Our algorithms are close enough
         @test isapprox(J(θ_fista),    425.0526, rtol=1e-5)
         @test isapprox(J(θ_ista),     425.4113, rtol=1e-5)
