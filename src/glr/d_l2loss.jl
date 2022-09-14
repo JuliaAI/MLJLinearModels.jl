@@ -72,3 +72,35 @@ function smooth_fg!(glr::GLR{L2Loss,<:ENR}, X, y, scratch)
         return glr.loss(r) + get_l2(glr.penalty)(view_θ(glr, θ))
     end
 end
+
+# -------------------------- #
+#  -- SCAD/MCP Regression -- #
+# -------------------------- #
+# -> J(θ) = f(θ) + r(θ; λ)
+# -> f(θ) = |Xθ - y|₂²
+# -> r(θ;λ)
+# -> ∇f(θ) = X'(Xθ - y) + r'(θ;λ)
+# #
+function fg!(glr::GLR{L2Loss,<:FCPenalty}, X, y, scratch)
+    n, p = size(X)
+    grad = ∇(glr.penalty)
+    if glr.fit_intercept
+        (f, g, θ) -> begin
+            r = scratch.n
+            get_residuals!(r, X, θ, y)
+            apply_Xt!(g, X, r)
+
+
+            # XXX could be applied directly to a scratch to avoid allocs
+            # also could capture last elem to remove it if not penalize intercept
+
+            g .+= grad(θ)
+
+            return glr.loss(r) + glr.penalty(view_θ(glr, θ))
+        end
+    else
+        # XXX
+    end
+end
+
+# --> need to test compared to https://cloud.r-project.org/web/packages/ncvreg/ncvreg.pdf

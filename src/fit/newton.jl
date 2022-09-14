@@ -67,6 +67,18 @@ function _fit(glr::GLR{<:Union{LogisticLoss,RobustLoss},<:L2R},
 end
 
 
+function _fit(glr::GLR{L2Loss,<:FCPenalty},
+              solver::LBFGS, X, y, scratch)
+    _,p,_ = npc(scratch)
+    θ₀    = zeros(p)
+    _fg!  = (f, g, θ) -> fg!(glr, X, y, scratch)(f, g, θ)
+    opt   = Optim.only_fg!(_fg!)
+    res   = Optim.optimize(opt, θ₀, Optim.LBFGS())
+    return Optim.minimizer(res)
+end
+
+
+
 ## MULTINOMIAL + 0/L2 ==============
 
 """
