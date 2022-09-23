@@ -32,4 +32,14 @@ end
     y = MLJ.coerce(y_, MLJ.OrderedFactor);
     model = MultinomialClassifier()
     mach = MLJ.machine(model, X, y) |> MLJ.fit!
+    yhat = MLJ.predict_mode(mach, X)
+
+    # crappy "test" but we're just testing that predict works fine    
+    @test MLJ.misclassification_rate(yhat, y) < 0.4
+
+    model = LogisticClassifier()
+    mach = MLJ.machine(model, X, y) |> MLJ.fit!
+    yhat = MLJ.predict_mode(mach, X)
+
+    @test MLJ.misclassification_rate(yhat, y) < 0.4
 end
