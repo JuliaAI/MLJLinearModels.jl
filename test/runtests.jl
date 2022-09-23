@@ -1,6 +1,6 @@
 using MLJLinearModels, Test, LinearAlgebra
 using Random, StableRNGs, DataFrames, ForwardDiff
-import MLJBase # not MLJModelInterface, to mimic the full interface
+import MLJ, MLJBase
 
 DO_COMPARISONS = false; include("testutils.jl")
 
