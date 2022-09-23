@@ -24,3 +24,12 @@ end
     y = MLJBase.coerce(vcat(fill("a", 10), ["b", ]), MLJBase.Multiclass)[1:10]
     mach = MLJBase.machine(MultinomialClassifier(), X, y) |> MLJBase.fit!
 end
+
+# https://github.com/JuliaAI/MLJLinearModels.jl/issues/129
+@testset "Crabs" begin
+    data = MLJ.load_crabs()
+    y_, X = MLJ.unpack(data, ==(:sp), col->col in [:FL, :RW]);
+    y = MLJ.coerce(y_, MLJ.OrderedFactor);
+    model = MultinomialClassifier()
+    mach = MLJ.machine(model, X, y) |> MLJ.fit!
+end

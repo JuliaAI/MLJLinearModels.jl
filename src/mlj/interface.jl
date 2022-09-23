@@ -62,7 +62,11 @@ function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
     classes  = MMI.classes(y[1])
     nclasses = length(classes)
     if nclasses < 2
-        throw(DomainError("The target `y` needs to have two or more levels."))
+        throw(
+            DomainError(
+                "The target `y` needs to have two or more levels."
+            )
+        )
     elseif nclasses == 2 && m isa LogisticClassifier
         # recode to ± 1
         yplain[yplain .== 1] .= -1
@@ -71,8 +75,11 @@ function MMI.fit(m::Union{CLF_MODELS...}, verb::Int, X, y)
         # in the Logistic case and not in the Multinomial {0} case!
         nclasses = 0
     end
-    # NOTE: here the number of classes is either 0 or > 2
-    clf = glr(m, nclasses)
+    # NOTE: here nclasses is either
+    #   - 0  Logistic, binary
+    #   - 2  Multinomial, binary
+    #   - >2 or > 2 (Multinomial)
+    clf    = glr(m, nclasses)
     solver = m.solver === nothing ? _solver(clf, size(Xmatrix)) : m.solver
     verb > 0 && @info "Solver: $(solver)"
     # get the parameters
@@ -84,13 +91,16 @@ end
 function MMI.predict(m::Union{CLF_MODELS...}, (θ, features, classes, c), Xnew)
     Xmatrix = MMI.matrix(Xnew)
     preds = apply_X(Xmatrix, θ, c)
-    if c > 2 # multiclass
+
+    if c > 2 || m isa MultinomialClassifier # multiclass
         preds .= softmax(preds)
-    else # binary (necessarily c==0)
+
+    else # binary logistic (necessarily c==0)
         preds  .= sigmoid.(preds)
         preds   = hcat(1.0 .- preds, preds) # scores for -1 and 1
         return MMI.UnivariateFinite(classes, preds)
     end
+
     return MMI.UnivariateFinite(classes, preds)
 end
 
