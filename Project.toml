@@ -1,7 +1,7 @@
 name = "MLJLinearModels"
 uuid = "6ee0df7b-362f-4a72-a706-9e79364fb692"
 authors = ["Thibaut Lienart <tlienart@me.com>"]
-version = "0.7.1"
+version = "0.7.2"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
@@ -35,4 +35,16 @@ StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["DelimitedFiles", "PyCall", "ForwardDiff", "Test", "Random", "RDatasets", "RCall", "MLJ", "MLJBase", "StableRNGs", "DataFrames"]
+test = [
+    "DelimitedFiles",
+    "PyCall",
+    "ForwardDiff",
+    "Test",
+    "Random",
+    "RDatasets",
+    "RCall",
+    "MLJ",
+    "MLJBase",
+    "StableRNGs",
+    "DataFrames",
+]
