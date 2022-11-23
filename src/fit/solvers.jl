@@ -42,9 +42,9 @@ $SIGNATURES
 Newton solver. This is a full Hessian solver and should be avoided for
 "large scale" cases.
 """
-@with_kw struct Newton <: Solver
+@with_kw struct Newton{O,S} <: Solver
     optim_options::O = Optim.Options()
-    newton_options::L = (; )
+    newton_options::S = (; )
 end
 
 """
@@ -55,9 +55,9 @@ of solving systems of the form `H\\b` where `H` is the full Hessian, it uses
 a matrix-free conjugate gradient approach to solving that system. This should
 generally be preferred for larger scale cases.
 """
-@with_kw struct NewtonCG <: Solver
+@with_kw struct NewtonCG{O,S} <: Solver
     optim_options::O = Optim.Options()
-    newtoncg_options::L = (; )
+    newtoncg_options::S = (; )
 end
 
 """
@@ -65,9 +65,9 @@ $SIGNATURES
 
 LBFGS quasi-Newton solver. See [the wikipedia entry](https://en.wikipedia.org/wiki/Limited-memory_BFGS).
 """
-@with_kw struct LBFGS{O,L} <: Solver
+@with_kw struct LBFGS{O,S} <: Solver
     optim_options::O = Optim.Options()
-    lbfgs_options::L = (; )
+    lbfgs_options::S = (; )
 end
 
 # ===================== pgrad.jl
