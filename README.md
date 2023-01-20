@@ -6,16 +6,16 @@
 
 This is a package gathering functionalities to solve a number of generalised linear regression/classification problems which, inherently, correspond to an optimisation problem of the form
 
-```
-L(y, X*θ) + P(θ)
-```
+$$
+L(y, X\theta) + P(\theta)
+$$
 
 where:
 
-- `L` is a loss function 
-- `X` is the `n` x `p` matrix of training observations
-- `θ` the length `p` vector of weights to be optimized
-- `P`  is a penalty function
+- $L$ is a loss function 
+- $X$ is the $n \times p$ matrix of training observations, where $n$ is the number of _observations_ (sample size) and $p$ is the number of _features_ (dimension)
+- $\theta$ the length $p$ vector of weights to be optimized
+- $P$  is a penalty function
 
 Additional regression/classification methods which do not directly correspond to this formulation may be added in the future.
 
