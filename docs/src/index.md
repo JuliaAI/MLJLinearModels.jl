@@ -11,7 +11,7 @@ where:
 * ``y`` is the **target** or **response**, a vector of length ``n`` either of real values (_regression_) or integers (_classification_),
 * ``X`` is the **design** or **feature** matrix, a matrix of real values of size ``n \times p`` where ``p`` is the number of _features_ or _dimensions_,\
 * ``\theta`` is a vector of ``p`` real valued coefficients to determine,
-* ``L`` is a **loss function**, a pre-determined function of ``\mathbb R^n`` to ``\mathbb R^+`` penalising the amplitude of the _residuals_ in a specific way,
+* ``L`` is a **loss function**, a pre-determined function of ``\mathbb R^n \times \mathbb R^n`` to ``\mathbb R^+`` penalising the amplitude of the _residuals_ in a specific way,
 * ``P`` is a **penalty function**, a pre-determined function of ``\mathbb R^n`` to ``\mathbb R^+`` penalising the amplitude of the  _coefficients_ in a specific way.
 
 A well known example is the [Ridge regression](https://en.wikipedia.org/wiki/Tikhonov_regularization) where the objective is to minimise:

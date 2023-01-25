@@ -41,8 +41,22 @@ $SIGNATURES
 
 Newton solver. This is a full Hessian solver and should be avoided for
 "large scale" cases.
+
+`optim_options` are the [general Optim Options](https://julianlsolvers.github.io/Optim.jl/stable/#user/config/).
+`newton_options` are the [options of Newton's method](https://julianlsolvers.github.io/Optim.jl/stable/#algo/newton/)
+
+## Example
+```julia
+using MLJLinearModels, Optim
+
+solver = MLJLinearModels.Newton(optim_options = Optim.Options(time_limit = 20),
+                                newton_options = (linesearch = Optim.LineSearches.HagerZhang()),))
+```
 """
-struct Newton <: Solver end
+@with_kw struct Newton{O,S} <: Solver
+    optim_options::O = Optim.Options()
+    newton_options::S = (; )
+end
 
 """
 $SIGNATURES
@@ -51,17 +65,44 @@ Newton CG solver. This is the same as the Newton solver except that instead
 of solving systems of the form `H\\b` where `H` is the full Hessian, it uses
 a matrix-free conjugate gradient approach to solving that system. This should
 generally be preferred for larger scale cases.
+
+`optim_options` are the [general Optim Options](https://julianlsolvers.github.io/Optim.jl/stable/#user/config/).
+`newtoncg_options` are the [options of Krylov Trust Region method](https://github.com/JuliaNLSolvers/Optim.jl/blob/master/src/multivariate/solvers/second_order/krylov_trust_region.jl)
+
+## Example
+```julia
+using MLJLinearModels, Optim
+
+solver = MLJLinearModels.Newton(optim_options = Optim.Options(time_limit = 20),
+                                newtoncg_options = (eta = 0.2,))
+```
+
 """
-struct NewtonCG <: Solver end
+@with_kw struct NewtonCG{O,S} <: Solver
+    optim_options::O = Optim.Options()
+    newtoncg_options::S = (; )
+end
 
 """
 $SIGNATURES
 
 LBFGS quasi-Newton solver. See [the wikipedia entry](https://en.wikipedia.org/wiki/Limited-memory_BFGS).
-"""
-struct LBFGS <: Solver end
 
-# struct BFGS <: Solver end
+`optim_options` are the [general Optim Options](https://julianlsolvers.github.io/Optim.jl/stable/#user/config/).
+`lbfgs_options` are the [options of LBFGS method](https://julianlsolvers.github.io/Optim.jl/stable/#algo/lbfgs/)
+
+## Example
+```julia
+using MLJLinearModels, Optim
+
+solver = MLJLinearModels.Newton(optim_options = Optim.Options(time_limit = 20),
+                                lbfgs_options = (linesearch = Optim.LineSearches.HagerZhang()),))
+```
+"""
+@with_kw struct LBFGS{O,S} <: Solver
+    optim_options::O = Optim.Options()
+    lbfgs_options::S = (; )
+end
 
 # ===================== pgrad.jl
 

@@ -18,7 +18,8 @@ function _fit(glr::GLR{<:Union{LogisticLoss,RobustLoss},<:L2R},
     θ₀    = zeros(p)
     _fgh! = fgh!(glr, X, y, scratch)
     opt   = Optim.only_fgh!(_fgh!)
-    res   = Optim.optimize(opt, θ₀, Optim.Newton())
+    res   = Optim.optimize(opt, θ₀, Optim.Newton(; solver.newton_options...),
+                           solver.optim_options)
     return Optim.minimizer(res)
 end
 
@@ -42,7 +43,8 @@ function _fit(glr::GLR{<:Union{LogisticLoss,RobustLoss},<:L2R},
     _fg!  = (g, θ) -> fgh!(glr, X, y, scratch)(0.0, g, nothing, θ) # Optim#738
     _Hv!  = Hv!(glr, X, y, scratch)
     opt   = Optim.TwiceDifferentiableHV(_f, _fg!, _Hv!, θ₀)
-    res   = Optim.optimize(opt, θ₀, Optim.KrylovTrustRegion())
+    res   = Optim.optimize(opt, θ₀, Optim.KrylovTrustRegion(; solver.newtoncg_options...),
+                           solver.optim_options)
     return Optim.minimizer(res)
 end
 
@@ -62,7 +64,8 @@ function _fit(glr::GLR{<:Union{LogisticLoss,RobustLoss},<:L2R},
     θ₀    = zeros(p)
     _fg!  = (f, g, θ) -> fgh!(glr, X, y, scratch)(f, g, nothing, θ)
     opt   = Optim.only_fg!(_fg!)
-    res   = Optim.optimize(opt, θ₀, Optim.LBFGS())
+    res   = Optim.optimize(opt, θ₀, Optim.LBFGS(; solver.lbfgs_options...),
+                           solver.optim_options)
     return Optim.minimizer(res)
 end
 
@@ -90,7 +93,8 @@ function _fit(glr::GLR{<:MultinomialLoss,<:L2R}, solver::NewtonCG,
     _fg!  = (g, θ) -> fg!(glr, X, y, scratch)(0.0, g, θ) # XXX: Optim.jl/738
     _Hv!  = Hv!(glr, X, y, scratch)
     opt   = Optim.TwiceDifferentiableHV(_f, _fg!, _Hv!, θ₀)
-    res   = Optim.optimize(opt, θ₀, Optim.KrylovTrustRegion())
+    res   = Optim.optimize(opt, θ₀, Optim.KrylovTrustRegion(; solver.newtoncg_options...),
+                           solver.optim_options)
     return Optim.minimizer(res)
 end
 
@@ -111,6 +115,7 @@ function _fit(glr::GLR{<:MultinomialLoss,<:L2R}, solver::LBFGS,
     θ₀    = zeros(p * c)
     _fg!  = fg!(glr, X, y, scratch)
     opt   = Optim.only_fg!(_fg!)
-    res   = Optim.optimize(opt, θ₀, Optim.LBFGS())
+    res   = Optim.optimize(opt, θ₀, Optim.LBFGS(; solver.lbfgs_options...),
+                           solver.optim_options)
     return Optim.minimizer(res)
 end
