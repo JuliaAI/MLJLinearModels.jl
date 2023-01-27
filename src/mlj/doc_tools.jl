@@ -1,3 +1,7 @@
+const DOC_SOLVERS =
+    "Different solver options exist, as indicated under "*
+    "\"Hyperparameters\" below. "
+
 function example_docstring(m; nclasses = nothing)
 """
 ## Example

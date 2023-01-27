@@ -3,11 +3,33 @@
    ====================== =#
 
 """
-Standard linear regression model with objective function
+$(doc_header(LinearRegressor))
+
+This model provides standard linear regression with objective function
 
 ``|Xθ - y|₂²/2``
 
-## Parameters
+$DOC_SOLVERS
+
+# Training data
+
+In MLJ or MLJBase, bind an instance `model` to data with
+
+    mach = machine(model, X, y)
+
+where:
+
+- `X` is any table of input features (eg, a `DataFrame`) whose columns
+  have `Continuous` scitype; check column scitypes with `schema(X)`
+
+- `y` is the target, which can be any `AbstractVector` whose element scitype is
+  `Continuous`; check the scitype with `scitype(y)`
+
+
+Train the machine using `fit!(mach, rows=...)`.
+
+
+# Hyperparameters
 
 $TYPEDFIELDS
 
@@ -16,34 +38,60 @@ $(example_docstring("LinearRegressor"))
 @with_kw_noshow mutable struct LinearRegressor <: MMI.Deterministic
     "whether to fit the intercept or not."
     fit_intercept::Bool    = true
-    "type of solver to use (if `nothing` the default is used). The solver is
-    Cholesky by default but can be Conjugate-Gradient as well. See `?Analytical`
-    for more information."
+    "any instance of `MLJLinearModels.Analytical`. Use `Analytical()`
+    for Cholesky and `CG()=Analytical(iteration=true)` for conjugate-gradient.
+    TODO: default?"
     solver::Option{Solver} = nothing
 end
 
 glr(m::LinearRegressor) = LinearRegression(fit_intercept=m.fit_intercept)
 
-descr(::Type{LinearRegressor}) = "Regression with objective function ``|Xθ - y|₂²/2``."
 
 #= ===============
    RIDGE REGRESSOR
    =============== =#
 
 """
-Ridge regression model with objective function
+$(doc_header(RidgeRegressor))
+
+Ridge regression is a linear model with objective function
 
 ``|Xθ - y|₂²/2 + n⋅λ|θ|₂²/2``
 
-where ``n`` is the number of samples `size(X, 1)`.
-With `scale_penalty_with_samples = false` the objective function is
+where ``n`` is the number of observations.
+
+If `scale_penalty_with_samples = false` then the objective function is instead
+
 ``|Xθ - y|₂²/2 + λ|θ|₂²/2``.
 
-## Parameters
+$DOC_SOLVERS
+
+# Training data
+
+In MLJ or MLJBase, bind an instance `model` to data with
+
+    mach = machine(model, X, y)
+
+where:
+
+- `X` is any table of input features (eg, a `DataFrame`) whose columns
+  have `Continuous` scitype; check column scitypes with `schema(X)`
+
+- `y` is the target, which can be any `AbstractVector` whose element scitype is
+  `Continuous`; check the scitype with `scitype(y)`
+
+
+Train the machine using `fit!(mach, rows=...)`.
+
+
+# Hyperparameters
 
 $TYPEDFIELDS
 
 $(example_docstring("RidgeRegressor"))
+
+See also [`ElasticNetRegressor`](@ref).
+
 """
 @with_kw_noshow mutable struct RidgeRegressor <: MMI.Deterministic
     "strength of the L2 regularisation."
@@ -52,11 +100,11 @@ $(example_docstring("RidgeRegressor"))
     fit_intercept::Bool      = true
     "whether to penalize the intercept."
     penalize_intercept::Bool = false
-    "whether to scale the penalty with the number of samples."
+    "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "type of solver to use (if `nothing` the default is used). The
-     solver is Cholesky by default but can be Conjugate-Gradient as
-     well. See `?Analytical` for more information."
+    "any instance of `MLJLinearModels.Analytical`. Use `Analytical()` for
+    Cholesky and `CG()=Analytical(iteration=true)` for conjugate-gradient.
+    TODO: default?"
     solver::Option{Solver}   = nothing
 end
 
@@ -66,26 +114,51 @@ glr(m::RidgeRegressor) =
                     penalize_intercept=m.penalize_intercept,
                     scale_penalty_with_samples=m.scale_penalty_with_samples)
 
-descr(::Type{RidgeRegressor}) = "Regression with objective function ``|Xθ - y|₂²/2 + λ|θ|₂²/2``."
-
 #= ===============
    LASSO REGRESSOR
    =============== =#
 
 """
-Lasso regression model with objective function
+$(doc_header(LassoRegressor))
+
+Lasso regression is a linear model with objective function
 
 ``|Xθ - y|₂²/2 + n⋅λ|θ|₁``
 
-where ``n`` is the number of samples `size(X, 1)`.
-With `scale_penalty_with_samples = false` the objective function is
-``|Xθ - y|₂²/2 + λ|θ|₁``
+where ``n`` is the number of observations.
 
-## Parameters
+If `scale_penalty_with_samples = false` the objective function is
+
+``|Xθ - y|₂²/2 + λ|θ|₁``.
+
+$DOC_SOLVERS
+
+# Training data
+
+In MLJ or MLJBase, bind an instance `model` to data with
+
+    mach = machine(model, X, y)
+
+where:
+
+- `X` is any table of input features (eg, a `DataFrame`) whose columns
+  have `Continuous` scitype; check column scitypes with `schema(X)`
+
+- `y` is the target, which can be any `AbstractVector` whose element scitype is
+  `Continuous`; check the scitype with `scitype(y)`
+
+
+Train the machine using `fit!(mach, rows=...)`.
+
+
+# Hyperparameters
 
 $TYPEDFIELDS
 
 $(example_docstring("LassoRegressor"))
+
+See also [`ElasticNetRegressor`](@ref).
+
 """
 @with_kw_noshow mutable struct LassoRegressor <: MMI.Deterministic
     "strength of the L1 regularisation."
@@ -94,10 +167,11 @@ $(example_docstring("LassoRegressor"))
     fit_intercept::Bool      = true
     "whether to penalize the intercept."
     penalize_intercept::Bool = false
-    "whether to scale the penalty with the number of samples."
+    "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "type of solver to use (if `nothing` the default is used). Either `FISTA` or
-    `ISTA` can be used (proximal methods, with/without acceleration)."
+    "any instance of `MLJLinearModels.ProxGrad`; use `ProxyGrad()`
+    for ISTA and `FISTA() = ProxyGrad(iteration=true)` for FISTA.
+    TODO: default"
     solver::Option{Solver}   = nothing
 end
 
@@ -107,26 +181,52 @@ glr(m::LassoRegressor) =
                     penalize_intercept=m.penalize_intercept,
                     scale_penalty_with_samples=m.scale_penalty_with_samples)
 
-descr(::Type{LassoRegressor}) = "Regression with objective function ``|Xθ - y|₂²/2 + λ|θ|₁``."
 
 #= =====================
    ELASTIC NET REGRESSOR
    ===================== =#
 
 """
-Elastic net regression model with objective function
+$(doc_header(ElasticNetRegressor))
+
+Elastic net is a linear model with objective function
 
 ``|Xθ - y|₂²/2 + n⋅λ|θ|₂²/2 + n⋅γ|θ|₁``
 
-where ``n`` is the number of samples `size(X, 1)`.
-With `scale_penalty_with_samples = false` the objective function is
-``|Xθ - y|₂²/2 + λ|θ|₂²/2 + γ|θ|₁``
+where ``n`` is the number of observations.
 
-## Parameters
+If  `scale_penalty_with_samples = false` the objective function is instead
+
+``|Xθ - y|₂²/2 + λ|θ|₂²/2 + γ|θ|₁``.
+
+$DOC_SOLVERS
+
+# Training data
+
+In MLJ or MLJBase, bind an instance `model` to data with
+
+    mach = machine(model, X, y)
+
+where:
+
+- `X` is any table of input features (eg, a `DataFrame`) whose columns
+  have `Continuous` scitype; check column scitypes with `schema(X)`
+
+- `y` is the target, which can be any `AbstractVector` whose element scitype is
+  `Continuous`; check the scitype with `scitype(y)`
+
+
+Train the machine using `fit!(mach, rows=...)`.
+
+
+# Hyperparameters
 
 $TYPEDFIELDS
 
 $(example_docstring("ElasticNetRegressor"))
+
+See also [`LassoRegressor`](@ref).
+
 """
 @with_kw_noshow mutable struct ElasticNetRegressor <: MMI.Deterministic
     "strength of the L2 regularisation."
@@ -137,10 +237,11 @@ $(example_docstring("ElasticNetRegressor"))
     fit_intercept::Bool      = true
     "whether to penalize the intercept."
     penalize_intercept::Bool = false
-    "whether to scale the penalty with the number of samples."
+    "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "type of solver to use (if `nothing` the default is used). Either `FISTA` or
-    `ISTA` can be used (proximal methods, with/without acceleration)."
+    "any instance of `MLJLinearModels.ProxGrad`; use `ProxyGrad()`
+    for ISTA and `FISTA() = ProxyGrad(iteration=true)` for FISTA.
+    TODO: default"
     solver::Option{Solver}   = nothing
 end
 
@@ -150,30 +251,58 @@ glr(m::ElasticNetRegressor) =
                          penalize_intercept=m.penalize_intercept,
                          scale_penalty_with_samples=m.scale_penalty_with_samples)
 
-descr(::Type{ElasticNetRegressor}) = "Regression with objective function ``|Xθ - y|₂²/2 + λ|θ|₂²/2 + γ|θ|₁``."
 
 #= ==========================
    ROBUST REGRESSOR (General)
    ========================== =#
 
 """
-Robust regression model with objective function
+$(doc_header(RobustRegressor))
+
+Robust regression is a linear model with objective function
 
 ``∑ρ(Xθ - y) + n⋅λ|θ|₂² + n⋅γ|θ|₁``
 
 where ``ρ`` is a robust loss function (e.g. the Huber function) and
-``n`` is the number of samples `size(X, 1)`.
-With `scale_penalty_with_samples = false` the objective function is
+``n`` is the number of observations.
+
+If `scale_penalty_with_samples = false` the objective function is instead
+
 ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁``.
 
-## Parameters
+$DOC_SOLVERS
+
+# Training data
+
+In MLJ or MLJBase, bind an instance `model` to data with
+
+    mach = machine(model, X, y)
+
+where:
+
+- `X` is any table of input features (eg, a `DataFrame`) whose columns
+  have `Continuous` scitype; check column scitypes with `schema(X)`
+
+- `y` is the target, which can be any `AbstractVector` whose element scitype is
+  `Continuous`; check the scitype with `scitype(y)`
+
+Train the machine using `fit!(mach, rows=...)`.
+
+
+# Hyperparameters
 
 $TYPEDFIELDS
 
 $(example_docstring("RobustRegressor"))
+
+See also [`HuberRegressor`](@ref), [`QuantileRegressor`](@ref).
+
 """
 @with_kw_noshow mutable struct RobustRegressor <: MMI.Deterministic
-    "the type of robust loss to use (see `HuberRho`, `TalwarRho`, ...)"
+    "the type of robust loss, which can be any instance of
+    `MLJLinearModels.L` where `L` is one of: `AndrewsRho`,
+    `BisquareRho`, `FairRho`, `HuberRho`, `LogisticRho`,
+    `QuantileRho`, `TalwarRho`, `HuberRho`, `TalwarRho`. "
     rho::RobustRho           = HuberRho(0.1)
     "strength of the regulariser if `penalty` is `:l2` or `:l1`.
     Strength of the L2 regulariser if `penalty` is `:en`."
@@ -186,9 +315,9 @@ $(example_docstring("RobustRegressor"))
     fit_intercept::Bool      = true
     "whether to penalize the intercept."
     penalize_intercept::Bool = false
-    "whether to scale the penalty with the number of samples."
+    "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "type of solver to use, default if `nothing`."
+    "TODO"
     solver::Option{Solver}   = nothing
 end
 
@@ -199,25 +328,48 @@ glr(m::RobustRegressor) =
                      penalize_intercept=m.penalize_intercept,
                      scale_penalty_with_samples=m.scale_penalty_with_samples)
 
-descr(::Type{RobustRegressor}) = "Robust regression with objective ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` for a given robust `ρ`."
 
 #= ===============
    HUBER REGRESSOR
    =============== =#
 
 """
-Huber Regression is the same as `RobustRegressor` but with the robust loss
-set to `HuberRho`.
+$(doc_header(HuberRegressor))
 
-## Parameters
+This model coincides with [`RobustRegressor`](@ref), with the exception that the robust
+loss, `rho`, is fixed to `HuberRho(delta)`, where `delta` is a new hyperparameter.
+
+$DOC_SOLVERS
+
+# Training data
+
+In MLJ or MLJBase, bind an instance `model` to data with
+
+    mach = machine(model, X, y)
+
+where:
+
+- `X` is any table of input features (eg, a `DataFrame`) whose columns
+  have `Continuous` scitype; check column scitypes with `schema(X)`
+
+- `y` is the target, which can be any `AbstractVector` whose element scitype is
+  `Continuous`; check the scitype with `scitype(y)`
+
+Train the machine using `fit!(mach, rows=...)`.
+
+
+# Hyperparameters
 
 $TYPEDFIELDS
 
 $(example_docstring("HuberRegressor"))
+
+See also [`RobustRegressor`](@ref), [`QuantileRegressor`](@ref).
+
 """
 @with_kw_noshow mutable struct HuberRegressor <: MMI.Deterministic
-    "parametrises the `HuberRho` function (radius of the ball within which the loss
-is a quadratic loss)"
+    "parameterizes the `HuberRho` function (radius of the ball within which the loss
+    is a quadratic loss)"
     delta::Real              = 0.5
     "strength of the regulariser if `penalty` is `:l2` or `:l1`.
     Strength of the L2 regulariser if `penalty` is `:en`."
@@ -230,9 +382,9 @@ is a quadratic loss)"
     fit_intercept::Bool      = true
     "whether to penalize the intercept."
     penalize_intercept::Bool = false
-    "whether to scale the penalty with the number of samples."
+    "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "type of solver to use, default if `nothing`."
+    "TODO"
     solver::Option{Solver}   = nothing
 end
 
@@ -243,25 +395,48 @@ glr(m::HuberRegressor) =
                     penalize_intercept=m.penalize_intercept,
                     scale_penalty_with_samples=m.scale_penalty_with_samples)
 
-descr(::Type{HuberRegressor}) = "Robust regression with objective ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` where `ρ` is the Huber Loss."
 
 #= ==================
    QUANTILE REGRESSOR
    ================== =#
 
 """
-Quantile Regression is the same as `RobustRegressor` but with the robust
-loss set to `QuantileRho`.
+$(doc_header(QuantileRegressor))
 
-## Parameters
+This model coincides with [`RobustRegressor`](@ref), with the exception that the robust
+loss, `rho`, is fixed to `QuantileRho(delta)`, where `delta` is a new hyperparameter.
+
+$DOC_SOLVERS
+
+# Training data
+
+In MLJ or MLJBase, bind an instance `model` to data with
+
+    mach = machine(model, X, y)
+
+where:
+
+- `X` is any table of input features (eg, a `DataFrame`) whose columns
+  have `Continuous` scitype; check column scitypes with `schema(X)`
+
+- `y` is the target, which can be any `AbstractVector` whose element scitype is
+  `Continuous`; check the scitype with `scitype(y)`
+
+Train the machine using `fit!(mach, rows=...)`.
+
+
+# Hyperparameters
 
 $TYPEDFIELDS
 
 $(example_docstring("QuantileRegressor"))
+
+See also [`RobustRegressor`](@ref), [`HuberRegressor`](@ref).
+
 """
 @with_kw_noshow mutable struct QuantileRegressor <: MMI.Deterministic
-    "parametrises the `QuantileRho` function (indicating the  quantile to use
-with default `0.5` for the median regression)"
+    "parameterizes the `QuantileRho` function (indicating the quantile to use
+    with default `0.5` for the median regression)"
     delta::Real              = 0.5
     "strength of the regulariser if `penalty` is `:l2` or `:l1`.
     Strength of the L2 regulariser if `penalty` is `:en`."
@@ -274,9 +449,9 @@ with default `0.5` for the median regression)"
     fit_intercept::Bool      = true
     "whether to penalize the intercept."
     penalize_intercept::Bool = false
-    "whether to scale the penalty with the number of samples."
+    "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "type of solver to use, default if `nothing`."
+    "TODO"
     solver::Option{Solver}   = nothing
 end
 
@@ -287,22 +462,44 @@ glr(m::QuantileRegressor) =
                        penalize_intercept=m.penalize_intercept,
                        scale_penalty_with_samples=m.scale_penalty_with_samples)
 
-descr(::Type{QuantileRegressor}) = "Robust regression with objective ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` where `ρ` is the Quantile Loss."
 
 #= ==================================
    LEAST ABSOLUTE DEVIATION REGRESSOR
    ================================== =#
 
 """
-Least Absolute Deviation regression with with objective function
+$(doc_header(LADRegressor))
+
+Least absolute deviation regression is a linear model with objective function
 
 ``∑ρ(Xθ - y) + n⋅λ|θ|₂² + n⋅γ|θ|₁``
 
-where ``ρ`` is the absolute loss and
-``n`` is the number of samples `size(X, 1)`.
-With `scale_penalty_with_samples = false` the objective function is
-``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁``
+where ``ρ`` is the absolute loss and ``n`` is the number of observations.
 
+If `scale_penalty_with_samples = false` the objective function is instead
+
+``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁``.
+
+$DOC_SOLVERS
+
+# Training data
+
+In MLJ or MLJBase, bind an instance `model` to data with
+
+    mach = machine(model, X, y)
+
+where:
+
+- `X` is any table of input features (eg, a `DataFrame`) whose columns
+  have `Continuous` scitype; check column scitypes with `schema(X)`
+
+- `y` is the target, which can be any `AbstractVector` whose element scitype is
+  `Continuous`; check the scitype with `scitype(y)`
+
+Train the machine using `fit!(mach, rows=...)`.
+
+
+# Hyperparameters
 
 See also `RobustRegressor`.
 
@@ -324,9 +521,9 @@ $(example_docstring("LADRegressor"))
     fit_intercept::Bool      = true
     "whether to penalize the intercept."
     penalize_intercept::Bool = false
-    "whether to scale the penalty with the number of samples."
+    "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "type of solver to use, default if `nothing`."
+    "TODO"
     solver::Option{Solver}   = nothing
 end
 
@@ -336,5 +533,3 @@ glr(m::LADRegressor) =
                   fit_intercept=m.fit_intercept,
                   penalize_intercept=m.penalize_intercept,
                   scale_penalty_with_samples=m.scale_penalty_with_samples)
-
-descr(::Type{LADRegressor}) = "Robust regression with objective ``∑ρ(Xθ - y) + λ|θ|₂² + γ|θ|₁`` where `ρ` is the Absolute Loss."
