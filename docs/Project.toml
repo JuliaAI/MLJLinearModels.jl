@@ -1,5 +1,7 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+MLJ = "add582a8-e3ab-11e8-2d5e-e98b27df1bc7"
 
 [compat]
 Documenter = "^0.24"
+MLJ = "0.19"

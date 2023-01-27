@@ -150,3 +150,20 @@ ypred = predict_mode(mach, rows=1:2)
 ```
 
 Which, in my case, gives `setosa`, `setosa` (correct in both cases).
+
+### Customizing the solvers
+
+Depending on your problem you way want to customize the default solver or use a diffrent one. Since this package uses [Optim](https://julianlsolvers.github.io/Optim.jl/stable/) behind the scene, we can interact directly with this package.
+
+For instance, we may want to be more stringent about the convergence criterion of the LBFGS solver. This can be done by changing the general Optim `f_tol` parameter which defaults to ``10^{-4}``:
+
+```julia
+import Optim
+
+new_optim_option = Optim.Options(f_tol=0)
+mdl = MultinomialClassifier(solver=LBFGS(optim_options=new_optim_option))
+mach = machine(mdl, X, y)
+fit!(mach)
+```
+
+For a full description of available solvers and API, see: [Solvers](@ref).
