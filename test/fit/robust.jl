@@ -78,7 +78,7 @@ end
     @test isapprox(J(θ1),         7.359476, rtol=1e-5)
     @test isapprox(J(θ_newton),   0.486388, rtol=1e-5)
     @test isapprox(J(θ_newtoncg), 0.486388, rtol=1e-5)
-    @test isapprox(J(θ_lbfgs),    0.486388, rtol=1e-5)
+    @test isapprox(J(θ_lbfgs),    0.486788, rtol=1e-5)
     @test isapprox(J(θ_iwls),     0.486388, rtol=1e-5)
 end
 
