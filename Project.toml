@@ -1,7 +1,7 @@
 name = "MLJLinearModels"
 uuid = "6ee0df7b-362f-4a72-a706-9e79364fb692"
 authors = ["Thibaut Lienart <tlienart@me.com>"]
-version = "0.8.1"
+version = "0.9.0"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
@@ -19,20 +19,4 @@ LinearMaps = "2.6, 3.2"
 MLJModelInterface = "0.3, 0.4, 1.0"
 Optim = "0.20, 0.21, 1"
 Parameters = "0.12"
-julia = "1.6"
-
-[extras]
-DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
-MLJ = "add582a8-e3ab-11e8-2d5e-e98b27df1bc7"
-MLJBase = "a7f614a8-145f-11e9-1d2a-a57a1082229d"
-PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
-RCall = "6f49c342-dc21-5d91-9882-a32aef131414"
-RDatasets = "ce6b1742-4840-55fa-b093-852dadbb1d8b"
-Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-
-[targets]
-test = ["DelimitedFiles", "PyCall", "ForwardDiff", "Test", "Random", "RDatasets", "RCall", "MLJ", "MLJBase", "StableRNGs", "DataFrames"]
+julia = "1.6, 1"

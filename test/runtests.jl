@@ -1,5 +1,6 @@
 using MLJLinearModels, Test, LinearAlgebra
 using Random, StableRNGs, DataFrames, ForwardDiff
+import Optim
 import MLJ, MLJBase
 
 DO_COMPARISONS = false; include("testutils.jl")
