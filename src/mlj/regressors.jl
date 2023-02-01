@@ -40,6 +40,7 @@ $(example_docstring("LinearRegressor"))
     fit_intercept::Bool    = true
     """"any instance of `MLJLinearModels.Analytical`. Use `Analytical()`
     for Cholesky and `CG()=Analytical(iterative=true)` for conjugate-gradient.
+
     If `solver = nothing` (default) then `Analytical()` is used. """
     solver::Option{Solver} = nothing
 end
@@ -169,9 +170,10 @@ See also [`ElasticNetRegressor`](@ref).
     penalize_intercept::Bool = false
     "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "any instance of `MLJLinearModels.ProxGrad`; use `ProxyGrad()`
-    for ISTA and `FISTA() = ProxyGrad(iteration=true)` for FISTA.
-    TODO: default"
+    """any instance of `MLJLinearModels.ProxGrad`.
+    If `solver=nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used.
+    Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
+    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`. """
     solver::Option{Solver}   = nothing
 end
 
@@ -239,9 +241,12 @@ See also [`LassoRegressor`](@ref).
     penalize_intercept::Bool = false
     "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "any instance of `MLJLinearModels.ProxGrad`; use `ProxyGrad()`
-    for ISTA and `FISTA() = ProxyGrad(iteration=true)` for FISTA.
-    TODO: default"
+    """any instance of `MLJLinearModels.ProxGrad`.
+
+    If `solver=nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used.
+
+    Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
+    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`. """
     solver::Option{Solver}   = nothing
 end
 
@@ -317,7 +322,15 @@ See also [`HuberRegressor`](@ref), [`QuantileRegressor`](@ref).
     penalize_intercept::Bool = false
     "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "TODO"
+    """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`, `IWLSCG`,
+    `Newton`, `NewtonCG`, `ProxyGrad`, unless `gamma > 0` (L1 norm penalized) in which
+    case only `ProxyGrad` solvers are allowed.
+
+    If `solver = nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used,
+    unless `gamma = 0`, in which case `LBFGS()` is used.
+
+    Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
+    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 
@@ -384,7 +397,15 @@ See also [`RobustRegressor`](@ref), [`QuantileRegressor`](@ref).
     penalize_intercept::Bool = false
     "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "TODO"
+    """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`, `IWLSCG`,
+    `Newton`, `NewtonCG`, `ProxyGrad`, unless `gamma > 0` (L1 norm penalized) in which
+    case only `ProxyGrad` solvers are allowed.
+
+    If `solver = nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used,
+    unless `gamma = 0`, in which case `LBFGS()` is used.
+
+    Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
+    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 
@@ -451,7 +472,15 @@ See also [`RobustRegressor`](@ref), [`HuberRegressor`](@ref).
     penalize_intercept::Bool = false
     "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "TODO"
+    """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`, `IWLSCG`,
+    `ProxyGrad`, unless `gamma > 0` (L1 norm penalized) in which case only
+    `ProxyGrad` solvers are allowed.
+
+    If `solver = nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used,
+    unless `gamma = 0`, in which case `LBFGS()` is used.
+
+    Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
+    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 
@@ -523,7 +552,15 @@ $(example_docstring("LADRegressor"))
     penalize_intercept::Bool = false
     "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "TODO"
+    """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`, `IWLSCG`,
+    `ProxyGrad`, unless `gamma > 0` (L1 norm penalized) in which case only
+    `ProxyGrad` solvers are allowed.
+
+    If `solver = nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used,
+    unless `gamma = 0`, in which case `LBFGS()` is used.
+
+    Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
+    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 
