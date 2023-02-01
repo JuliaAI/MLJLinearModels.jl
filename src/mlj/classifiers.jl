@@ -94,7 +94,7 @@ glr(m::LogisticClassifier, nclasses::Integer) =
 $(doc_header(MultinomialClassifier))
 
 This model coincides with [`LogisticClassifier`](@ref), except certain optimizations
-possible in the special binary case will not be applied. It's hyperparameters are
+possible in the special binary case will not be applied. Its hyperparameters are
 identical.
 
 # Training data
