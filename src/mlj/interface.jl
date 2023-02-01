@@ -4,19 +4,7 @@ export LinearRegressor, RidgeRegressor, LassoRegressor, ElasticNetRegressor,
 
 const SymStr = Union{Symbol,String}
 
-function example_docstring(m; nclasses = nothing)
-"""
-## Example
-
-    using MLJ
-    X, y = $(nclasses == nothing ? "make_regression()" : "make_blobs(centers = $nclasses)")
-    mach = fit!(machine($m(), X, y))
-    predict(mach, X)
-    fitted_params(mach)
-
-"""
-end
-
+include("doc_tools.jl")
 include("regressors.jl")
 include("classifiers.jl")
 
@@ -121,8 +109,6 @@ function MMI.fitted_params(m::Union{CLF_MODELS...}, (θ, features, classes, c))
     return _fitted_params(θ, features, nothing)
 end
 
-@static VERSION < v"1.1" && (eachrow(A::AbstractVecOrMat) = (view(A, i, :) for i in axes(A, 1)))
-
 coef_vec(W::AbstractMatrix, features) =
     [feature => coef for (feature, coef) in zip(features, eachrow(W))]
 coef_vec(θ::AbstractVector, features) =
@@ -135,30 +121,30 @@ coef_vec(θ::AbstractVector, ::Nothing) = θ
    ======================= =#
 
 MMI.metadata_pkg.(ALL_MODELS,
-    name="MLJLinearModels",
-    uuid="6ee0df7b-362f-4a72-a706-9e79364fb692",
-    url="https://github.com/alan-turing-institute/MLJLinearModels.jl",
-    julia=true,
-    license="MIT",
+    package_name="MLJLinearModels",
+    package_uuid="6ee0df7b-362f-4a72-a706-9e79364fb692",
+    package_url="https://github.com/alan-turing-institute/MLJLinearModels.jl",
+    is_pure_julia=true,
+    package_license="MIT",
     is_wrapper=false)
 
-descr_(M) = descr(M) *
-    "\n→ based on [MLJLinearModels](https://github.com/alan-turing-institute/MLJLinearModels.jl)" *
-    "\n→ do `@load $(MMI.name(M)) pkg=\"MLJLinearModels\" to use the model.`" *
-    "\n→ do `?$(MMI.name(M))` for documentation."
 lp_(M) = "MLJLinearModels.$(MMI.name(M))"
 
 for M in REG_MODELS
-    MMI.metadata_model(M,
-        input=MMI.Table(MMI.Continuous),
-        target=AbstractVector{MMI.Continuous},
-        weights=false,
-        descr=descr_(M), path=lp_(M))
+    MMI.metadata_model(
+        M,
+        input_scitype=MMI.Table(MMI.Continuous),
+        target_scitype=AbstractVector{MMI.Continuous},
+        load_path=lp_(M),
+    )
 end
 for M in CLF_MODELS
-    MMI.metadata_model(M,
-        input=MMI.Table(MMI.Continuous),
-        target=AbstractVector{<:MMI.Finite},
-        weights=false,
-        descr=descr_(M), path=lp_(M))
+    MMI.metadata_model(
+        M,
+        input_scitype=MMI.Table(MMI.Continuous),
+        target_scitype=AbstractVector{<:MMI.Finite},
+        load_path=lp_(M),
+    )
 end
+
+MMI.human_name(::Type{<:LADRegressor}) = "least absolute deviation regressor"
