@@ -38,9 +38,9 @@ $(example_docstring("LinearRegressor"))
 @with_kw_noshow mutable struct LinearRegressor <: MMI.Deterministic
     "whether to fit the intercept or not."
     fit_intercept::Bool    = true
-    "any instance of `MLJLinearModels.Analytical`. Use `Analytical()`
-    for Cholesky and `CG()=Analytical(iteration=true)` for conjugate-gradient.
-    TODO: default?"
+    """"any instance of `MLJLinearModels.Analytical`. Use `Analytical()`
+    for Cholesky and `CG()=Analytical(iterative=true)` for conjugate-gradient.
+    If `solver = nothing` (default) then `Analytical()` is used. """
     solver::Option{Solver} = nothing
 end
 
@@ -102,9 +102,9 @@ See also [`ElasticNetRegressor`](@ref).
     penalize_intercept::Bool = false
     "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
-    "any instance of `MLJLinearModels.Analytical`. Use `Analytical()` for
+    """any instance of `MLJLinearModels.Analytical`. Use `Analytical()` for
     Cholesky and `CG()=Analytical(iteration=true)` for conjugate-gradient.
-    TODO: default?"
+    If `solver = nothing` (default) then `Analytical()` is used. """
     solver::Option{Solver}   = nothing
 end
 
