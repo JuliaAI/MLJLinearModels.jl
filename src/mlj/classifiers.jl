@@ -63,17 +63,17 @@ See also [`MultinomialClassifier`](@ref).
     "whether to scale the penalty with the number of samples."
     scale_penalty_with_samples::Bool = true
     """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`, `Newton`,
-    `NewtonCG`, `ProxyGrad`; but subject to the following restrictions:
+    `NewtonCG`, `ProxGrad`; but subject to the following restrictions:
 
-    - If `gamma > 0` (L1 norm penalized) then `ProxyGrad` is disallowed.
+    - If `gamma > 0` (L1 norm penalized) then only `ProxGrad` is allowed.
 
     - Unless `scitype(y) <: Finite{2}` (binary target) `Newton` is disallowed.
 
-    If `solver = nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used,
+    If `solver = nothing` (default) then `ProxGrad(accel=true)` (FISTA) is used,
     unless `gamma = 0`, in which case `LBFGS()` is used.
 
-    Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
-    `ISTA(; kwargs...) = ProxyGrad(accel=false, kwargs...)`"""
+    Solver aliases: `FISTA(; kwargs...) = ProxGrad(accel=true, kwargs...)`,
+    `ISTA(; kwargs...) = ProxGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 
@@ -139,17 +139,17 @@ See also [`LogisticClassifier`](@ref).
     "whether to scale the penalty with the number of samples."
     scale_penalty_with_samples::Bool = true
     """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`,
-    `NewtonCG`, `ProxyGrad`; but subject to the following restrictions:
+    `NewtonCG`, `ProxGrad`; but subject to the following restrictions:
 
-    - If `gamma > 0` (L1 norm penalized) then `ProxyGrad` is disallowed.
+    - If `gamma > 0` (L1 norm penalized) then `ProxGrad` is disallowed.
 
     - Unless `scitype(y) <: Finite{2}` (binary target) `Newton` is disallowed.
 
-    If `solver = nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used,
+    If `solver = nothing` (default) then `ProxGrad(accel=true)` (FISTA) is used,
     unless `gamma = 0`, in which case `LBFGS()` is used.
 
-    Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
-    `ISTA(; kwargs...) = ProxyGrad(accel=false, kwargs...)`"""
+    Solver aliases: `FISTA(; kwargs...) = ProxGrad(accel=true, kwargs...)`,
+    `ISTA(; kwargs...) = ProxGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 
