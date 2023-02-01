@@ -14,7 +14,7 @@ penalty:
 
 Here ``L`` is either `MLJLinearModels.LogisticLoss` or `MLJLinearModels.MultiClassLoss`,
 ``λ`` and ``γ`` indicate
-the strength of the L2 (resp. L1) regularisation components and
+the strength of the L2 (resp. L1) regularization components and
 ``n`` is the number of training observations.
 
 With `scale_penalty_with_samples = false` the objective function is instead
@@ -49,10 +49,10 @@ See also [`MultinomialClassifier`](@ref).
 
 """
 @with_kw_noshow mutable struct LogisticClassifier <: MMI.Probabilistic
-    "strength of the regulariser if `penalty` is `:l2` or `:l1` and strength of the L2
-    regulariser if `penalty` is `:en`."
+    "strength of the regularizer if `penalty` is `:l2` or `:l1` and strength of the L2
+    regularizer if `penalty` is `:en`."
     lambda::Real             = eps()
-    "strength of the L1 regulariser if `penalty` is `:en`."
+    "strength of the L1 regularizer if `penalty` is `:en`."
     gamma::Real              = 0.0
     "the penalty to use, either `:l2`, `:l1`, `:en` (elastic net) or `:none`."
     penalty::SymStr          = :l2
@@ -65,15 +65,15 @@ See also [`MultinomialClassifier`](@ref).
     """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`, `Newton`,
     `NewtonCG`, `ProxyGrad`; but subject to the following restrictions:
 
-    - If `gamma > 0` (L1 norm penalized) then `ProxyGrad` is dissallowed.
+    - If `gamma > 0` (L1 norm penalized) then `ProxyGrad` is disallowed.
 
-    - Unless `scitype(y) <: Finite{2}` (binary target) `Newton` is dissallowed.
+    - Unless `scitype(y) <: Finite{2}` (binary target) `Newton` is disallowed.
 
     If `solver = nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used,
     unless `gamma = 0`, in which case `LBFGS()` is used.
 
     Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
-    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`"""
+    `ISTA(; kwargs...) = ProxyGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 
@@ -125,10 +125,10 @@ See also [`LogisticClassifier`](@ref).
 
 """
 @with_kw_noshow mutable struct MultinomialClassifier <: MMI.Probabilistic
-    "strength of the regulariser if `penalty` is `:l2` or `:l1`.
-    Strength of the L2 regulariser if `penalty` is `:en`."
+    "strength of the regularizer if `penalty` is `:l2` or `:l1`.
+    Strength of the L2 regularizer if `penalty` is `:en`."
     lambda::Real             = eps()
-    "strength of the L1 regulariser if `penalty` is `:en`."
+    "strength of the L1 regularizer if `penalty` is `:en`."
     gamma::Real              = 0.0
     "the penalty to use, either `:l2`, `:l1`, `:en` (elastic net) or `:none`."
     penalty::SymStr          = :l2
@@ -141,15 +141,15 @@ See also [`LogisticClassifier`](@ref).
     """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`,
     `NewtonCG`, `ProxyGrad`; but subject to the following restrictions:
 
-    - If `gamma > 0` (L1 norm penalized) then `ProxyGrad` is dissallowed.
+    - If `gamma > 0` (L1 norm penalized) then `ProxyGrad` is disallowed.
 
-    - Unless `scitype(y) <: Finite{2}` (binary target) `Newton` is dissallowed.
+    - Unless `scitype(y) <: Finite{2}` (binary target) `Newton` is disallowed.
 
     If `solver = nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used,
     unless `gamma = 0`, in which case `LBFGS()` is used.
 
     Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
-    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`"""
+    `ISTA(; kwargs...) = ProxyGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 

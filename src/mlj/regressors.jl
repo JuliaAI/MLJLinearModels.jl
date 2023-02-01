@@ -95,7 +95,7 @@ See also [`ElasticNetRegressor`](@ref).
 
 """
 @with_kw_noshow mutable struct RidgeRegressor <: MMI.Deterministic
-    "strength of the L2 regularisation."
+    "strength of the L2 regularization."
     lambda::Real             = 1.0
     "whether to fit the intercept or not."
     fit_intercept::Bool      = true
@@ -162,7 +162,7 @@ See also [`ElasticNetRegressor`](@ref).
 
 """
 @with_kw_noshow mutable struct LassoRegressor <: MMI.Deterministic
-    "strength of the L1 regularisation."
+    "strength of the L1 regularization."
     lambda::Real             = 1.0
     "whether to fit the intercept or not."
     fit_intercept::Bool      = true
@@ -173,7 +173,7 @@ See also [`ElasticNetRegressor`](@ref).
     """any instance of `MLJLinearModels.ProxGrad`.
     If `solver=nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used.
     Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
-    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`. """
+    `ISTA(; kwargs...) = ProxyGrad(accel=false, kwargs...)`. """
     solver::Option{Solver}   = nothing
 end
 
@@ -231,9 +231,9 @@ See also [`LassoRegressor`](@ref).
 
 """
 @with_kw_noshow mutable struct ElasticNetRegressor <: MMI.Deterministic
-    "strength of the L2 regularisation."
+    "strength of the L2 regularization."
     lambda::Real             = 1.0
-    "strength of the L1 regularisation."
+    "strength of the L1 regularization."
     gamma::Real              = 0.0
     "whether to fit the intercept or not."
     fit_intercept::Bool      = true
@@ -246,7 +246,7 @@ See also [`LassoRegressor`](@ref).
     If `solver=nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used.
 
     Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
-    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`. """
+    `ISTA(; kwargs...) = ProxyGrad(accel=false, kwargs...)`. """
     solver::Option{Solver}   = nothing
 end
 
@@ -309,10 +309,10 @@ See also [`HuberRegressor`](@ref), [`QuantileRegressor`](@ref).
     `BisquareRho`, `FairRho`, `HuberRho`, `LogisticRho`,
     `QuantileRho`, `TalwarRho`, `HuberRho`, `TalwarRho`. "
     rho::RobustRho           = HuberRho(0.1)
-    "strength of the regulariser if `penalty` is `:l2` or `:l1`.
-    Strength of the L2 regulariser if `penalty` is `:en`."
+    "strength of the regularizer if `penalty` is `:l2` or `:l1`.
+    Strength of the L2 regularizer if `penalty` is `:en`."
     lambda::Real             = 1.0
-    "strength of the L1 regulariser if `penalty` is `:en`."
+    "strength of the L1 regularizer if `penalty` is `:en`."
     gamma::Real              = 0.0
     "the penalty to use, either `:l2`, `:l1`, `:en` (elastic net) or `:none`."
     penalty::SymStr          = :l2
@@ -330,7 +330,7 @@ See also [`HuberRegressor`](@ref), [`QuantileRegressor`](@ref).
     unless `gamma = 0`, in which case `LBFGS()` is used.
 
     Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
-    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`"""
+    `ISTA(; kwargs...) = ProxyGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 
@@ -384,10 +384,10 @@ See also [`RobustRegressor`](@ref), [`QuantileRegressor`](@ref).
     "parameterizes the `HuberRho` function (radius of the ball within which the loss
     is a quadratic loss)"
     delta::Real              = 0.5
-    "strength of the regulariser if `penalty` is `:l2` or `:l1`.
-    Strength of the L2 regulariser if `penalty` is `:en`."
+    "strength of the regularizer if `penalty` is `:l2` or `:l1`.
+    Strength of the L2 regularizer if `penalty` is `:en`."
     lambda::Real             = 1.0
-    "strength of the L1 regulariser if `penalty` is `:en`."
+    "strength of the L1 regularizer if `penalty` is `:en`."
     gamma::Real              = 0.0
     "the penalty to use, either `:l2`, `:l1`, `:en` (elastic net) or `:none`."
     penalty::SymStr          = :l2
@@ -405,7 +405,7 @@ See also [`RobustRegressor`](@ref), [`QuantileRegressor`](@ref).
     unless `gamma = 0`, in which case `LBFGS()` is used.
 
     Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
-    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`"""
+    `ISTA(; kwargs...) = ProxyGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 
@@ -459,10 +459,10 @@ See also [`RobustRegressor`](@ref), [`HuberRegressor`](@ref).
     "parameterizes the `QuantileRho` function (indicating the quantile to use
     with default `0.5` for the median regression)"
     delta::Real              = 0.5
-    "strength of the regulariser if `penalty` is `:l2` or `:l1`.
-    Strength of the L2 regulariser if `penalty` is `:en`."
+    "strength of the regularizer if `penalty` is `:l2` or `:l1`.
+    Strength of the L2 regularizer if `penalty` is `:en`."
     lambda::Real             = 1.0
-    "strength of the L1 regulariser if `penalty` is `:en`."
+    "strength of the L1 regularizer if `penalty` is `:en`."
     gamma::Real              = 0.0
     "the penalty to use, either `:l2`, `:l1`, `:en` (elastic net) or `:none`."
     penalty::SymStr          = :l2
@@ -480,7 +480,7 @@ See also [`RobustRegressor`](@ref), [`HuberRegressor`](@ref).
     unless `gamma = 0`, in which case `LBFGS()` is used.
 
     Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
-    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`"""
+    `ISTA(; kwargs...) = ProxyGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 
@@ -539,10 +539,10 @@ $TYPEDFIELDS
 $(example_docstring("LADRegressor"))
 """
 @with_kw_noshow mutable struct LADRegressor <: MMI.Deterministic
-    "strength of the regulariser if `penalty` is `:l2` or `:l1`.
-    Strength of the L2 regulariser if `penalty` is `:en`."
+    "strength of the regularizer if `penalty` is `:l2` or `:l1`.
+    Strength of the L2 regularizer if `penalty` is `:en`."
     lambda::Real             = 1.0
-    "strength of the L1 regulariser if `penalty` is `:en`."
+    "strength of the L1 regularizer if `penalty` is `:en`."
     gamma::Real              = 0.0
     "the penalty to use, either `:l2`, `:l1`, `:en` (elastic net) or `:none`."
     penalty::SymStr          = :l2
@@ -560,7 +560,7 @@ $(example_docstring("LADRegressor"))
     unless `gamma = 0`, in which case `LBFGS()` is used.
 
     Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
-    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`"""
+    `ISTA(; kwargs...) = ProxyGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 
