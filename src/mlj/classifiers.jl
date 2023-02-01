@@ -32,7 +32,7 @@ where:
 - `X` is any table of input features (eg, a `DataFrame`) whose columns
   have `Continuous` scitype; check column scitypes with `schema(X)`
 
-- `y` is is the target, which can be any `AbstractVector` whose element
+- `y` is the target, which can be any `AbstractVector` whose element
   scitype is `<:OrderedFactor` or `<:Multiclass`; check the scitype
   with `scitype(y)`
 
@@ -62,7 +62,18 @@ See also [`MultinomialClassifier`](@ref).
     penalize_intercept::Bool = false
     "whether to scale the penalty with the number of samples."
     scale_penalty_with_samples::Bool = true
-    "TODO"
+    """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`, `Newton`,
+    `NewtonCG`, `ProxyGrad`; but subject to the following restrictions:
+
+    - If `gamma > 0` (L1 norm penalized) then `ProxyGrad` is dissallowed.
+
+    - Unless `scitype(y) <: Finite{2}` (binary target) `Newton` is dissallowed.
+
+    If `solver = nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used,
+    unless `gamma = 0`, in which case `LBFGS()` is used.
+
+    Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
+    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 
@@ -97,7 +108,7 @@ where:
 - `X` is any table of input features (eg, a `DataFrame`) whose columns
   have `Continuous` scitype; check column scitypes with `schema(X)`
 
-- `y` is is the target, which can be any `AbstractVector` whose element
+- `y` is the target, which can be any `AbstractVector` whose element
   scitype is `<:OrderedFactor` or `<:Multiclass`; check the scitype
   with `scitype(y)`
 
@@ -127,7 +138,18 @@ See also [`LogisticClassifier`](@ref).
     penalize_intercept::Bool = false
     "whether to scale the penalty with the number of samples."
     scale_penalty_with_samples::Bool = true
-    "TODO"
+    """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`,
+    `NewtonCG`, `ProxyGrad`; but subject to the following restrictions:
+
+    - If `gamma > 0` (L1 norm penalized) then `ProxyGrad` is dissallowed.
+
+    - Unless `scitype(y) <: Finite{2}` (binary target) `Newton` is dissallowed.
+
+    If `solver = nothing` (default) then `ProxyGrad(accel=true)` (FISTA) is used,
+    unless `gamma = 0`, in which case `LBFGS()` is used.
+
+    Solver aliases: `FISTA(; kwargs...) = ProxyGrad(accel=true, kwargs...)`,
+    `ISTA(; kwargs) = ProxyGrad(accel=false, kwargs...)`"""
     solver::Option{Solver}   = nothing
 end
 
