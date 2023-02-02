@@ -3,7 +3,6 @@ import MLJBase: package_name, package_url, package_license,
     supports_weights, docstring, load_path
 
 @testset "meta-pkg" begin
-    @show methods(package_name)
     rr = RidgeRegressor()
     @test package_name(rr) == "MLJLinearModels"
     @test package_url(rr) ==
