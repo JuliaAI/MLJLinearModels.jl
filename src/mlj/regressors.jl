@@ -323,11 +323,10 @@ See also [`HuberRegressor`](@ref), [`QuantileRegressor`](@ref).
     "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
     """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`, `IWLSCG`,
-    `Newton`, `NewtonCG`, `ProxGrad`, unless `gamma > 0` (L1 norm penalized) in which
-    case only `ProxGrad` solvers are allowed.
+    `Newton`, `NewtonCG`, if `penalty = :l2`, and `ProxGrad` otherwise.
 
-    If `solver = nothing` (default) then `ProxGrad(accel=true)` (FISTA) is used,
-    unless `gamma = 0`, in which case `LBFGS()` is used.
+    If `solver = nothing` (default) then `LBFGS()` is used, if `penalty = :l2`, and
+    otherwise `ProxGrad(accel=true)` (FISTA) is used.
 
     Solver aliases: `FISTA(; kwargs...) = ProxGrad(accel=true, kwargs...)`,
     `ISTA(; kwargs...) = ProxGrad(accel=false, kwargs...)`"""
@@ -398,11 +397,10 @@ See also [`RobustRegressor`](@ref), [`QuantileRegressor`](@ref).
     "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
     """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`, `IWLSCG`,
-    `Newton`, `NewtonCG`, `ProxGrad`, unless `gamma > 0` (L1 norm penalized) in which
-    case only `ProxGrad` solvers are allowed.
+    `Newton`, `NewtonCG`, if `penalty = :l2`, and `ProxGrad` otherwise.
 
-    If `solver = nothing` (default) then `ProxGrad(accel=true)` (FISTA) is used,
-    unless `gamma = 0`, in which case `LBFGS()` is used.
+    If `solver = nothing` (default) then `LBFGS()` is used, if `penalty = :l2`, and
+    otherwise `ProxGrad(accel=true)` (FISTA) is used.
 
     Solver aliases: `FISTA(; kwargs...) = ProxGrad(accel=true, kwargs...)`,
     `ISTA(; kwargs...) = ProxGrad(accel=false, kwargs...)`"""
@@ -473,11 +471,10 @@ See also [`RobustRegressor`](@ref), [`HuberRegressor`](@ref).
     "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
     """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`, `IWLSCG`,
-    `ProxGrad`, unless `gamma > 0` (L1 norm penalized) in which case only
-    `ProxGrad` solvers are allowed.
+    if `penalty = :l2`, and `ProxGrad` otherwise.
 
-    If `solver = nothing` (default) then `ProxGrad(accel=true)` (FISTA) is used,
-    unless `gamma = 0`, in which case `LBFGS()` is used.
+    If `solver = nothing` (default) then `LBFGS()` is used, if `penalty = :l2`, and
+    otherwise `ProxGrad(accel=true)` (FISTA) is used.
 
     Solver aliases: `FISTA(; kwargs...) = ProxGrad(accel=true, kwargs...)`,
     `ISTA(; kwargs...) = ProxGrad(accel=false, kwargs...)`"""
@@ -553,11 +550,10 @@ $(example_docstring("LADRegressor"))
     "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
     """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`, `IWLSCG`,
-    `ProxGrad`, unless `gamma > 0` (L1 norm penalized) in which case only
-    `ProxGrad` solvers are allowed.
+    if `penalty = :l2`, and `ProxGrad` otherwise.
 
-    If `solver = nothing` (default) then `ProxGrad(accel=true)` (FISTA) is used,
-    unless `gamma = 0`, in which case `LBFGS()` is used.
+    If `solver = nothing` (default) then `LBFGS()` is used, if `penalty = :l2`, and
+    otherwise `ProxGrad(accel=true)` (FISTA) is used.
 
     Solver aliases: `FISTA(; kwargs...) = ProxGrad(accel=true, kwargs...)`,
     `ISTA(; kwargs...) = ProxGrad(accel=false, kwargs...)`"""

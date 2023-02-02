@@ -65,7 +65,8 @@ See also [`MultinomialClassifier`](@ref).
     """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`, `Newton`,
     `NewtonCG`, `ProxGrad`; but subject to the following restrictions:
 
-    - If `gamma > 0` (L1 norm penalized) then only `ProxGrad` is allowed.
+    - If `penalty = :l2`, `ProxGrad` is disallowed. Otherwise, `ProxyGrad` is the only
+      option.
 
     - Unless `scitype(y) <: Finite{2}` (binary target) `Newton` is disallowed.
 
@@ -141,7 +142,8 @@ See also [`LogisticClassifier`](@ref).
     """some instance of `MLJLinearModels.S` where `S` is one of: `LBFGS`,
     `NewtonCG`, `ProxGrad`; but subject to the following restrictions:
 
-    - If `gamma > 0` (L1 norm penalized) then `ProxGrad` is disallowed.
+    - If `penalty = :l2`, `ProxGrad` is disallowed. Otherwise, `ProxyGrad` is the only
+      option.
 
     - Unless `scitype(y) <: Finite{2}` (binary target) `Newton` is disallowed.
 
