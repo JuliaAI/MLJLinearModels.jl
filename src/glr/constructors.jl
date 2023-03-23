@@ -282,3 +282,18 @@ function LADRegression(λ::Real=1.0, γ::Real=0.0;
                               penalize_intercept=penalize_intercept,
                               scale_penalty_with_samples=scale_penalty_with_samples)
 end
+
+
+# see https://cloud.r-project.org/web/packages/ncvreg/ncvreg.pdf
+#
+# should also allow for L2 penalty on top (composite penalty)
+
+# function SCADRegression(λ::Real=1.0, gamma:; lambda::Real=λ, fit_intercept::Bool=true,
+#                          penalize_intercept::Bool=false,
+#                          scale_penalty_with_samples::Bool=true)
+#     check_pos(lambda)
+#     GLR(penalty=lambda*L2Penalty(),
+#         fit_intercept=fit_intercept,
+#         penalize_intercept=penalize_intercept,
+#         scale_penalty_with_samples=scale_penalty_with_samples)
+# end

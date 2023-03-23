@@ -1,4 +1,4 @@
-module MLJLinearModels 
+module MLJLinearModels
 
 using Parameters, DocStringExtensions
 using LinearAlgebra, IterativeSolvers
@@ -21,6 +21,9 @@ include("loss-penalty/generic.jl")
 include("loss-penalty/standard.jl")
 include("loss-penalty/robust.jl")
 include("loss-penalty/utils.jl")
+
+include("loss-penalty/scad_mcp.jl")
+
 
 # > Constructors for regression models <
 include("glr/constructors.jl")
