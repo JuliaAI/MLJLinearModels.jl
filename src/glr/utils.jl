@@ -30,6 +30,9 @@ evaluation point `θ`.
 smooth_objective(glr::GLR, X, y; c::Int=0) =
     θ -> smooth_objective(glr, size(X, 1))(y, apply_X(X, θ, c), view_θ(glr, θ))
 
+smooth_objective(glr::GLR, XX::T, Xy::U; c::Int=0) where {T <: LinearMap, U <: LinearMap} =
+    θ -> θ'*XX*θ - only(2*(θ'*Xy))
+
 """
 $SIGNATURES
 

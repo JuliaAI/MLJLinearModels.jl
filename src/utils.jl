@@ -9,6 +9,10 @@ function check_nrows(X::AbstractMatrix, y::AbstractVecOrMat)::Nothing
     throw(DimensionMismatch("`X` and `y` must have the same number of rows."))
 end
 
+function check_nrows(XX::T, Xy::U)::Nothing where {T <: LinearMap, U <: LinearMap}
+    size(XX, 1) == size(Xy, 1) && return nothing
+    throw(DimensionMismatch("`XX` and `Xy` must have the same number of features."))
+end
 """
 $SIGNATURES
 

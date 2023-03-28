@@ -41,6 +41,15 @@ function fit(glr::GLR, X::AbstractMatrix{<:Real}, y::AVR;
     return _fit(glr, solver, X, y, scratch(n, p, c, i=glr.fit_intercept))
 end
 
+fit_gram(glr::GLR, XX::AbstractMatrix{<:Real}, Xy::AbstractMatrix{<:Real}; kw...) = fit_gram(glr, LinearMap(XX), LinearMap(Xy); kw...)
+function fit_gram(glr::GLR, XX::T, Xy::U; n,
+    solver::Solver=_solver(glr, (n, first(size(XX))))) where {T <: LinearMap, U <: LinearMap}
+    check_nrows(XX, Xy)
+    p = size(XX, 1)
+    # c = 0
+    return _fit(glr, solver, XX, Xy, n, scratch(0, p, 0, i=false))
+end
+
 function scratch(n, p, c=0; i=false)
     p_ = p + Int(i)
     s = (n=zeros(n), n2=zeros(n), n3=zeros(n), p=zeros(p_), dims=(n,p_,c))

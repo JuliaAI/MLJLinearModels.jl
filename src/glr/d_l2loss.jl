@@ -72,3 +72,13 @@ function smooth_fg!(glr::GLR{L2Loss,<:ENR}, X, y, scratch)
         return glr.loss(r) + get_l2(glr.penalty)(view_θ(glr, θ))
     end
 end
+
+function smooth_fg!(glr::GLR{L2Loss,<:ENR}, XX::T, Xy::U, n) where {T <: LinearMap, U <: LinearMap}
+    λ = get_penalty_scale_l2(glr, n)
+    (g, θ) -> begin
+        _g = XX * θ .- Matrix(Xy)
+        g .= _g .+ λ .* θ
+        glr.fit_intercept && (glr.penalize_intercept || (g[end] -= λ * θ[end]))
+        return only(θ'*_g) + get_l2(glr.penalty)(view_θ(glr, θ))
+    end
+end
