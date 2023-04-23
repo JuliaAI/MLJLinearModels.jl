@@ -9,7 +9,10 @@ function check_nrows(X::AbstractMatrix, y::AbstractVecOrMat)::Nothing
     throw(DimensionMismatch("`X` and `y` must have the same number of rows."))
 end
 
-function check_gramian(glr, data)::Nothing
+function verify_or_construct_gramian(glr, X, y, data)
+    check_nrows(X, y)
+    isnothing(data) && return (; XX = X'X, Xy = X'y, n = length(y))
+
     !all(hasproperty.(Ref(data), (:XX, :Xy, :n))) && throw(ArgumentError("data must contain XX, Xy, n"))
     size(data.XX, 1) != size(data.Xy, 1) && throw(DimensionMismatch("`XX` and Xy` must have the same number of rows."))
     !issymmetric(data.XX) && throw(ArgumentError("Input `XX` must be symmetric"))
@@ -17,7 +20,16 @@ function check_gramian(glr, data)::Nothing
     c = getc(glr, data.Xy)
     !iszero(c) && throw(ArgumentError("Categorical loss not supported with Gramian kernel"))
     glr.fit_intercept && throw(ArgumentError("Intercept not supported with Gramian kernel"))
-    return nothing
+
+    if any(.!iszero.((X, y)))
+        all((
+            isapprox(X'X, data.XX; rtol=1e-5),
+            isapprox(X'y, data.Xy; rtol=1e-5),
+            length(y) == data.n
+        )) || throw(ArgumentError("Inputs `X` and `y` do not match inputs `XX` and `Xy`."))
+    end
+
+    return data
 end
 
 """
