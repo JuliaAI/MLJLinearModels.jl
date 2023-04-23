@@ -15,8 +15,8 @@ function check_gramian(glr, data)::Nothing
     !issymmetric(data.XX) && throw(ArgumentError("Input `XX` must be symmetric"))
 
     c = getc(glr, data.Xy)
-    !iszero(c) && throw(NotImplementedError("Categorical loss not supported with Gramian kernel"))
-    glr.fit_intercept && throw(NotImplementedError("Intercept not supported with Gramian kernel"))
+    !iszero(c) && throw(ArgumentError("Categorical loss not supported with Gramian kernel"))
+    glr.fit_intercept && throw(ArgumentError("Intercept not supported with Gramian kernel"))
     return nothing
 end
 
