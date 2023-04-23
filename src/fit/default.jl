@@ -33,22 +33,22 @@ $SIGNATURES
 Fit a generalised linear regression model using an appropriate solver based on
 the loss and penalty of the model. A method can, in some cases, be specified.
 """
-function fit(glr::GLR, X::AbstractMatrix{<:Real}, y::AVR;
+function fit(glr::GLR, X::AbstractMatrix{<:Real}, y::AVR; data=NamedTuple(),
              solver::Solver=_solver(glr, size(X)))
-    check_nrows(X, y)
-    n, p = size(X)
-    c = getc(glr, y)
-    return _fit(glr, solver, X, y, scratch(n, p, c, i=glr.fit_intercept))
+    if hasproperty(solver, :gram) && solver.gram
+        # interpret X,y as X'X, X'y
+        p = size(data.XX, 2)
+        check_gramian(glr, data)
+        return _fit(glr, solver, data.XX, data.Xy, (; dims=(data.n, p, 0)))
+    else
+        check_nrows(X, y)
+        n, p = size(X)
+        c = getc(glr, y)
+        return _fit(glr, solver, X, y, scratch(n, p, c, i=glr.fit_intercept))
+    end
 end
+fit(glr::GLR; kwargs...) = fit(glr, zeros((0,0)), zeros((0,)); kwargs...)
 
-fit_gram(glr::GLR, XX::AbstractMatrix{<:Real}, Xy::AVR; kw...) = fit_gram(glr, LinearMap(XX), LinearMap(Xy); kw...)
-function fit_gram(glr::GLR, XX::T, Xy::U; n,
-    solver::Solver=_solver(glr, (n, first(size(XX))))) where {T <: LinearMap, U <: LinearMap}
-    check_nrows(XX, Xy)
-    p = size(XX, 1)
-    # c = 0
-    return _fit(glr, solver, XX, Xy, n, scratch(0, p, 0, i=false))
-end
 
 function scratch(n, p, c=0; i=false)
     p_ = p + Int(i)

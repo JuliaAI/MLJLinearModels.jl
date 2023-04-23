@@ -38,7 +38,6 @@ include("fit/analytical.jl")
 include("fit/newton.jl")
 # include("fit/pnewton.jl")
 include("fit/proxgrad.jl")
-include("fit/gramproxgrad.jl")
 include("fit/iwls.jl")
 # include("fit/admm.jl")
 

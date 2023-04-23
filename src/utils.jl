@@ -9,10 +9,17 @@ function check_nrows(X::AbstractMatrix, y::AbstractVecOrMat)::Nothing
     throw(DimensionMismatch("`X` and `y` must have the same number of rows."))
 end
 
-function check_nrows(XX::T, Xy::U)::Nothing where {T <: LinearMap, U <: LinearMap}
-    size(XX, 1) == size(Xy, 1) && return nothing
-    throw(DimensionMismatch("`XX` and `Xy` must have the same number of features."))
+function check_gramian(glr, data)::Nothing
+    !all(hasproperty.(Ref(data), (:XX, :Xy, :n))) && throw(ArgumentError("data must contain XX, Xy, n"))
+    size(data.XX, 1) != size(data.Xy, 1) && throw(DimensionMismatch("`XX` and Xy` must have the same number of rows."))
+    !issymmetric(data.XX) && throw(ArgumentError("Input `XX` must be symmetric"))
+
+    c = getc(glr, data.Xy)
+    !iszero(c) && throw(NotImplementedError("Categorical loss not supported with Gramian kernel"))
+    glr.fit_intercept && throw(NotImplementedError("Intercept not supported with Gramian kernel"))
+    return nothing
 end
+
 """
 $SIGNATURES
 
