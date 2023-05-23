@@ -5,7 +5,7 @@ y = randn(rng, 10)
 r = x .- y
 
 @testset "Robust Loss" begin
-    δ = 0.5
+    δ = 0.75
     rlδ = RobustLoss(Huber(δ))
     @test rlδ isa RobustLoss{HuberRho{δ}}
     @test rlδ(r) == rlδ(x, y) == sum(ifelse(abs(rᵢ)≤δ, rᵢ^2/2, δ*(abs(rᵢ)-δ/2)) for rᵢ in r)
