@@ -104,7 +104,7 @@ See also [`ElasticNetRegressor`](@ref).
     "whether to scale the penalty with the number of observations."
     scale_penalty_with_samples::Bool = true
     """any instance of `MLJLinearModels.Analytical`. Use `Analytical()` for
-    Cholesky and `CG()=Analytical(iteration=true)` for conjugate-gradient.
+    Cholesky and `CG()=Analytical(iterative=true)` for conjugate-gradient.
     If `solver = nothing` (default) then `Analytical()` is used. """
     solver::Option{Solver}   = nothing
 end

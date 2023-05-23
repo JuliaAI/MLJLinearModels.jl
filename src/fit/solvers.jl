@@ -46,11 +46,14 @@ Newton solver. This is a full Hessian solver and should be avoided for
 `newton_options` are the [options of Newton's method](https://julianlsolvers.github.io/Optim.jl/stable/#algo/newton/)
 
 ## Example
+
 ```julia
 using MLJLinearModels, Optim
 
-solver = MLJLinearModels.Newton(optim_options = Optim.Options(time_limit = 20),
-                                newton_options = (linesearch = Optim.LineSearches.HagerZhang()),))
+solver = MLJLinearModels.Newton(
+    optim_options = Optim.Options(time_limit = 20),
+    newton_options = (linesearch = Optim.LineSearches.HagerZhang()),)
+)
 ```
 """
 @with_kw struct Newton{O,S} <: Solver
@@ -70,13 +73,15 @@ generally be preferred for larger scale cases.
 `newtoncg_options` are the [options of Krylov Trust Region method](https://github.com/JuliaNLSolvers/Optim.jl/blob/master/src/multivariate/solvers/second_order/krylov_trust_region.jl)
 
 ## Example
+
 ```julia
 using MLJLinearModels, Optim
 
-solver = MLJLinearModels.Newton(optim_options = Optim.Options(time_limit = 20),
-                                newtoncg_options = (eta = 0.2,))
+solver = MLJLinearModels.NewtonCG(
+    optim_options = Optim.Options(time_limit = 20),
+    newtoncg_options = (eta = 0.2,)
+)
 ```
-
 """
 @with_kw struct NewtonCG{O,S} <: Solver
     optim_options::O = Optim.Options(f_tol=1e-4)
@@ -95,8 +100,10 @@ LBFGS quasi-Newton solver. See [the wikipedia entry](https://en.wikipedia.org/wi
 ```julia
 using MLJLinearModels, Optim
 
-solver = MLJLinearModels.Newton(optim_options = Optim.Options(time_limit = 20),
-                                lbfgs_options = (linesearch = Optim.LineSearches.HagerZhang()),))
+solver = MLJLinearModels.LBFGS(
+    optim_options = Optim.Options(time_limit = 20),
+    lbfgs_options = (linesearch = Optim.LineSearches.HagerZhang()),)
+)
 ```
 """
 @with_kw struct LBFGS{O,S} <: Solver

@@ -1,6 +1,6 @@
 using MLJLinearModels
 using BenchmarkTools, Random, LinearAlgebra
-DO_COMPARISONS = false; include("../testutils.jl")
+include("../testutils.jl")
 
 n, p = 50_000, 500
 ((X, y, θ), (X1, y1, θ1)) = generate_binary(n, p; seed=525)

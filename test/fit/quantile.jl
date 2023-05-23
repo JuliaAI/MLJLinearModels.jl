@@ -46,16 +46,27 @@ y1a = outlify(y1, 0.1)
         θ_ls     = fit(LinearRegression(), X, y1a)
         θ_lbfgs  = fit(rr, X, y1a, solver=LBFGS())
         θ_iwls   = fit(rr, X, y1a, solver=IWLSCG())
-        θ_qr_br  = rcopy(QUANTREG.rq_fit_br(X1, y1a))[:coefficients]
-        θ_qr_fnb = rcopy(QUANTREG.rq_fit_fnb(X1, y1a))[:coefficients]
+        θ_qr_br  = rcopy(QUANTREG.rq_fit_br(X1, y1a, tau=δ))[:coefficients]
+        θ_qr_fnb = rcopy(QUANTREG.rq_fit_fnb(X1, y1a, tau=δ))[:coefficients]
         # NOTE: we take θ_qr_br as reference point
         @test isapprox(J(θ_ls), 505.45286,  rtol=1e-5)
         @test J(θ_qr_br) ≈      409.570777 # <- ref value
         # Their IP algorithm essentially gives the same answer
         @test (J(θ_qr_fnb) - J(θ_qr_br)) ≤ 1e-10
         # Our algorithms are close enough
-        @test isapprox(J(θ_lbfgs), 409.57154, rtol=1e-5)
+        @test isapprox(J(θ_lbfgs), 409.57608, rtol=1e-5)
         @test isapprox(J(θ_iwls),  409.59,    rtol=1e-4)
+
+        # Let's try this again but with a δ different from 0.5
+        δ  = 0.75
+        rr = QuantileRegression(δ, lambda=0)
+        J  = objective(rr, X, y1a)
+
+        θ_lbfgs  = fit(rr, X, y1a, solver=LBFGS())
+        θ_qr_br  = rcopy(QUANTREG.rq_fit_br(X1, y1a, tau=δ))[:coefficients]
+
+        @test isapprox(J(θ_qr_br), 404.6161, rtol=1e-4)
+        @test isapprox(J(θ_lbfgs), 404.6195, rtol=1e-4)
     end
 end
 
@@ -63,7 +74,7 @@ end
 ## With Sparsity penalty ##
 ###########################
 
-n, p = 500, 100
+Jn, p = 500, 100
 ((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p;  seed=51112, sparse=0.1)
 # pepper with outliers
 y1a  = outlify(y1, 0.1)
@@ -90,9 +101,9 @@ y1a  = outlify(y1, 0.1)
         θ_ls       = X1 \ y1a
         θ_fista    = fit(rr, X, y1a, solver=FISTA())
         θ_ista     = fit(rr, X, y1a, solver=ISTA())
-        θ_qr_lasso = rcopy(QUANTREG.rq_fit_lasso(X1, y1a))[:coefficients]
+        θ_qr_lasso = rcopy(QUANTREG.rq_fit_lasso(X1, y1a, lambda=λ))[:coefficients]
         @test isapprox(J(θ_ls),       888.3748, rtol=1e-5)
-        @test isapprox(J(θ_qr_lasso), 425.5,    rtol=1e-3)
+        @test isapprox(J(θ_qr_lasso), 425.2,    rtol=1e-3)
         # Our algorithms are close enough
         @test isapprox(J(θ_fista),    425.0526, rtol=1e-5)
         @test isapprox(J(θ_ista),     425.4113, rtol=1e-5)
@@ -101,6 +112,6 @@ y1a  = outlify(y1, 0.1)
         @test nnz(θ_fista)    == 88
         @test nnz(θ_ista)     == 82
         # in this case fista is best
-        @test J(θ_fista) < J(θ_ista) < J(θ_qr_lasso)
+        @test J(θ_fista) < J(θ_qr_lasso) < J(θ_ista)
     end
 end
