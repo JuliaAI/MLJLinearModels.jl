@@ -74,7 +74,7 @@ end
 ## With Sparsity penalty ##
 ###########################
 
-Jn, p = 500, 100
+n, p = 500, 100
 ((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p;  seed=51112, sparse=0.1)
 # pepper with outliers
 y1a  = outlify(y1, 0.1)
