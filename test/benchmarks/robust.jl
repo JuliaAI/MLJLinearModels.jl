@@ -2,9 +2,9 @@
 
 if DO_COMPARISONS
     @testset "Comp-QR-147" begin
-        using CSV, DataFrames
+        using CSV, DataFrames, Downloads
 
-        dataset = CSV.read(download("http://freakonometrics.free.fr/rent98_00.txt"), DataFrame)
+        dataset = CSV.read(Downloads.download("http://freakonometrics.free.fr/rent98_00.txt"), DataFrame)
         tau     = 0.3
 
         y  = Vector(dataset[!,:rent_euro])
