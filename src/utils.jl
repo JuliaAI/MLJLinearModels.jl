@@ -21,7 +21,7 @@ function verify_or_construct_gramian(glr, X, y, data)
     !iszero(c) && throw(ArgumentError("Categorical loss not supported with Gramian kernel"))
     glr.fit_intercept && throw(ArgumentError("Intercept not supported with Gramian kernel"))
 
-    if any(.!iszero.((X, y)))
+    if any(!isempty, (X, y))
         all((
             isapprox(X'X, data.XX; rtol=1e-5),
             isapprox(X'y, data.Xy; rtol=1e-5),
