@@ -3,20 +3,37 @@ export RobustLoss,
        BisquareRho, Bisquare, LogisticRho, Logistic,
        FairRho, Fair, TalwarRho, Talwar, QuantileRho, Quantile
 
+#=
+In the non-penalised case:
+
+   β⋆ = arg min ∑ ρ(yᵢ - ⟨xᵢ, β⟩)
+
+where ρ is a weighing function such as, for instance, the pinball loss for
+the quantile regression.
+
+It is useful to define the following quantities:
+
+   ψ(r) = ρ'(r)     (first derivative)
+   ϕ(r) = ψ'(r)     (second derivative)
+   ω(r) = ψ(r)/r    (weighing function used for IWLS), a threshold can be passed
+                    to clip weights
+
+Some refs:
+- https://josephsalmon.eu/enseignement/UW/STAT593/QuantileRegression.pdf
+=#
+
 abstract type RobustRho end
 
-abstract type RobustRho1P{δ} <: RobustRho end # one parameter
+# robust rho with only one parameter
+abstract type RobustRho1P{δ} <: RobustRho end
 
 struct RobustLoss{ρ} <: AtomicLoss where ρ <: RobustRho
    rho::ρ
 end
 
-(rl::RobustLoss)(x::AVR, y::AVR) = rl(x .- y)
-(rl::RobustLoss)(r::AVR) = rl.rho(r)
+(rl::RobustLoss)(Xβ::AVR, y::AVR) = rl(y .- Xβ)
+(rl::RobustLoss)(r::AVR)          = rl.rho(r)
 
-# ψ(r) = ρ'(r)     (first derivative)
-# ω(r) = ψ(r)/r    (weighing function) a thresh can be passed to clip weights
-# ϕ(r) = ψ'(r)     (second derivative)
 
 """
 $TYPEDEF
@@ -24,6 +41,8 @@ $TYPEDEF
 Huber weighing of the residuals corresponding to
 
 ``ρ(z) = z²/2``  if `|z|≤δ` and `ρ(z)=δ(|z|-δ/2)` otherwise.
+
+Note: symmetric weighing.
 """
 struct HuberRho{δ} <: RobustRho1P{δ}
    HuberRho(δ::Real=1.0; delta::Real=δ) = new{delta}()
@@ -33,7 +52,7 @@ Huber(δ::Real=1.0; delta::Real=δ) = HuberRho(delta)
 (::HuberRho{δ})(r::AVR) where δ = begin
    ar = abs.(r)
    w  = ar .<= δ
-   return sum( r.^2/2 .* w .+ δ .* (ar .- δ/2) .* .!w )
+   return sum( @. ifelse(w, r^2/2, δ * (ar - δ/2) ) )
 end
 
 ψ(::Type{HuberRho{δ}}   ) where δ = (r, w) -> r * w + δ * sign(r) * (1.0 - w)
@@ -47,6 +66,8 @@ $TYPEDEF
 Andrews weighing of the residuals corresponding to
 
 ``ρ(z) = -cos(πz/δ)/(π/δ)²`` if `|z|≤δ` and `ρ(δ)` otherwise.
+
+Note: symmetric weighing.
 """
 struct AndrewsRho{δ} <: RobustRho1P{δ}
    AndrewsRho(δ::Real=1.0; delta::Real=δ) = new{delta}()
@@ -58,7 +79,7 @@ Andrews(δ::Real=1.0; delta::Real=δ) = AndrewsRho(delta)
    w  = ar .<= δ
    c  = π/δ
    κ  = (δ/π)^2
-   return sum( -cos.(c .* r) .* κ .* w .+ κ .* .!w )
+   return sum( @. ifelse(w, -cos(c * r) * κ, κ) )
 end
 
 # Note, sinc(x) = sin(πx)/πx, well defined everywhere
@@ -74,6 +95,8 @@ $TYPEDEF
 Bisquare weighing of the residuals corresponding to
 
 ``ρ(z) = δ²/6 (1-(1-(z/δ)²)³)`` if `|z|≤δ` and `δ²/6` otherwise.
+
+Note: symmetric weighing.
 """
 struct BisquareRho{δ} <: RobustRho1P{δ}
    BisquareRho(δ::Real=1.0; delta::Real=δ) = new{delta}()
@@ -84,7 +107,7 @@ Bisquare(δ::Real=1.0; delta::Real=δ) = BisquareRho(delta)
    ar = abs.(r)
    w  = ar .<= δ
    κ  = δ^2/6
-   return sum( κ * (1.0 .- (1.0 .- (r ./ δ).^2).^3) .* w + κ .* .!w )
+   return sum( @. ifelse(w, κ * (1 - (1 - (r / δ)^2)^3), κ) )
 end
 
 ψ(::Type{BisquareRho{δ}}   ) where δ = (r, w) -> w * r * (1.0 - (r / δ)^2)^2
@@ -97,6 +120,8 @@ $TYPEDEF
 Logistic weighing of the residuals corresponding to
 
 ``ρ(z) = δ² log(cosh(z/δ))``
+
+Note: symmetric weighing.
 """
 struct LogisticRho{δ} <: RobustRho1P{δ}
    LogisticRho(δ::Real=1.0; delta::Real=δ) = new{delta}()
@@ -104,7 +129,7 @@ end
 Logistic(δ::Real=1.0; delta::Real=δ) = LogisticRho(delta)
 
 (::LogisticRho{δ})(r::AVR) where δ = begin
-   return sum( δ^2 .* log.(cosh.(r ./ δ)) )
+   return sum( @. δ^2 * log(cosh(r / δ)) )
 end
 
 # similar to sinc, to avoid NaNs if tanh(0)/0 (lim is 1.0)
@@ -121,6 +146,8 @@ $TYPEDEF
 Fair weighing of the residuals corresponding to
 
 ``ρ(z) = δ² (|z|/δ - log(1+|z|/δ))``
+
+Note: symmetric weighing.
 """
 struct FairRho{δ} <: RobustRho1P{δ}
    FairRho(δ::Real=1.0; delta::Real=δ) = new{delta}()
@@ -128,8 +155,8 @@ end
 Fair(δ::Real=1.0; delta::Real=δ) = FairRho(delta)
 
 (::FairRho{δ})(r::AVR) where δ = begin
-   sr = abs.(r) ./ δ
-   return sum( δ^2 .* (sr .- log1p.(sr)) )
+   sr = @. abs(r) / δ
+   return sum( @. δ^2 * (sr - log1p(sr)) )
 end
 
 ψ(::Type{FairRho{δ}}   ) where δ = (r, _) -> δ * r / (abs(r) + δ)
@@ -143,6 +170,8 @@ $TYPEDEF
 Talwar weighing of the residuals corresponding to
 
 ``ρ(z) = z²/2`` if `|z|≤δ` and `ρ(z)=ρ(δ)` otherwise.
+
+Note: symmetric weighing.
 """
 struct TalwarRho{δ} <: RobustRho1P{δ}
    TalwarRho(δ::Real=1.0; delta::Real=δ) = new{delta}()
@@ -150,8 +179,8 @@ end
 Talwar(δ::Real=1.0; delta::Real=δ) = TalwarRho(delta)
 
 (::TalwarRho{δ})(r::AVR) where δ = begin
-   w = abs.(r) .<= δ
-   return sum( r.^2 ./ 2 .* w .+ δ^2/2 .* .!w)
+   w = @. abs(r) <= δ
+   return sum( @. ifelse(w, r^2 / 2, δ^2/2) )
 end
 
 ψ(::Type{TalwarRho{δ}}   ) where δ = (r, w) -> w * r
@@ -164,7 +193,11 @@ $TYPEDEF
 
 Quantile regression weighing of the residuals corresponding to
 
-``ρ(z) = z(δ - 1(z<0))``
+``ρ(z) = -z(δ - 1(z>=0))``
+
+Note: asymetric weighing, the "-" sign is because similar libraries like
+quantreg for instance define the residual as `y-Xθ` while we do the opposite
+(out of convenience for gradients etc).
 """
 struct QuantileRho{δ} <: RobustRho1P{δ}
    QuantileRho(δ::Real=1.0; delta::Real=δ) = new{delta}()
@@ -173,9 +206,9 @@ end
 Quantile(δ::Real=1.0; delta::Real=δ) = QuantileRho(delta)
 
 (::QuantileRho{δ})(r::AVR) where δ = begin
-   return sum( r .* (δ .- (r .<= 0.0)) )
+   return sum( @. -r * (δ - (r >= 0)) )
 end
 
-ψ(::Type{QuantileRho{δ}}   ) where δ = (r, _) -> (δ - (r <= 0.0))
-ω(::Type{QuantileRho{δ}}, τ) where δ = (r, _) -> (δ - (r <= 0.0)) / clip(r, τ)
+ψ(::Type{QuantileRho{δ}}   ) where δ = (r, _) -> ((r >= 0.0) - δ)
+ω(::Type{QuantileRho{δ}}, τ) where δ = (r, _) -> ((r >= 0.0) - δ) / clip(-r, τ)
 ϕ(::Type{QuantileRho{δ}}   ) where δ = (_, _) -> error("Newton(CG) not available for Quantile Reg.")

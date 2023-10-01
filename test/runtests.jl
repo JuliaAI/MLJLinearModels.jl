@@ -3,7 +3,8 @@ using Random, StableRNGs, DataFrames, ForwardDiff
 import Optim
 import MLJ, MLJBase
 
-DO_COMPARISONS = false; include("testutils.jl")
+DO_COMPARISONS = true
+include("testutils.jl")
 
 m("UTILS"); include("utils.jl")
 
@@ -30,4 +31,8 @@ m("MLJ", false); begin
     mm("metadata");    include("interface/meta.jl")
     mm("fit-predict"); include("interface/fitpredict.jl")
     mm("extras");      include("interface/extras.jl")
+end
+
+m("MISC", false); begin
+    mm("benchmarks"); include("benchmarks/robust.jl")
 end
