@@ -72,3 +72,12 @@ function smooth_fg!(glr::GLR{L2Loss,<:ENR}, X, y, scratch)
         return glr.loss(r) + get_l2(glr.penalty)(view_θ(glr, θ))
     end
 end
+
+function smooth_gram_fg!(glr::GLR{L2Loss,<:ENR}, XX, Xy, n)
+    λ = get_penalty_scale_l2(glr, n)
+    (g, θ) -> begin
+        _g = XX * θ .- Xy
+        g .= _g .+ λ .* θ
+        return θ'*_g + get_l2(glr.penalty)(view_θ(glr, θ))
+    end
+end
