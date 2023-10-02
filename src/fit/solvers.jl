@@ -133,6 +133,7 @@ Proximal Gradient solver for non-smooth objective functions.
     tol::Float64   = 1e-4  # tol relative change of θ i.e. norm(θ-θ_)/norm(θ)
     max_inner::Int = 100   # β^max_inner should be > 1e-10
     beta::Float64  = 0.8   # in (0, 1); shrinkage in the backtracking step
+    gram::Bool = false     # use precomputed Gramian for lsq where possible
 end
 
 FISTA(; kwa...) = ProxGrad(;accel = true, kwa...)

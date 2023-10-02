@@ -1,4 +1,4 @@
-export objective, smooth_objective
+export objective, smooth_objective, smooth_gram_objective
 
 # NOTE: RobustLoss are not always everywhere  smooth but "smooth-enough".
 const SmoothLoss = Union{L2Loss, LogisticLoss, MultinomialLoss, RobustLoss}
@@ -36,6 +36,9 @@ $SIGNATURES
 Return the smooth part of the objective function of a GLR.
 """
 smooth_objective(glr::GLR{<:SmoothLoss,<:ENR}, n) = glr.loss + get_l2(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.)
+
+smooth_gram_objective(glr::GLR{<:SmoothLoss,<:ENR}, XX, Xy, n) =
+    θ -> (θ'*XX*θ)/2 - (θ'*Xy) + (get_l2(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.))(θ)
 
 smooth_objective(::GLR) = @error "Case not implemented yet."
 

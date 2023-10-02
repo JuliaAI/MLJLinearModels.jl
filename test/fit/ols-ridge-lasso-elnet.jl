@@ -146,3 +146,18 @@ end
         @test nnz(θ_sk) == 8
     end
 end
+
+@testset "gramian" begin
+    λ = 0.1
+    γ = 0.1
+    enr = ElasticNetRegression(λ, γ; fit_intercept=false,
+                                     scale_penalty_with_samples=false)    
+    XX = X'X
+    Xy = X'y
+    n = size(X, 1)
+    θ_fista = fit(enr, X, y; solver=FISTA(max_iter=5000))
+    θ_gram_explicit = fit(enr; data=(; XX, Xy, n), solver=FISTA(max_iter=5000, gram=true))
+    θ_gram_implicit = fit(enr, X, y; solver=FISTA(max_iter=5000, gram=true))
+    @test isapprox(θ_fista, θ_gram_explicit, rtol=1e-5)
+    @test isapprox(θ_gram_explicit, θ_gram_implicit; rtol=1e-5)
+end

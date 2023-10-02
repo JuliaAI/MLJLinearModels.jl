@@ -3,7 +3,7 @@
 # Assumption: loss has gradient; penalty has prox e.g.: Lasso
 # J(θ) = f(θ) + r(θ) where f is smooth
 function _fit(glr::GLR, solver::ProxGrad, X, y, scratch)
-    _,p,c = npc(scratch)
+    n,p,c = npc(scratch)
     c > 0 && (p *= c)
     # vector caches + eval cache
     θ   = zeros(p)   # θ_k
@@ -19,9 +19,18 @@ function _fit(glr::GLR, solver::ProxGrad, X, y, scratch)
     η   = 1.0   # stepsize (1/L)
     acc = ifelse(solver.accel, 1.0, 0.0) # if 0, no extrapolation (ISTA)
     # functions
-    _f      = smooth_objective(glr, X, y; c=c)
-    _fg!    = smooth_fg!(glr, X, y, scratch)
-    _prox!  = prox!(glr, size(X, 1))
+    _f = if solver.gram
+        smooth_gram_objective(glr, X, y, n)
+    else
+        smooth_objective(glr, X, y; c=c)
+    end
+
+    _fg! = if solver.gram
+        smooth_gram_fg!(glr, X, y, n)
+    else
+        smooth_fg!(glr, X, y, scratch)
+    end
+    _prox!  = prox!(glr, n)
     bt_cond = θ̂ ->
                 _f(θ̂) > fθ̄ + dot(θ̂ .- θ̄, ∇fθ̄) + sum(abs2.(θ̂ .- θ̄)) / (2η)
     # loop-related
