@@ -49,13 +49,20 @@ struct HuberRho{δ} <: RobustRho1P{δ}
 end
 Huber(δ::Real=1.0; delta::Real=δ) = HuberRho(delta)
 
-(::HuberRho{δ})(r::AVR) where δ = begin
+function (::HuberRho{δ})(::Type{T}, r::AVR) where δ where {T<:Real}
    ar = abs.(r)
    w  = ar .<= δ
-   return sum( @. ifelse(w, r^2/2, δ * (ar - δ/2) ) )
+   return sum( @. ifelse(w, r^T(2)/T(2), δ * (ar - δ/T(2)) ) )
 end
 
-ψ(::Type{HuberRho{δ}}   ) where δ = (r, w) -> r * w + δ * sign(r) * (1.0 - w)
+(hr::HuberRho{δ})(r::AVR) where δ = hr(eltype(r), r)
+
+function ψ(::Type{T}, ::Type{HuberRho{δ}}) where δ where {T<:Real}
+   return (r, w) -> r * w + δ * sign(r) * (T(1.0) - w)
+end
+
+ψ(hr::Type{HuberRho{δ}}) where δ = hr(eltype(typeof(hr).parameters[1]), hr)
+
 ω(::Type{HuberRho{δ}}, _) where δ = (r, w) -> w + (δ / abs(r)) * (1.0 - w)
 ϕ(::Type{HuberRho{δ}}   ) where δ = (r, w) -> w
 
