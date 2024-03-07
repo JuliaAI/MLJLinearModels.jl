@@ -15,13 +15,13 @@ Assuming `n` dominates `p`,
 * iterative (conjugate gradient): O(κnp) - with κ the number of CG steps
                                   (κ ≤ p).
 """
-function _fit(glr::GLR{L2Loss,<:L2R}, solver::Analytical, X, y, scratch)
+function _fit(::Type{T}, glr::GLR{L2Loss,<:L2R}, solver::Analytical, X, y, scratch) where {T<:Real}
     # full solve
     if !solver.iterative
         λ  = get_penalty_scale(glr, length(y))
         if iszero(λ)
             # standard LS solution
-            return augment_X(X, glr.fit_intercept) \ y
+            return augment_X(T, X, glr.fit_intercept) \ y
         else
             # Ridge case -- form the Hat Matrix then solve
             H = form_XtX(X, glr.fit_intercept, λ, glr.penalize_intercept)
@@ -42,4 +42,8 @@ function _fit(glr::GLR{L2Loss,<:L2R}, solver::Analytical, X, y, scratch)
     b  = X'y
     glr.fit_intercept && (b = vcat(b, sum(y)))
     return cg(Hm, b; maxiter=max_cg_steps)
+end
+
+function _fit(glr::GLR{L2Loss,<:L2R}, solver::Analytical, X, y, scratch)
+    return _fit(eltype(X), glr, solver, X, y, scratch)
 end

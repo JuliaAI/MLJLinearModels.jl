@@ -18,7 +18,7 @@ abstract type AtomicLoss <: Loss end
 
 mutable struct ScaledLoss{AL} <: Loss where AL <: AtomicLoss
     loss::AL
-    scale::Float64
+    scale::Real
 end
 
 mutable struct CompositeLoss <: Loss
@@ -53,7 +53,7 @@ abstract type AtomicPenalty <: Penalty end
 
 mutable struct ScaledPenalty{AP} <: Penalty where AP <: AtomicPenalty
     penalty::AP
-    scale::Float64
+    scale::Real
 end
 
 mutable struct CompositePenalty <: Penalty
@@ -109,13 +109,13 @@ scale1(a::AP) = ScaledPenalty(a, 1.0)
 +(a::AL, b::AL)           = scale1(a) + scale1(b)
 +(a::AL, b::Union{SL,CL}) = scale1(a) + b
 +(b::Union{SL,CL}, a::AL) = a + b
-*(a::AL, c::Real)         = ScaledLoss(a, float(c))
+*(a::AL, c::Real)         = ScaledLoss(a, c)
 
 # Combinations with AtomicPenalty (AP)
 +(a::AP, b::AP)           = scale1(a) + scale1(b)
 +(a::AP, b::Union{SP,CP}) = scale1(a) + b
 +(b::Union{SP,CP}, a::AP) = a + b
-*(a::AP, c::Real)         = ScaledPenalty(a, float(c))
+*(a::AP, c::Real)         = ScaledPenalty(a, c)
 
 # Combinations with Scaled Losses and Combined Losses
 +(a::SL{T},  b::SL{T})  where {T}     = ScaledLoss(a.loss, a.scale + b.scale)

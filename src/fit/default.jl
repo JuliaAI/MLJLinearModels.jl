@@ -33,8 +33,8 @@ $SIGNATURES
 Fit a generalised linear regression model using an appropriate solver based on
 the loss and penalty of the model. A method can, in some cases, be specified.
 """
-function fit(glr::GLR, X::AbstractMatrix{<:Real}, y::AVR; data=nothing,
-             solver::Solver=_solver(glr, size(X)))
+function fit(::Type{T}, glr::GLR, X::AbstractMatrix{<:Real}, y::AVR; data=nothing,
+             solver::Solver=_solver(glr, size(X))) where {T<:Real}
     if hasproperty(solver, :gram) && solver.gram
         # interpret X,y as X'X, X'y
         data = verify_or_construct_gramian(glr, X, y, data)
@@ -44,9 +44,14 @@ function fit(glr::GLR, X::AbstractMatrix{<:Real}, y::AVR; data=nothing,
         check_nrows(X, y)
         n, p = size(X)
         c = getc(glr, y)
-        return _fit(glr, solver, X, y, scratch(n, p, c, i=glr.fit_intercept))
+        return _fit(T, glr, solver, X, y, scratch(n, p, c, i=glr.fit_intercept))
     end
 end
+
+function fit(glr::GLR, X::AbstractMatrix{<:Real}, y::AVR; kwargs...)
+    return fit(eltype(X), glr, X, y; kwargs...)
+end
+
 fit(glr::GLR; kwargs...) = fit(glr, zeros((0,0)), zeros((0,)); kwargs...)
 
 

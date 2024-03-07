@@ -11,7 +11,7 @@
 # NOTE: https://github.com/JuliaAI/MLJLinearModels.jl/issues/104
 # ---------------------------------------------------------
 
-function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
+function fgh!(::Type{T}, glr::GLR{LogisticLoss,<:L2R}, X, y, scratch) where {T<:Real}
     n, p = size(X)
     J    = objective(glr, n) # GLR objective (loss+penalty)
     λ    = get_penalty_scale(glr, n)
@@ -34,12 +34,12 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
                 # ΛX but computing the full hessian allocates a lot anyway so
                 # probably not really worth it
                 t    = scratch.n3
-                t   .= w .- w.^2                      # σ(yXθ)(1-σ(yXθ))
+                t   .= w .- w.^T(2)                      # σ(yXθ)(1-σ(yXθ))
                 a    = 1:p
                 ΛX   = t .* X                         # !! big allocs
                 mul!(view(H, a, a), X', ΛX)           # -- H[1:p,1:p] = X'ΛX
                 ΛXt1   = view(scratch.p, a)
-                ΛXt1 .*= 0
+                ΛXt1 .*= T(0)
                 @inbounds for i in a, j in 1:n
                     ΛXt1[i] += ΛX[j, i]               # -- (ΛX)'1
                 end
@@ -67,7 +67,7 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
             end
             H === nothing || begin
                 t  = scratch.n3
-                t .= w .- w.^2
+                t .= w .- w.^T(2)
                 mul!(H, X', t .* X)
                 add_λI!(H, λ)
             end
@@ -76,7 +76,11 @@ function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
     end
 end
 
-function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
+function fgh!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
+    return fgh!(eltype(X), glr, X, y, scratch)
+end
+
+function Hv!(::Type{T}, glr::GLR{LogisticLoss,<:L2R}, X, y, scratch) where{T<:Real}
     n, p = size(X)
     λ    = get_penalty_scale(glr, n)
     if glr.fit_intercept
@@ -88,7 +92,7 @@ function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
             apply_X!(Xθ, X, θ)                       # -- Xθ = apply_X(X, θ)
             w   = scratch.n2
             w  .= σ.(Xθ .* y)                        # -- w  = σ.(Xθ .* y)
-            w .-= w.^2                               # -- w  = w(1-w)
+            w .-= w.^T(2)                               # -- w  = w(1-w)
             # view on the first p rows
             a    = 1:p
             Hvₐ  = view(Hv, a)
@@ -112,7 +116,7 @@ function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
             apply_X!(Xθ, X, θ)
             w   = scratch.n2
             w  .= σ.(Xθ .* y)                # -- σ(yXθ)
-            w .-= w.^2
+            w .-= w.^T(2)
             Xv  = scratch.n
             mul!(Xv, X, v)
             Xv .*= scratch.n2               # -- ΛXv
@@ -120,6 +124,10 @@ function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
             Hv .+= λ .* v
         end
     end
+end
+
+function Hv!(glr::GLR{LogisticLoss,<:L2R}, X, y, scratch)
+    return Hv!(eltype(X), glr, X, y, scratch)
 end
 
 # ----------------------------------- #
@@ -133,9 +141,13 @@ end
 # -> prox_r = soft-thresh
 # ---------------------------------------------------------
 
-function smooth_fg!(glr::GLR{LogisticLoss,<:ENR}, X, y, scratch)
+function smooth_fg!(::Type{T}, glr::GLR{LogisticLoss,<:ENR}, X, y, scratch) where {T<:Real}
     smooth = get_smooth(glr)
-    (g, θ) -> fgh!(smooth, X, y, scratch)(0.0, g, nothing, θ)
+    (g, θ) -> fgh!(T, smooth, X, y, scratch)(T(0.0), g, nothing, θ)
+end
+
+function smooth_fg!(glr::GLR{LogisticLoss,<:ENR}, X, y, scratch)
+    return smooth_fg!(eltype(X), glr, X, y, scratch)
 end
 
 # ---------------------------------- #
@@ -152,7 +164,7 @@ end
 # * yᵢ ∈ {1, 2, ..., c}
 # ---------------------------------------------------------
 
-function fg!(glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch)
+function fg!(::Type{T}, glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch) where {T<:Real}
     n, p = size(X)
     c    = getc(glr, y)
     λ    = get_penalty_scale(glr, n)
@@ -166,7 +178,7 @@ function fg!(glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch)
             ΛM .= M ./ sum(M, dims=2)                # O(nc)  store n * c
             Q   = scratch.nc4
             @inbounds for i = 1:n, j=1:c
-                Q[i, j] = ifelse(y[i] == j, 1.0, 0.0)
+                Q[i, j] = ifelse(y[i] == j, T(1.0), T(0.0))
             end
             ∑ΛM = sum(ΛM, dims=1)
             ∑Q  = sum(Q, dims=1)
@@ -198,7 +210,7 @@ function fg!(glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch)
             ΛM  = scratch.nc2  # note that _NC is already linked to P
             ΛM .= M ./ ems
             ss  = sum(ΛM, dims=2)
-            t   = 0.0
+            t   = T(0.0)
             @inbounds for i in eachindex(y)
                 t += log(ss[i]) + ms[i] - P[i, y[i]]
             end
@@ -207,7 +219,12 @@ function fg!(glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch)
     end
 end
 
-function Hv!(glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch)
+function fg!(glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch)
+    return fg!(eltype(X), glr, X, y, scratch)
+end
+
+
+function Hv!(::Type{T}, glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch) where {T<:Real}
     n, p = size(X)
     λ = get_penalty_scale(glr, n)
     c = getc(glr, y)
@@ -239,6 +256,10 @@ function Hv!(glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch)
     end
 end
 
+function Hv!(::Type{T}, glr::GLR{<:MultinomialLoss,<:L2R}, X, y, scratch) where {T<:Real}
+    return Hv!(eltype{X}, glr, X, y, scratch)
+end
+
 # -------------------------------------- #
 #  -- L1/Elnet Multinomial Regression -- #
 # -------------------------------------- #
@@ -250,7 +271,11 @@ end
 # -> prox_r = soft-thresh
 # ---------------------------------------------------------
 
-function smooth_fg!(glr::GLR{<:MultinomialLoss,<:ENR}, X, y, scratch)
+function smooth_fg!(::Type{T}, glr::GLR{<:MultinomialLoss,<:ENR}, X, y, scratch) where {T<:Real}
     smooth = get_smooth(glr)
-    (g, θ) -> fg!(smooth, X, y, scratch)(0.0, g, θ)
+    (g, θ) -> fg!(T, smooth, X, y, scratch)(T(0.0), g, θ)
+end
+
+function smooth_fg!(glr::GLR{<:MultinomialLoss,<:ENR}, X, y, scratch)
+    return smooth_fg!(eltype(X), glr, X, y, scratch)
 end
