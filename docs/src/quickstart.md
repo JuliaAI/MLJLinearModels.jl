@@ -155,12 +155,12 @@ Which, in my case, gives `setosa`, `setosa` (correct in both cases).
 
 Depending on your data you may want to customize the default solver associated with your model. Since this package uses [Optim](https://julianlsolvers.github.io/Optim.jl/stable/) behind the scene, we can interact directly with this package.
 
-For instance, you may need to be more stringent about the convergence criterion of the LBFGS solver. This can be done by changing the general Optim `f_tol` parameter which defaults to ``10^{-4}``:
+For instance, you may need to be more stringent about the convergence criterion of the LBFGS solver. This can be done by changing the general Optim `f_reltol` parameter which defaults to ``10^{-4}``:
 
 ```julia
 import Optim
 
-new_optim_options = Optim.Options(f_tol=1e-6)
+new_optim_options = Optim.Options(f_reltol=1e-6)
 mdl = MultinomialClassifier(solver=LBFGS(optim_options=new_optim_options))
 mach = machine(mdl, X, y)
 fit!(mach)

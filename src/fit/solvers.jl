@@ -57,7 +57,7 @@ solver = MLJLinearModels.Newton(
 ```
 """
 @with_kw struct Newton{O,S} <: Solver
-    optim_options::O = Optim.Options(f_tol=1e-4)
+    optim_options::O = Optim.Options(f_reltol=1e-4)
     newton_options::S = (; )
 end
 
@@ -84,7 +84,7 @@ solver = MLJLinearModels.NewtonCG(
 ```
 """
 @with_kw struct NewtonCG{O,S} <: Solver
-    optim_options::O = Optim.Options(f_tol=1e-4)
+    optim_options::O = Optim.Options(f_reltol=1e-4)
     newtoncg_options::S = (; )
 end
 
@@ -107,7 +107,7 @@ solver = MLJLinearModels.LBFGS(
 ```
 """
 @with_kw struct LBFGS{O,S} <: Solver
-    optim_options::O = Optim.Options(f_tol=1e-4)
+    optim_options::O = Optim.Options(f_reltol=1e-4)
     lbfgs_options::S = (; )
 end
 
