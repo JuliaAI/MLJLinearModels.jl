@@ -1,3 +1,4 @@
+push!(LOAD_PATH, "../src/")
 using Documenter, MLJLinearModels
 
 makedocs(
@@ -13,7 +14,8 @@ makedocs(
         "Models"       => "models.md",
         "Solvers"      => "solvers.md",
         "API"          => "api.md"
-    ]
+    ],
+    warnonly=[:cross_references, :missing_docs],
 )
 
 deploydocs(

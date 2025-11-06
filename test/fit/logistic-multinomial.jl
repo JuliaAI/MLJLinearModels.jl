@@ -93,12 +93,12 @@ n, p, c = 500, 5, 4
 
     if DO_COMPARISONS
         lr_sk_ncg = SKLEARN_LM.LogisticRegression(
-                        C=1.0/λ, solver="newton-cg", multi_class="multinomial",
+                        C=1.0/λ, solver="newton-cg",
                         random_state=551551)
         lr_sk_ncg.fit(X, y1)
         θ1_sk_ncg = vec(vcat(lr_sk_ncg.coef_', lr_sk_ncg.intercept_'))
         lr_sk_lbfgs = SKLEARN_LM.LogisticRegression(
-                        C=1.0/λ, solver="lbfgs", multi_class="multinomial",
+                        C=1.0/λ, solver="lbfgs",
                         random_state=551551)
         lr_sk_lbfgs.fit(X, y1)
         θ1_sk_lbfgs = vec(vcat(lr_sk_ncg.coef_', lr_sk_ncg.intercept_'))
@@ -176,7 +176,12 @@ n, p, c = 1000, 100, 3
 
     if DO_COMPARISONS
         enmnr_sk = SKLEARN_LM.LogisticRegression(
-                    penalty="elasticnet", C=1.0/γ, l1_ratio=1, solver="saga", multi_class="multinomial", random_state=1616)
+            penalty="elasticnet",
+            C=1.0/γ,
+            l1_ratio=1,
+            solver="saga",
+            random_state=1616,
+        )
         enmnr_sk.fit(X, y)
         θ_sk = enmnr_sk.coef_'[:]
         @test isapprox(J(θ_sk), 921.54, rtol=1e-3)
