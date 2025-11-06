@@ -25,14 +25,6 @@ jobs:
           - x64
     steps:
       - uses: actions/checkout@v4
-      - name: Setup R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: 'latest'
-      - name: Configure RCall to use system R
-        run: |
-          echo "R_HOME=$(R RHOME)" >> $GITHUB_ENV
-        shell: bash
       - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
@@ -49,6 +41,8 @@ jobs:
             ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
+        env:
+          R_HOME: "*"
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v1
         with:
