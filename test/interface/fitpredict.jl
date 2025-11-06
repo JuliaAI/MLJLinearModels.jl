@@ -37,7 +37,7 @@ end
     ŷ = MLJBase.predict(lr, fr, Xt)
     ŷ = MLJBase.mode.(ŷ)
 
-    mcr = MLJBase.misclassification_rate(ŷ, yc)
+    mcr = MLJ.misclassification_rate(ŷ, yc)
     @test mcr ≤ 0.2
 end
 
@@ -62,7 +62,7 @@ end
     ŷ = MLJBase.predict(mc, fr, Xt)
     ŷ = MLJBase.mode.(ŷ)
 
-    mcr = MLJBase.misclassification_rate(ŷ, yc)
+    mcr = MLJ.misclassification_rate(ŷ, yc)
     @test mcr ≤ 0.3
 end
 

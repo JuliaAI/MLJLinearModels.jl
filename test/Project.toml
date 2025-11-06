@@ -14,13 +14,3 @@ RDatasets = "ce6b1742-4840-55fa-b093-852dadbb1d8b"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-
-[compat]
-DataFrames = "1.4"
-ForwardDiff = "0.10"
-MLJ = "0.19"
-MLJBase = "0.21"
-PyCall = "1.95"
-RCall = "0.13"
-RDatasets = "0.7"
-StableRNGs = "1.0"
