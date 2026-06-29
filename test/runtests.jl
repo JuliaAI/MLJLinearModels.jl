@@ -1,9 +1,42 @@
+# # LOGIC AND MESSAGING FOR HANDLING COMPARISONS WITH R AND PYTHON
+
+# tests and benchmarks requiring the R and python models are suppressed when
+# `DO_COMPARISONS == false`.
+
+const DO_COMPARISONS = get(ENV, "", "true") == "true"
+if DO_COMPARISONS
+    @info """
+          Running comparisons with R and python models.
+          Run `ENV["DO_COMPARISONS"] = "false"` to suppress these.
+          """
+else
+    @info """
+          Excluding comparisons with R and python models.
+          Run `ENV["DO_COMPARISONS"] = "true"` to re-instate these.
+          """
+end
+
+if DO_COMPARISONS
+    using PyCall
+    using RCall
+end
+
+SKLEARN_LM = nothing
+PY_RND     = nothing
+if DO_COMPARISONS
+    SKLEARN_LM = pyimport("sklearn.linear_model")
+    PY_RND     = pyimport("random")
+    QUANTREG   = rimport("quantreg")
+end
+
+
+# # TESTS
+
 using MLJLinearModels, Test, LinearAlgebra
 using Random, StableRNGs, DataFrames, ForwardDiff
 import Optim
 import MLJ, MLJBase
 
-DO_COMPARISONS = true
 include("testutils.jl")
 
 m("UTILS"); include("utils.jl")
