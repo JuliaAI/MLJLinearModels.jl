@@ -3,7 +3,7 @@
 # tests and benchmarks requiring the R and python models are suppressed when
 # `DO_COMPARISONS == false`.
 
-const DO_COMPARISONS = get(ENV, "", "true") == "true"
+const DO_COMPARISONS = get(ENV, "DO_COMPARISONS", "true") == "true"
 if DO_COMPARISONS
     @info """
           Running comparisons with R and python models.
