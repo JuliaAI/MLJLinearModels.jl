@@ -4,16 +4,39 @@
 # `DO_COMPARISONS == false`.
 
 const DO_COMPARISONS = get(ENV, "DO_COMPARISONS", "true") == "true"
+
 if DO_COMPARISONS
+    r_home = get(ENV, "R_HOME", "<unset>")
+    python  = get(ENV, "PYTHON", "<unset>")
     @info """
+
           Running comparisons with R and python models.
           Run `ENV["DO_COMPARISONS"] = "false"` to suppress these.
+
+          These comparisons may fail unless:
+
+          - ENV["R_HOME"] points an R installation that includes the quantreg library
+            (currently set to $r_home).
+
+          - ENV["PYTHON"] points a python installation that includes the sklearn library
+            (currently set to $python).
+
+          You may need to explicitly rebuild RCall and PyCall after changing these paths.
+
+          Attention maintainers of MLJLinearModels:
+
+          In the GitHub testing workflow be sure `PyCall` and `RCall` are explicitly added
+          to the load path and built with a valid ENV before julia-runtest is
+          executed. Otherwise, julia-actions/cache may be caching invalid builds of those
+          packages.
+
           """
-else
-    @info """
-          Excluding comparisons with R and python models.
-          Run `ENV["DO_COMPARISONS"] = "true"` to re-instate these.
-          """
+else @info """
+
+           Excluding comparisons with R and python models.  Run `ENV["DO_COMPARISONS"] =
+           "true"` to re-instate these.
+
+           """
 end
 
 if DO_COMPARISONS
