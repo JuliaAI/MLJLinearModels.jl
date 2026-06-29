@@ -40,6 +40,12 @@ jobs:
             ${{ runner.os }}-test-
             ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@v1
+      - name: Debug R
+        run: |
+          which R || true
+          R --version || true
+          echo "R_HOME=$R_HOME"
+          find ~/.julia -name libR
       - uses: julia-actions/julia-runtest@v1
         env:
           DO_COMPARISONS: "false"
