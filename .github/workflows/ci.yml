@@ -48,6 +48,7 @@ jobs:
           echo "shell R_HOME=$R_HOME"
           R RHOME
           julia -e 'println("Julia sees R_HOME = ", get(ENV, "R_HOME", "<unset>"))'
+          julia -e 'using Pkg; Pkg.build("RCall", verbose=true)'
       - uses: julia-actions/julia-buildpkg@v1
       - name: Debug R
         run: |
