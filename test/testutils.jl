@@ -1,4 +1,15 @@
 const R = MLJLinearModels
+const CI = get(ENV, "CI", "false") == "true"
+
+DO_COMPARISONS = DO_COMPARISONS && !CI
+DO_COMPARISONS && (using PyCall; using RCall)
+SKLEARN_LM = nothing
+PY_RND     = nothing
+if DO_COMPARISONS
+    SKLEARN_LM = pyimport("sklearn.linear_model")
+    PY_RND     = pyimport("random")
+    QUANTREG   = rimport("quantreg")
+end
 
 m(s, p=true) = println("\n== $s ==" * ifelse(p, "\n", ""))
 mm(s) = println("\n > $s < \n")
