@@ -24,12 +24,22 @@ jobs:
         arch:
           - x64
     steps:
-      - uses: r-lib/actions/setup-r@v2
-      - name: Configure RCall
+      - name: Setup R 
+        uses: r-lib/actions/setup-r@v2
+        # assuming here that this setup includes installation of quantreg library
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip' # Automatically caches installed packages for faster subsequent runs
+      - name: Install scikit-learn, python library
         run: |
-          echo "R_HOME=$(R RHOME)" >> $GITHUB_ENV
-      - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v2
+          python -m pip install --upgrade pip
+          pip install scikit-learn
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
@@ -48,17 +58,29 @@ jobs:
           echo "shell R_HOME=$R_HOME"
           R RHOME
           julia -e 'println("Julia sees R_HOME = ", get(ENV, "R_HOME", "<unset>"))'
-      - uses: julia-actions/julia-buildpkg@v1
+      - name: Build Julia package deps
+        uses: julia-actions/julia-buildpkg@v1
       - name: Debug R
         run: |
           which R || true
           R --version || true
           echo "R_HOME=$R_HOME"
           find ~/.julia -name libR
+      - name: Build RCall and PyCall (test deps)
+        # we explicitly build in case cached versions point to wrong R/python installations
+        run: |
+          echo "R_HOME=$(R RHOME)" >> $GITHUB_ENV
+          echo "PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
+          julia --project=. -e '
+              Pkg.add(
+                  [Pkg.PackageSpec(name="RCall"), Pkg.PackageSpec(name="PyCall")],
+                  preserve=Pkg.PRESERVE_ALL,
+              )
+              Pkg.build("RCall")
+              Pkg.build("PyCall")'
       - uses: julia-actions/julia-runtest@v1
         env:
           DO_COMPARISONS: "true"
-          R_HOME: ${{ env.R_HOME }}
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v1
         with:
