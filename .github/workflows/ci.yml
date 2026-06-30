@@ -58,15 +58,10 @@ jobs:
         run: |
           echo "PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
           julia --project=. -e '
-              r_home = get(ENV, "R_HOME", "<unset>")
               @info "Building RCall with ENV[\"R_HOME\"]=$r_home ..."
               using Pkg
-              Pkg.add(
-                  [Pkg.PackageSpec(name="RCall"), Pkg.PackageSpec(name="PyCall")],
-                  preserve=Pkg.PRESERVE_ALL,
-              )
+              Pkg.add("PyCall", preserve=Pkg.PRESERVE_ALL)
               Pkg.build("PyCall")
-              using RCall
               # test sklearn can be found
               pyimport("sklearn.linear_model")
               '
