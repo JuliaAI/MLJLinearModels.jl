@@ -53,11 +53,12 @@ jobs:
       #       ${{ runner.os }}-
       - name: Build Julia package deps
         uses: julia-actions/julia-buildpkg@v1
-      - name: Build PyCall (a test dep)
-        shell: bash
-        # we explicitly build in case cached versions point to wrong R/python installations
+      - name: Add location of python to GH env
         run: |
           echo "PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
+      - name: Build PyCall (a test dep)
+        # we explicitly build in case cached versions point to wrong python installation
+        run: |
           julia --project=. -e '
               python = get(ENV, "PYTHON", "<unset>")
               @info "Building PyCall using ENV[\"PYTHON\"]=$python"
