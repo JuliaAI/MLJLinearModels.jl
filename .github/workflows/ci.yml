@@ -53,11 +53,6 @@ jobs:
       #       ${{ runner.os }}-test-${{ env.cache-name }}-
       #       ${{ runner.os }}-test-
       #       ${{ runner.os }}-
-      - name: diagnose R_HOME
-        run: |
-          echo "shell R_HOME=$R_HOME"
-          R RHOME
-          julia -e 'println("Julia sees R_HOME = ", get(ENV, "R_HOME", "<unset>"))'
       - name: Build Julia package deps
         uses: julia-actions/julia-buildpkg@v1
       - name: Debug R
@@ -72,6 +67,8 @@ jobs:
           echo "R_HOME=$(R RHOME)" >> $GITHUB_ENV
           echo "PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
           julia --project=. -e '
+              r_home = get(ENV, "R_HOME", "<unset>")
+              @info "Building RCall with ENV[\"R_HOME\"]=$r_home ..."
               using Pkg
               Pkg.add(
                   [Pkg.PackageSpec(name="RCall"), Pkg.PackageSpec(name="PyCall")],
