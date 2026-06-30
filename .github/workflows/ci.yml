@@ -52,7 +52,7 @@ jobs:
       #       ${{ runner.os }}-
       - name: Build Julia package deps
         uses: julia-actions/julia-buildpkg@v1
-      - name: PyCall (test deps)
+      - name: Build PyCall (a test dep)
         shell: bash
         # we explicitly build in case cached versions point to wrong R/python installations
         run: |
