@@ -72,6 +72,7 @@ jobs:
           echo "R_HOME=$(R RHOME)" >> $GITHUB_ENV
           echo "PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
           julia --project=. -e '
+              using Pkg
               Pkg.add(
                   [Pkg.PackageSpec(name="RCall"), Pkg.PackageSpec(name="PyCall")],
                   preserve=Pkg.PRESERVE_ALL,
