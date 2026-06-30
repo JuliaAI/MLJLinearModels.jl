@@ -59,7 +59,7 @@ jobs:
           echo "PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
           julia --project=. -e '
               python = get(ENV, "PYTHON", "<unset>")
-              @info "Building PyCall using ENV["PYTHON"]=$python"
+              @info "Building PyCall using ENV[\"PYTHON\"]=$python"
               using Pkg
               Pkg.add("PyCall", preserve=Pkg.PRESERVE_ALL)
               Pkg.build("PyCall")
