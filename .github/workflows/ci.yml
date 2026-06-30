@@ -69,9 +69,6 @@ jobs:
               using PyCall
               pyimport("sklearn.linear_model")
               '
-    
-          DO_COMPARISONS: "true"
-          LD_LIBRARY_PATH: ""
       - name: Run tests
         env:
           LD_LIBRARY_PATH: ""
