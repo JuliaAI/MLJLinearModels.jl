@@ -1,10 +1,17 @@
+# if needed, load previously computed results from R quantreg library:
+if DO_COMPARISONS
+    r_results = TOML.parsefile(joinpath(@__DIR__, "robust.toml"))
+end
+
 # Follow up from issue #147 comparing quantreg more specifically.
 
 if DO_COMPARISONS
     @testset "Comp-QR-147" begin
         using CSV, DataFrames, Downloads
 
-        dataset = CSV.read(Downloads.download("http://freakonometrics.free.fr/rent98_00.txt"), DataFrame)
+        url = "http://freakonometrics.free.fr/rent98_00.txt"
+        dataset = CSV.read(Downloads.download(url), DataFrame)
+
         tau     = 0.3
 
         y  = Vector(dataset[!,:rent_euro])
@@ -18,11 +25,11 @@ if DO_COMPARISONS
         @test isapprox(obj(θ_lbfgs), 226_639, rtol=1e-4)
 
         # in this case QR with BR method does better
-        θ_qr_br = rcopy(getproperty(QUANTREG, :rq_fit_br)(X1, y; tau=tau))[:coefficients]
+        θ_qr_br = r_results["θ_qr_br"]
         @test isapprox(obj(θ_qr_br), 207_551, rtol=1e-4)
 
         # lasso doesn't
-        θ_qr_lasso = rcopy(getproperty(QUANTREG, :rq_fit_lasso)(X1, y; tau=tau))[:coefficients]
+        θ_qr_lasso = r_results["θ_qr_lasso"]
         obj(θ_qr_lasso) # 229_172
         @test 228_000 ≤ obj(θ_qr_lasso) ≤ 231_000
     end

@@ -1,5 +1,15 @@
 const R = MLJLinearModels
 
+""" serialize a named tuple to a TOML file """
+function write_to_TOML(filename, named_tuple)
+    dict = map(collect(pairs(named_tuple))) do (key, val)
+        string(key) => val
+    end |> Dict
+    open(filename, "w") do io
+           TOML.print(io, dict)
+    end
+end
+
 m(s, p=true) = println("\n== $s ==" * ifelse(p, "\n", ""))
 mm(s) = println("\n > $s < \n")
 

@@ -6,29 +6,22 @@
 const DO_COMPARISONS = get(ENV, "DO_COMPARISONS", "true") == "true"
 
 if DO_COMPARISONS
-    r_home = get(ENV, "R_HOME", "<unset>")
     python  = get(ENV, "PYTHON", "<unset>")
     @info """
 
-          Running comparisons with R and python models.
+          Running comparisons with python models.
           Run `ENV["DO_COMPARISONS"] = "false"` to suppress these.
 
-          These comparisons may fail unless:
+          These comparisons may fail unless ENV["PYTHON"] points a python installation
+          that includes the sklearn library (currently set to $python).
 
-          - ENV["R_HOME"] points an R installation that includes the quantreg library
-            (currently set to $r_home).
-
-          - ENV["PYTHON"] points a python installation that includes the sklearn library
-            (currently set to $python).
-
-          You may need to explicitly rebuild RCall and PyCall after changing these paths.
+          You may need to explicitly rebuild PyCall after changing these paths.
 
           Attention maintainers of MLJLinearModels:
 
-          In the GitHub testing workflow be sure `PyCall` and `RCall` are explicitly added
+          In the GitHub testing workflow be sure `PyCall` are explicitly added
           to the load path and built with a valid ENV before julia-runtest is
-          executed. Otherwise, julia-actions/cache may be caching invalid builds of those
-          packages.
+          executed. Otherwise, julia-actions/cache may be caching invalid builds.
 
           """
 else @info """
@@ -39,17 +32,12 @@ else @info """
            """
 end
 
-if DO_COMPARISONS
-    using PyCall
-    using RCall
-end
-
 SKLEARN_LM = nothing
 PY_RND     = nothing
 if DO_COMPARISONS
+    using PyCall
     SKLEARN_LM = pyimport("sklearn.linear_model")
     PY_RND     = pyimport("random")
-    QUANTREG   = rimport("quantreg")
 end
 
 
@@ -59,6 +47,7 @@ using MLJLinearModels, Test, LinearAlgebra
 using Random, StableRNGs, DataFrames, ForwardDiff
 import Optim
 import MLJ, MLJBase
+using TOML
 
 include("testutils.jl")
 
