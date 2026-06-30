@@ -65,7 +65,7 @@ jobs:
         shell: bash
         # we explicitly build in case cached versions point to wrong R/python installations
         run: |
-          echo "R_HOME=$(${{ steps.setup-r.outputs.r-path }} -s -e 'cat(R.home())')" >> $GITHUB_ENV
+          echo "R_HOME=$(R RHOME)" >> "$GITHUB_ENV"
           echo "PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
           julia --project=. -e '
               r_home = get(ENV, "R_HOME", "<unset>")
@@ -76,7 +76,10 @@ jobs:
                   preserve=Pkg.PRESERVE_ALL,
               )
               Pkg.build("RCall")
-              Pkg.build("PyCall")'
+              Pkg.build("PyCall")
+              using RCall
+              rimport("quantreg")
+              '
       - uses: julia-actions/julia-runtest@v1
         env:
           DO_COMPARISONS: "true"
