@@ -27,6 +27,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
       - name: Set up python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -64,6 +65,7 @@ jobs:
               Pkg.add("PyCall", preserve=Pkg.PRESERVE_ALL)
               Pkg.build("PyCall")
               # test sklearn can be found
+              using PyCall
               pyimport("sklearn.linear_model")
               '
       - uses: julia-actions/julia-runtest@v1
