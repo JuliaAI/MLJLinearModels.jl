@@ -62,6 +62,7 @@ jobs:
           echo "R_HOME=$R_HOME"
           find ~/.julia -name libR
       - name: Build RCall and PyCall (test deps)
+        shell: bash
         # we explicitly build in case cached versions point to wrong R/python installations
         run: |
           R_BIN = "${{ steps.setup-r.outputs.r-path }}"
