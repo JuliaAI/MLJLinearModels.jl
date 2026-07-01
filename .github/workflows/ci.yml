@@ -17,13 +17,12 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - 'lts'
-          - '1.11'
           - '1'
         os:
           - ubuntu-latest
+          - macOS-latest
         arch:
-          - x64
+          - default
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
