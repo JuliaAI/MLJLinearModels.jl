@@ -1,9 +1,55 @@
+# # LOGIC AND MESSAGING FOR HANDLING COMPARISONS WITH R AND PYTHON
+
+# tests and benchmarks requiring the R and python models are suppressed when
+# `DO_COMPARISONS == false`.
+
+const DO_COMPARISONS = get(ENV, "DO_COMPARISONS", "false") == "true"
+
+if DO_COMPARISONS
+    python  = get(ENV, "PYTHON", "<unset>")
+    @info """
+
+          Running comparisons with python models.
+          Run `ENV["DO_COMPARISONS"] = "false"` to suppress these.
+
+          These comparisons may fail unless ENV["PYTHON"] points a python installation
+          that includes the sklearn library (currently set to $python).
+
+          You may need to explicitly rebuild PyCall after changing the environment.
+
+          Attention maintainers of MLJLinearModels:
+
+          It can happen, in GitHub CI, that julia-actions/cache will remember a PyCall
+          build bound to the wrong path, despite a correct value of PYTHON being set. In
+          that case you may need to explicitly build PyCall just before the
+          `julia-actions/runtest action.
+
+          """
+else @info """
+
+           Excluding comparisons with R and python models.  Run `ENV["DO_COMPARISONS"] =
+           "true"` to re-instate these.
+
+           """
+end
+
+SKLEARN_LM = nothing
+PY_RND     = nothing
+if DO_COMPARISONS
+    using PyCall
+    SKLEARN_LM = pyimport("sklearn.linear_model")
+    PY_RND     = pyimport("random")
+end
+
+
+# # TESTS
+
 using MLJLinearModels, Test, LinearAlgebra
 using Random, StableRNGs, DataFrames, ForwardDiff
 import Optim
 import MLJ, MLJBase
+using TOML
 
-DO_COMPARISONS = true
 include("testutils.jl")
 
 m("UTILS"); include("utils.jl")

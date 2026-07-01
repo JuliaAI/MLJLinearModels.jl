@@ -1,14 +1,13 @@
 const R = MLJLinearModels
-const CI = get(ENV, "CI", "false") == "true"
 
-DO_COMPARISONS = DO_COMPARISONS && !CI
-DO_COMPARISONS && (using PyCall; using RCall)
-SKLEARN_LM = nothing
-PY_RND     = nothing
-if DO_COMPARISONS
-    SKLEARN_LM = pyimport("sklearn.linear_model")
-    PY_RND     = pyimport("random")
-    QUANTREG   = rimport("quantreg")
+""" serialize a named tuple to a TOML file """
+function write_to_TOML(filename, named_tuple)
+    dict = map(collect(pairs(named_tuple))) do (key, val)
+        string(key) => val
+    end |> Dict
+    open(filename, "w") do io
+           TOML.print(io, dict)
+    end
 end
 
 m(s, p=true) = println("\n== $s ==" * ifelse(p, "\n", ""))

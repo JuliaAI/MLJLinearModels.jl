@@ -1,5 +1,17 @@
 [deps]
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+IterativeSolvers = "42fd0dbc-a981-5370-80f2-aaf504508153"
+LinearMaps = "7a12625a-238d-50fd-b39a-03d52299707e"
+MLJModelInterface = "e80e1ace-859a-464e-9ed9-23947d8ae3ea"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 
 [compat]
-Documenter = "^0.24"
+DocStringExtensions = "0.9.5"
+IterativeSolvers = "0.9.4"
+LinearMaps = "3.11.4"
+MLJModelInterface = "1.12.0"
+Documenter = "1.15.0"
+Optim = "1.13.2"
+Parameters = "0.12.3"
