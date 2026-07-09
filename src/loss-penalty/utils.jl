@@ -19,6 +19,26 @@ getscale_l2(p2::L2R) = p2 |> getscale
 getscale_l2(cp::CompositePenalty) = is_elnet(cp) ? cp |> get_l2 |> getscale :
                                                    @error "Case not implemented."
 
-get_penalty_scale(glr, n) = getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, float(n), 1.0)
-get_penalty_scale_l2(glr, n) = getscale_l2(glr.penalty) * ifelse(glr.scale_penalty_with_samples, float(n), 1.0)
-get_penalty_scale_l1(glr, n) = getscale_l1(glr.penalty) * ifelse(glr.scale_penalty_with_samples, float(n), 1.0)
+function get_penalty_scale(::Type{T}, glr, n) where {T<:Real}
+    return getscale(glr.penalty) * ifelse(glr.scale_penalty_with_samples, T(n), T(1.0))
+end
+
+function get_penalty_scale(glr, n)
+    return get_penalty_scale(eltype(getscale(glr.penalty)), glr, n)
+end
+
+function get_penalty_scale_l2(::Type(T), glr, n) where {T<:Real}
+    return T(getscale_l2(glr.penalty)) * ifelse(glr.scale_penalty_with_samples, T(n), T(1.0))
+end
+
+function get_penalty_scale_l2(glr, n)
+    return get_penalty_scale_l2(eltype(getscale(glr.penalty)), glr, n)
+end
+
+function get_penalty_scale_l1(::Type{T}, glr, n) where {T<:Real}
+    return getscale_l1(glr.penalty) * ifelse(glr.scale_penalty_with_samples, T(n), T(1.0))
+end
+
+function get_penalty_scale_l1(glr, n)
+    return return get_penalty_scale_l1(eltype(getscale(glr.penalty)), glr, n)
+end

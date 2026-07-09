@@ -1,5 +1,5 @@
-function _fit(glr::GLR{RobustLoss{ρ},<:L2R}, solver::IWLSCG, X, y, scratch
-              ) where {ρ}
+function _fit(::Type{T}, glr::GLR{RobustLoss{ρ},<:L2R}, solver::IWLSCG, X, y, scratch
+              ) where {ρ, T<:Real}
     n,p,_ = npc(scratch)
     _Mv! = Mv!(glr, X, y, scratch; threshold=solver.threshold)
     κ    = solver.damping # between 0 and 1, 1 = fully take the new iteration
@@ -33,4 +33,9 @@ function _fit(glr::GLR{RobustLoss{ρ},<:L2R}, solver::IWLSCG, X, y, scratch
     tol ≤ solver.tol ||
         @warn "IWLS did not converge in $(solver.max_iter) iterations."
     return θ
+end
+
+function _fit(glr::GLR{RobustLoss{ρ},<:L2R},
+    solver::IWLSCG, X, y, scratch) where {ρ}
+    return _fit(eltype(X), glr, solver, X, y, scratch)
 end

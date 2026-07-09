@@ -127,12 +127,12 @@ Proximal Gradient solver for non-smooth objective functions.
                backtracking step
 * `beta`: rate of shrinkage in the backtracking step (between 0 and 1)
 """
-@with_kw struct ProxGrad <: Solver
+@with_kw struct ProxGrad{T<:Real} <: Solver
     accel::Bool    = false # use Nesterov style acceleration (see also FISTA)
     max_iter::Int  = 1000  # max number of overall iterations
-    tol::Float64   = 1e-4  # tol relative change of θ i.e. norm(θ-θ_)/norm(θ)
+    tol::T   = 1e-4  # tol relative change of θ i.e. norm(θ-θ_)/norm(θ)
     max_inner::Int = 100   # β^max_inner should be > 1e-10
-    beta::Float64  = 0.8   # in (0, 1); shrinkage in the backtracking step
+    beta::T  = 0.8   # in (0, 1); shrinkage in the backtracking step
     gram::Bool = false     # use precomputed Gramian for lsq where possible
 end
 
@@ -156,12 +156,12 @@ computations.
 * `damping` (Float64): how much to trust iterates (1=full trust)
 * `threshold` (Float64): threshold for the residuals
 """
-@with_kw struct IWLSCG <: Solver
+@with_kw struct IWLSCG{T<:Real} <: Solver
     max_iter::Int      = 100
     max_inner::Int     = 200
-    tol::Float64       = 1e-4
-    damping::Float64   = 1.0   # should be between 0 and 1, 1 = trust iterates
-    threshold::Float64 = 1e-6  # thresh for residuals; used eg in quantile reg
+    tol::T       = 1e-4
+    damping::T   = 1.0   # should be between 0 and 1, 1 = trust iterates
+    threshold::T = 1e-6  # thresh for residuals; used eg in quantile reg
 end
 
 # ===================== admm.jl

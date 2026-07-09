@@ -27,18 +27,34 @@ $SIGNATURES
 Return a function computing the smooth part of the objective at a given
 evaluation point `θ`.
 """
-smooth_objective(glr::GLR, X, y; c::Int=0) =
-    θ -> smooth_objective(glr, size(X, 1))(y, apply_X(X, θ, c), view_θ(glr, θ))
+function smooth_objective(::Type{T}, glr::GLR, X, y; c::Int=0) where {T<:Real}
+    θ -> smooth_objective(T, glr, size(X, 1))(y, apply_X(X, θ, c), view_θ(glr, θ))
+end
+
+function smooth_objective(glr::GLR, X, y; c::Int=0)
+    return smooth_objective(eltype(X), glr, X, y; c=c)
+end
 
 """
 $SIGNATURES
 
 Return the smooth part of the objective function of a GLR.
 """
-smooth_objective(glr::GLR{<:SmoothLoss,<:ENR}, n) = glr.loss + get_l2(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.)
+function smooth_objective(::Type{T}, glr::GLR{<:SmoothLoss,<:ENR}, n) where {T<:Real}
+    return glr.loss + get_l2(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, T(1.))
+end
 
-smooth_gram_objective(glr::GLR{<:SmoothLoss,<:ENR}, XX, Xy, n) =
-    θ -> (θ'*XX*θ)/2 - (θ'*Xy) + (get_l2(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.))(θ)
+function smooth_objective(glr::GLR{<:SmoothLoss,<:ENR}, n)
+    return smooth_objective(eltype(getscale(glr.penaly)), glr, n)
+end
+
+function smooth_gram_objective(::Type{T}, glr::GLR{<:SmoothLoss,<:ENR}, XX, Xy, n) where {T<:Real}
+    return θ -> (θ'*XX*θ)/T(2) - (θ'*Xy) + (get_l2(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, T(1.0)))(θ)
+end
+
+function smooth_gram_objective(glr::GLR{<:SmoothLoss,<:ENR}, XX, Xy, n)
+    return smooth_gram_objective(eltype(XX), glr, XX, Xy, n)
+end
 
 smooth_objective(::GLR) = @error "Case not implemented yet."
 

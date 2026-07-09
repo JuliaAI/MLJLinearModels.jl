@@ -12,21 +12,21 @@
 # * Hv! used in iterative solution
 # ---------------------------------------------------------
 
-function Hv!(glr::GLR{L2Loss,<:L2R}, X, y, scratch)
+function Hv!(::Type{T}, glr::GLR{L2Loss,<:L2R}, X, y, scratch) where {T<:Real}
     n, p = size(X)
     λ    = get_penalty_scale(glr, n)
     if glr.fit_intercept
         # H = [X 1]'[X 1] + λ I
         # rows a 1:p = [X'X + λI | X'1]
         # row  e end = [1'X      | n+λι] where ι is 1 if glr.penalize_intercept
-        ι = float(glr.penalize_intercept)
+        ι = T(glr.penalize_intercept)
         (Hv, v) -> begin
             # view on the first p rows
             a     = 1:p
             Hvₐ   = view(Hv, a)
             vₐ    = view(v,  a)
             Xt1   = view(scratch.p, a)
-            Xt1 .*= 0
+            Xt1 .*= T(0)
             @inbounds for i in a, j in 1:n
                 Xt1[i] += X[j, i]           # -- X'1
             end
@@ -47,6 +47,10 @@ function Hv!(glr::GLR{L2Loss,<:L2R}, X, y, scratch)
             Hv .+= λ .* v        # -- X'Xv + λv
         end
     end
+end
+
+function Hv!(glr::GLR{L2Loss,<:L2R}, X, y, scratch)
+    return Hv!(eltype(X), glr, X, y, scratch)
 end
 
 # ----------------------------- #

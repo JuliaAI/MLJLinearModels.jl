@@ -11,8 +11,8 @@
 # -> ∇²f(θ) = X'Λ(r)X + λI
 # ---------------------------------------------------------
 
-function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch
-              ) where ρ <: RobustRho1P{δ} where δ
+function fgh!(::Type{T}, glr::GLR{RobustLoss{ρ},<:L2R},
+    X, y, scratch) where {T<:Real, ρ<:RobustRho1P{δ}} where δ
     n, p = size(X)
     λ    = get_penalty_scale(glr, n)
     ψ_   = ψ(ρ)
@@ -53,7 +53,7 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch
             r = scratch.n
             get_residuals!(r, X, θ, y)
             w = scratch.n2
-            w .= convert.(Float64, abs.(r) .<= δ)
+            w .= convert.(T, abs.(r) .<= δ)
             # gradient via ψ function
             g === nothing || begin
                 ψr  = scratch.n3
@@ -68,9 +68,13 @@ function fgh!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch
     end
 end
 
+function fgh!(glr::GLR{RobustLoss{ρ},<:L2R},
+    X, y, scratch) where {ρ<:RobustRho1P{δ}} where δ
+    return fgh!(eltype(X), glr, X, y, scratch)
+end
 
-function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch
-             ) where ρ <: RobustRho1P{δ} where δ
+function Hv!(::Type{T}, glr::GLR{RobustLoss{ρ},<:L2R},
+    X, y, scratch) where {T<:Real, ρ<:RobustRho1P{δ}} where δ
     n, p = size(X)
     λ    = get_penalty_scale(glr, n)
     ϕ_   = ϕ(ρ)
@@ -80,7 +84,7 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch
             r  = scratch.n
             get_residuals!(r, X, θ, y)
             w  = scratch.n2
-            w .= convert.(Float64, abs.(r) .<= δ)
+            w .= convert.(T, abs.(r) .<= δ)
             w .= ϕ_.(r, w)
             # views on first p rows (intercept row treated after)
             a    = 1:p
@@ -103,7 +107,7 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch
             r  = scratch.n
             get_residuals!(r, X, θ, y)
             w  = scratch.n2
-            w .= convert.(Float64, abs.(r) .<= δ)
+            w .= convert.(T, abs.(r) .<= δ)
             w .= ϕ_.(r, w)
             t  = scratch.n3
             apply_X!(t, X, v)
@@ -114,10 +118,14 @@ function Hv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch
     end
 end
 
+function Hv!(glr::GLR{RobustLoss{ρ},<:L2R},
+    X, y, scratch) where {ρ<:RobustRho1P{δ}} where δ
+    return Hv!(eltype(X), glr, X, y, scratch)
+end
 
 # For IWLS
-function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch;
-             threshold=1e-6) where ρ <: RobustRho1P{δ} where δ
+function Mv!(::Type{T}, glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch;
+    threshold=T(1e-6)) where {T<:Real, ρ<:RobustRho1P{δ}} where δ
     n, p = size(X)
     λ    = get_penalty_scale(glr, n)
     ω_   = ω(ρ, threshold)
@@ -128,7 +136,7 @@ function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch;
         r   = scratch.n
         get_residuals!(r, X, θ, y)
         w   = scratch.n2
-        w  .= convert.(Float64, abs.(r) .<= δ)
+        w  .= convert.(T, abs.(r) .<= δ)
         # ω = ψ(r)/r ; weighing factor for IWLS
         ωr .= ω_.(r, w)
         # function defining the application of (X'ΛX + λI)
@@ -162,11 +170,17 @@ function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch;
     end
 end
 
+function Mv!(glr::GLR{RobustLoss{ρ},<:L2R}, X, y, scratch;
+    threshold=1e-6) where {ρ<:RobustRho1P{δ}} where δ
+    T = eltype(X)
+    return Mv!(T, glr, X, y, scratch; threshold=T(threshold))
+end
+
 
 # this is a bit of an abuse in that in some cases the ρ is not everywhere
 # differentiable
-function smooth_fg!(glr::GLR{RobustLoss{ρ},<:ENR}, X, y, scratch
-                    ) where ρ <: RobustRho1P{δ} where δ
+function smooth_fg!(::Type{T}, glr::GLR{RobustLoss{ρ},<:ENR},
+    X, y, scratch) where {T<:Real, ρ<:RobustRho1P{δ}} where δ
     n, p = size(X)
     λ    = get_penalty_scale_l2(glr, n)
     ψ_   = ψ(ρ)
@@ -174,7 +188,7 @@ function smooth_fg!(glr::GLR{RobustLoss{ρ},<:ENR}, X, y, scratch
         r   = scratch.n
         get_residuals!(r, X, θ, y)
         w   = scratch.n2
-        w  .= convert.(Float64, abs.(r) .<= δ)
+        w  .= convert.(T, abs.(r) .<= δ)
         ψr  = scratch.n3
         ψr .= ψ_.(r, w)
         apply_Xt!(g, X, ψr)
@@ -182,4 +196,9 @@ function smooth_fg!(glr::GLR{RobustLoss{ρ},<:ENR}, X, y, scratch
         glr.fit_intercept && (glr.penalize_intercept || (g[end] -= λ * θ[end]))
         return glr.loss(r) + get_l2(glr.penalty)(view_θ(glr, θ))
     end
+end
+
+function smooth_fg!(glr::GLR{RobustLoss{ρ},<:ENR},
+    X, y, scratch) where {ρ<:RobustRho1P{δ}} where δ
+    return smooth_fg!(eltype(X), glr, X, y, scratch)
 end

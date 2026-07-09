@@ -44,9 +44,13 @@ $SIGNATURES
 
 Given a matrix `X`, append a column of ones if `fit_intercept` is true.
 """
-function augment_X(X::AbstractMatrix{<:Real}, fit_intercept::Bool)
+function augment_X(::Type{T}, X::AbstractMatrix{<:Real}, fit_intercept::Bool) where {T<:Real}
     fit_intercept || return X
-    return hcat(X, ones(eltype(X), size(X, 1)))
+    return hcat(X, ones(T, size(X, 1)))
+end
+
+function augment_X(X::AbstractMatrix{<:Real}, fit_intercept::Bool)
+    return augment_X(eltype(X), X, fit_intercept)
 end
 
 """
@@ -124,10 +128,10 @@ $SIGNATURES
 
 Form (X'X) while being memory aware (assuming p ≪ n).
 """
-function form_XtX(X, fit_intercept, lambda = 0, penalize_intercept = true)
+function form_XtX(::Type{T}, X, fit_intercept, lambda = 0, penalize_intercept = true) where {T<:Real}
     if fit_intercept
         n, p = size(X)
-        XtX  = zeros(p+1, p+1)
+        XtX  = zeros(T, p+1, p+1)
         Xt1  = sum(X, dims=1)
         mul!(view(XtX, 1:p, 1:p), X', X) # O(np²)
         @inbounds for i in 1:p
@@ -138,12 +142,16 @@ function form_XtX(X, fit_intercept, lambda = 0, penalize_intercept = true)
         XtX = X'*X # O(np²)
     end
     if !iszero(lambda)
-        λ = convert(eltype(XtX), lambda)
+        λ = convert(T, lambda)
         @inbounds for i in 1:size(XtX, 1) + fit_intercept * (penalize_intercept - 1)
             XtX[i,i] += λ
         end
     end
     return Hermitian(XtX)
+end
+
+function form_XtX(X, fit_intercept, lambda = 0, penalize_intercept = true)
+    return form_XtX(eltype(X), X, fit_intercept, lambda, penalize_intercept)
 end
 
 
