@@ -17,7 +17,7 @@ function _fit(glr::GLR{<:Union{LogisticLoss,RobustLoss},<:L2R},
     _,p,_ = npc(scratch)
     θ₀    = zeros(p)
     _fgh! = fgh!(glr, X, y, scratch)
-    opt   = Optim.only_fgh!(_fgh!)
+    opt   = NLSolversBase.only_fgh!(_fgh!)
     res   = Optim.optimize(opt, θ₀, Optim.Newton(; solver.newton_options...),
                            solver.optim_options)
     return Optim.minimizer(res)
@@ -39,10 +39,9 @@ function _fit(glr::GLR{<:Union{LogisticLoss,RobustLoss},<:L2R},
               solver::NewtonCG, X, y, scratch)
     _,p,_ = npc(scratch)
     θ₀    = zeros(p)
-    _f    = objective(glr, X, y)
-    _fg!  = (g, θ) -> fgh!(glr, X, y, scratch)(0.0, g, nothing, θ) # Optim#738
+    _fg!  = (f, g, θ) -> fgh!(glr, X, y, scratch)(f, g, nothing, θ)
     _Hv!  = Hv!(glr, X, y, scratch)
-    opt   = Optim.TwiceDifferentiableHV(_f, _fg!, _Hv!, θ₀)
+    opt   = NLSolversBase.only_fg_and_hvp!(_fg!, _Hv!)
     res   = Optim.optimize(opt, θ₀, Optim.KrylovTrustRegion(; solver.newtoncg_options...),
                            solver.optim_options)
     return Optim.minimizer(res)
@@ -63,7 +62,7 @@ function _fit(glr::GLR{<:Union{LogisticLoss,RobustLoss},<:L2R},
     _,p,_ = npc(scratch)
     θ₀    = zeros(p)
     _fg!  = (f, g, θ) -> fgh!(glr, X, y, scratch)(f, g, nothing, θ)
-    opt   = Optim.only_fg!(_fg!)
+    opt   = NLSolversBase.only_fg!(_fg!)
     res   = Optim.optimize(opt, θ₀, Optim.LBFGS(; solver.lbfgs_options...),
                            solver.optim_options)
     return Optim.minimizer(res)
@@ -89,10 +88,9 @@ function _fit(glr::GLR{<:MultinomialLoss,<:L2R}, solver::NewtonCG,
               X, y, scratch)
     _,p,c = npc(scratch)
     θ₀    = zeros(p * c)
-    _f    = objective(glr, X, y; c=c)
-    _fg!  = (g, θ) -> fg!(glr, X, y, scratch)(0.0, g, θ) # XXX: Optim.jl/738
+    _fg!  = fg!(glr, X, y, scratch)
     _Hv!  = Hv!(glr, X, y, scratch)
-    opt   = Optim.TwiceDifferentiableHV(_f, _fg!, _Hv!, θ₀)
+    opt   = NLSolversBase.only_fg_and_hvp!(_fg!, _Hv!)
     res   = Optim.optimize(opt, θ₀, Optim.KrylovTrustRegion(; solver.newtoncg_options...),
                            solver.optim_options)
     return Optim.minimizer(res)
@@ -114,7 +112,7 @@ function _fit(glr::GLR{<:MultinomialLoss,<:L2R}, solver::LBFGS,
     _,p,c = npc(scratch)
     θ₀    = zeros(p * c)
     _fg!  = fg!(glr, X, y, scratch)
-    opt   = Optim.only_fg!(_fg!)
+    opt   = NLSolversBase.only_fg!(_fg!)
     res   = Optim.optimize(opt, θ₀, Optim.LBFGS(; solver.lbfgs_options...),
                            solver.optim_options)
     return Optim.minimizer(res)
