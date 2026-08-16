@@ -1,12 +1,11 @@
 n, p = 500, 5
 ((X, y, θ), (X1, y1, θ1)) = generate_continuous(n, p; seed=525)
 
-# NOTE: in these cases, reference values are taken from fixed runs from sklearn.
-# The aim is that optima are "close enough" but they don't have to be identical
-# since the optimization methods are different
-# The reference J(θ) or J(θ1) is the objective at the generating θ; it should usually be >
-# these are tests that should be considered as "sanity check" and are not
-# stress tests testing corner cases.
+# NOTE: in these cases, reference values are taken from other optimizers (?).  The aim is
+# that optima are "close enough" but they don't have to be identical since the
+# optimization methods are different The reference J(θ) or J(θ1) is the objective at the
+# generating θ; it should usually be > these are tests that should be considered as
+# "sanity check" and are not stress tests testing corner cases.
 
 @testset "HuberReg" begin
     # No intercept
