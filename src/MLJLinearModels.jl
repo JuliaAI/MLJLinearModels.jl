@@ -4,7 +4,7 @@ using Parameters, DocStringExtensions
 using LinearAlgebra, IterativeSolvers
 import LinearMaps: LinearMap
 import IterativeSolvers: cg
-import Optim
+import NLSolversBase, Optim
 
 import MLJModelInterface
 
