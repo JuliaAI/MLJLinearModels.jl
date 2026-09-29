@@ -183,8 +183,17 @@ end
             @test f!(θ) == f(θ)
         end
         check_alloc || continue
-        fit(glr, X, t; solver=FISTA())
-        # no length-n allocation per iteration
-        @test (@allocated fit(glr, X, t; solver=FISTA())) < 10 * 8n
+        # no length-n allocation in an objective or gradient call
+        fg! = R.smooth_fg!(glr, X, t, s)
+        θ   = randn(r, p + Int(glr.fit_intercept))
+        g   = similar(θ)
+        f!(θ); fg!(g, θ)
+        @test (@allocated f!(θ)) < 8n
+        @test (@allocated fg!(g, θ)) < 8n
+        # a fit allocates the 3 length-n scratch vectors and nothing else of length n
+        for solver in (FISTA(), ISTA())
+            fit(glr, X, t; solver=solver)
+            @test (@allocated fit(glr, X, t; solver=solver)) < 4 * 8n
+        end
     end
 end
