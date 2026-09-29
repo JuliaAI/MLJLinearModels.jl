@@ -166,7 +166,8 @@ end
     n, p = 20_000, 10
     ((X, _, _), (_, y1, _)) = generate_continuous(n, p; seed=5)
     yb = sign.(y1)
-    # (model, target, check allocations); scaled elnet does not converge here
+    # (model, target, check allocations); scaled elnet does not converge here,
+    # see https://github.com/JuliaAI/MLJLinearModels.jl/issues/187
     for (glr, t, check_alloc) in (
             (LassoRegression(0.5), y1, true),
             (LassoRegression(0.5; fit_intercept=false), y1, true),
