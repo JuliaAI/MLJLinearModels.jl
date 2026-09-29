@@ -161,3 +161,40 @@ end
     @test isapprox(θ_fista, θ_gram_explicit, rtol=1e-5)
     @test isapprox(θ_gram_explicit, θ_gram_implicit; rtol=1e-5)
 end
+
+@testset "proxgrad in-place objective" begin
+    n, p = 20_000, 10
+    ((X, _, _), (_, y1, _)) = generate_continuous(n, p; seed=5)
+    yb = sign.(y1)
+    # (model, target, check allocations); scaled elnet does not converge here,
+    # see https://github.com/JuliaAI/MLJLinearModels.jl/issues/187
+    for (glr, t, check_alloc) in (
+            (LassoRegression(0.5), y1, true),
+            (LassoRegression(0.5; fit_intercept=false), y1, true),
+            (ElasticNetRegression(0.3, 0.5), y1, false),
+            (ElasticNetRegression(0.3, 0.5; scale_penalty_with_samples=false), y1, true),
+            (LogisticRegression(0.0, 0.2; penalty=:l1), yb, false),
+        )
+        s  = R.scratch(X; i=glr.fit_intercept)
+        f  = R.smooth_objective(glr, X, t)
+        f! = R.smooth_objective!(glr, X, t, s)
+        r  = StableRNG(1)
+        for _ in 1:5
+            θ = randn(r, p + Int(glr.fit_intercept))
+            @test f!(θ) == f(θ)
+        end
+        check_alloc || continue
+        # no length-n allocation in an objective or gradient call
+        fg! = R.smooth_fg!(glr, X, t, s)
+        θ   = randn(r, p + Int(glr.fit_intercept))
+        g   = similar(θ)
+        f!(θ); fg!(g, θ)
+        @test (@allocated f!(θ)) < 8n
+        @test (@allocated fg!(g, θ)) < 8n
+        # a fit allocates the 3 length-n scratch vectors and nothing else of length n
+        for solver in (FISTA(), ISTA())
+            fit(glr, X, t; solver=solver)
+            @test (@allocated fit(glr, X, t; solver=solver)) < 4 * 8n
+        end
+    end
+end
