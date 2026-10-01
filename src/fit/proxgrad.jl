@@ -21,6 +21,8 @@ function _fit(glr::GLR, solver::ProxGrad, X, y, scratch)
     # functions
     _f = if solver.gram
         smooth_gram_objective(glr, X, y, n)
+    elseif c == 0
+        smooth_objective!(glr, X, y, scratch)
     else
         smooth_objective(glr, X, y; c=c)
     end

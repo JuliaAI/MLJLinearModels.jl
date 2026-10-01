@@ -33,6 +33,19 @@ smooth_objective(glr::GLR, X, y; c::Int=0) =
 """
 $SIGNATURES
 
+Return a function computing the smooth part of the objective at a given
+evaluation point `θ`, as `smooth_objective(glr, X, y)` for a single-output
+model but writing `X*θ` in `scratch.n2`.
+"""
+function smooth_objective!(glr::GLR, X, y, scratch)
+    J  = smooth_objective(glr, size(X, 1))
+    Xθ = scratch.n2
+    return θ -> (apply_X!(Xθ, X, θ); J(y, Xθ, view_θ(glr, θ)))
+end
+
+"""
+$SIGNATURES
+
 Return the smooth part of the objective function of a GLR.
 """
 smooth_objective(glr::GLR{<:SmoothLoss,<:ENR}, n) = glr.loss + get_l2(glr.penalty) * ifelse(glr.scale_penalty_with_samples, n, 1.)

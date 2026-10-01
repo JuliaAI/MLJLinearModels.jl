@@ -69,9 +69,19 @@ function smooth_fg!(glr::GLR{L2Loss,<:ENR}, X, y, scratch)
         apply_Xt!(g, X, r)
         g .+= λ .* θ
         glr.fit_intercept && (glr.penalize_intercept || (g[end] -= λ * θ[end]))
-        return glr.loss(r) + get_l2(glr.penalty)(view_θ(glr, θ))
+        return l2loss!(r) + get_l2(glr.penalty)(view_θ(glr, θ))
     end
 end
+
+# residuals (Xθ-y) formed in scratch.n2, |y-Xθ|₂² = |Xθ-y|₂²
+function smooth_objective!(glr::GLR{L2Loss,<:ENR}, X, y, scratch)
+    J = smooth_objective(glr, size(X, 1))
+    r = scratch.n2
+    return θ -> (get_residuals!(r, X, θ, y); l2loss!(r) + J.penalty(view_θ(glr, θ)))
+end
+
+# L2Loss()(r) overwriting r; sums the squares as lp(r, 2) does so values match
+l2loss!(r) = sum(r .= abs2.(r)) / 2
 
 function smooth_gram_fg!(glr::GLR{L2Loss,<:ENR}, XX, Xy, n)
     λ = get_penalty_scale_l2(glr, n)
